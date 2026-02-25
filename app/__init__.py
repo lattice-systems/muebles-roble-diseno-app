@@ -39,6 +39,9 @@ def create_app():
     from .catalogs.roles import roles_bp
     app.register_blueprint(roles_bp, url_prefix='/roles')
 
+    from .catalogs.wood_types import woods_types_bp
+    app.register_blueprint(woods_types_bp, url_prefix='/wood-types')
+
     from .catalogs.unit_of_measures import unit_of_measures_bp
     app.register_blueprint(unit_of_measures_bp, url_prefix='/unit-of-measures')
 

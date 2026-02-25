@@ -1,0 +1,83 @@
+{% extends "base.html" %} {% block title %}Wood Types - Furniture Store{%
+endblock %} {% block content %}
+<style>
+  .roles-table {
+    border-collapse: collapse;
+  }
+
+  .roles-table th,
+  .roles-table td {
+    border: 1px solid #000;
+    padding: 5px;
+  }
+</style>
+<h1>Catálogo de Tipos de Madera</h1>
+
+<a href="{{ url_for('woods_types.create_wood_type') }}"
+  >Agregar nuevo tipo de madera</a
+>
+
+<h2>Lista de tipos de madera</h2>
+{% if wood_types %}
+<table class="roles-table" aria-label="Tabla del catálogo de tipos de madera">
+  <caption>
+    Tabla del catálogo de tipos de madera
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Nombre</th>
+      <th scope="col">Descripción</th>
+      <th scope="col">Activo</th>
+      <th scope="col">Creado</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for wood_type in wood_types %}
+    <tr>
+      <td>{{ wood_type.id_wood_type }}</td>
+      <td>{{ wood_type.name }}</td>
+      <td>{{ wood_type.description }}</td>
+      <td>{{ "Sí" if wood_type.active else "No" }}</td>
+      <td>
+        {{ wood_type.created_at.strftime('%Y-%m-%d %H:%M') if
+        wood_type.created_at else 'N/A' }}
+      </td>
+      <td>
+        <a
+          href="{{ url_for('woods_types.edit_wood_type', id_wood_type=wood_type.id_wood_type) }}"
+          >Editar</a
+        >
+        <form
+          method="POST"
+          action="{{ url_for('woods_types.delete_wood_type', id_wood_type=wood_type.id_wood_type) }}"
+          style="display: inline"
+          onsubmit="
+            return confirm(
+              '¿Estás seguro de que deseas eliminar este tipo de madera?',
+            );
+          "
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button
+            type="submit"
+            style="
+              color: red;
+              background: none;
+              border: none;
+              cursor: pointer;
+              text-decoration: underline;
+            "
+          >
+            Eliminar
+          </button>
+        </form>
+
+        {% endfor %}
+      </td>
+    </tr>
+  </tbody>
+</table>
+{% else %}
+<p>No hay tipos de madera registrados.</p>
+{% endif %} {% endblock %}

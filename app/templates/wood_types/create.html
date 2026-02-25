@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% block title %}Crear Rol - Furniture Store{%
+endblock %} {% block content %}
+<h1>Agregar nuevo tipo de madera</h1>
+
+<form method="POST" action="{{ url_for('woods_types.create_wood_type') }}">
+  {{ form.hidden_tag() }} {{ form.name.label }} {{ form.name(size=30) }} {% for
+  error in form.name.errors %}
+  <p style="color: red">{{ error }}</p>
+  {% endfor %} {{ form.description.label }} {{ form.description(size=50) }} {%
+  for error in form.description.errors %}
+  <p style="color: red">{{ error }}</p>
+  {% endfor %}
+  <button type="submit">Crear</button>
+</form>
+{% endblock %}

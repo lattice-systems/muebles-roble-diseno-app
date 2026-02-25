@@ -3,45 +3,61 @@
 {% block title %}Colores - Furniture Store{% endblock %}
 
 {% block content %}
-<style>
-    .colors-table {
-        border-collapse: collapse;
-    }
+    <style>
+        .colors-table {
+            border-collapse: collapse;
+        }
 
-    .colors-table th,
-    .colors-table td {
-        border: 1px solid #000;
-        padding: 5px;
-    }
-</style>
-<h1>Catálogo de Colores</h1>
+        .colors-table th,
+        .colors-table td {
+            border: 1px solid #000;
+            padding: 5px;
+        }
+    </style>
+    <h1>Catálogo de Colores</h1>
 
-<a href="{{ url_for('colors.create_color') }}">Agregar nuevo color</a>
+    <a href="{{ url_for('colors.create_color') }}">Agregar nuevo color</a>
 
-<h2>Lista de colores</h2>
-{% if colors %}
-<table class="colors-table" aria-label="Tabla del catálogo de colores">
-    <caption>Tabla del catálogo de colores</caption>
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Activo</th>
-            <th scope="col">Creado</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for color in colors %}
-        <tr>
-            <td>{{ color.id_color }}</td>
-            <td>{{ color.name }}</td>
-            <td>{{ "Sí" if color.active else "No" }}</td>
-            <td>{{ color.created_at.strftime('%Y-%m-%d %H:%M') if color.created_at else 'N/A' }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No hay colores registrados.</p>
-{% endif %}
+    <h2>Lista de colores</h2>
+    {% if colors %}
+        <table class="colors-table" aria-label="Tabla del catálogo de colores">
+            <caption>Tabla del catálogo de colores</caption>
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Activo</th>
+                <th scope="col">Creado</th>
+                <th scope="col">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for color in colors %}
+                <tr>
+                    <td>{{ color.id_color }}</td>
+                    <td>{{ color.name }}</td>
+                    <td>{{ "Sí" if color.active else "No" }}</td>
+                    <td>{{ color.created_at.strftime('%Y-%m-%d %H:%M') if color.created_at else 'N/A' }}</td>
+                    <td>
+                        <a href="{{ url_for('colors.edit_color', id_color=color.id_color) }}">Editar</a>
+                        <form method="POST"
+                              action="{{ url_for('colors.delete_color', id_color=color.id_color) }}"
+                              style="display:inline;"
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este rol?');">
+
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                            <button type="submit"
+                                    style="color: red; background: none; border: none; cursor: pointer; text-decoration: underline;">
+                                Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay colores registrados.</p>
+    {% endif %}
 {% endblock %}

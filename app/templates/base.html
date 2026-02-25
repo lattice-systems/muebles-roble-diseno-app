@@ -1,34 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Furniture Store{% endblock %}</title>
-</head>
-<body>
+  </head>
+  <body>
     <nav>
-        <a href="{{ url_for('colors.list_colors') }}">Colores</a> |
-        <a href="{{ url_for('colors.create_color') }}">Crear Color</a> |
-        <a href="{{ url_for('roles.list_roles') }}">Roles</a> |
-        <a href="{{ url_for('roles.create_role') }}">Crear Rol</a> |
-        <a href="{{ url_for('roles.edit_role', id_role=1) }}">Editar Rol</a> |
-        <a href="{{ url_for('unit_of_measures.list_unit_of_measures') }}">Unidades de Medida</a> |
-        <a href="{{ url_for('unit_of_measures.create_unit_of_measure') }}">Crear Unidad de Medida</a> |
-        <a href="{{ url_for('unit_of_measures.edit_unit_of_measure', id_unit_of_measure=1) }}">Editar Unidad de Medida</a> |
+      <a href="{{ url_for('colors.list_colors') }}">Colores</a> |
+      <a href="{{ url_for('colors.create_color') }}">Crear Color</a> |
+      <a href="{{ url_for('roles.list_roles') }}">Roles</a> |
+      <a href="{{ url_for('roles.create_role') }}">Crear Rol</a> |
+      <a href="{{ url_for('woods_types.list_wood_types') }}">Tipos de Madera</a> |
+      <a href="{{ url_for('woods_types.create_wood_type') }}">Crear Tipo de Madera</a> |
+      <a href="{{ url_for('unit_of_measures.list_unit_of_measures') }}">Unidades de Medida</a> |
+      <a href="{{ url_for('unit_of_measures.create_unit_of_measure') }}">Crear Unidad de Medida</a> |
     </nav>
-    <hr>
+    <hr />
     <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p role="alert" style="color: {{ 'green' if category == 'success' else 'red' }};">
-                        <strong>{{ 'Éxito:' if category == 'success' else 'Error:' }}</strong> {{ message }}
-                    </p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <p
+        role="alert"
+        style="color: {{ 'green' if category == 'success' else 'red' }};"
+      >
+        <strong>{{ 'Éxito:' if category == 'success' else 'Error:' }}</strong>
+        {{ message }}
+      </p>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
     </main>
-</body>
+  </body>
 </html>

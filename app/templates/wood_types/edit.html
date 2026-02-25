@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block title %}Editar Tipo de Madera{% endblock %}
+{% block content %}
+<h1>Editar Tipo de Madera</h1>
+<form
+  method="POST"
+  action="{{ url_for('woods_types.edit_wood_type', id_wood_type=wood_type.id_wood_type) }}"
+>
+  {{ form.hidden_tag() }}
+  <div>
+    {{ form.name.label }} {{ form.name(size=50) }} {% for error in
+    form.name.errors %}
+    <p style="color: red">{{ error }}</p>
+    {% endfor %}
+  </div>
+  <div>
+    {{ form.description.label }} {{ form.description(size=50) }} {% for error in
+    form.description.errors %}
+    <p style="color: red">{{ error }}</p>
+    {% endfor %}
+  </div>
+  <button type="submit">Actualizar</button>
+</form>
+{% endblock %}
