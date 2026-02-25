@@ -1,7 +1,7 @@
 """add unit_of_measures table
 
 Revision ID: c9f0b720f6c2
-Revises: 5aa5020316c5
+Revises: 6067bf0c7322
 Create Date: 2026-02-19 00:38:50.532762
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'c9f0b720f6c2'
-down_revision = '5aa5020316c5'
+down_revision = '6067bf0c7322'
 branch_labels = None
 depends_on = None
 
