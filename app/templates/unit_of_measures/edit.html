@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Unidad de Medida - Furniture Store{% endblock %}
+
+{% block content %}
+<h1>Editar unidad de medida: {{ unit_of_measure.name }}</h1>
+
+<form method="POST" action="{{ url_for('unit_of_measures.edit_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}">
+    {{ form.hidden_tag() }}
+
+    {{ form.name.label }}
+    {{ form.name(size=30) }}
+    {% for error in form.name.errors %}
+        <p style="color: red;">{{ error }}</p>
+    {% endfor %}
+
+    {{ form.abbreviation.label }}
+    {{ form.abbreviation(size=10) }}
+    {% for error in form.abbreviation.errors %}
+        <p style="color: red;">{{ error }}</p>
+    {% endfor %}
+
+    <button type="submit">Actualizar</button>
+    <a href="{{ url_for('unit_of_measures.list_unit_of_measures') }}">Cancelar</a>
+</form>
+
+{% endblock %}
