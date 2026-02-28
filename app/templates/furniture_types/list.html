@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Tipo de mueble - Furniture Store{% endblock %}
+
+{% block content %}
+<style>
+    .furniture_type-table {
+        border-collapse: collapse;
+    }
+
+    .furniture_type-table th,
+    .furniture_type-table td {
+        border: 1px solid #000;
+        padding: 5px;
+    }
+</style>
+<h1>Catálogo de Tipos de mueble</h1>
+
+<a href="{{ url_for('furniture_type.create_furniture_type') }}">Agregar nuevo tipo de mueble</a>
+
+<h2>Lista de tipos de mueble</h2>
+{% if furniture_types %}
+<table class="furniture_type-table" aria-label="Tabla del catálogo de tipos de mueble">
+    <caption>Tabla del catálogo de tipos de mueble</caption>
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Activo</th>
+            <th scope="col">Creado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for furniture_type in furniture_types %}
+        <tr>
+            <td>{{ furniture_type.id_furniture_type }}</td>
+            <td>{{ furniture_type.name }}</td>
+            <td>{{ "Sí" if furniture_type.active else "No" }}</td>
+            <td>{{ furniture_type.created_at.strftime('%Y-%m-%d %H:%M') if furniture_type.created_at else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay tipos de mueble registrados.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Tipos de Mueble - Furniture Store{% endblock %}
+
+{% block content %}
+<h1>Editar tipo de mueble: {{ furniture_type.name }}</h1>
+
+<form method="POST" action="{{ url_for('furniture_types.edit_furniture_type', id_furniture_type=furniture_type.id_furniture_type) }}">
+    {{ form.hidden_tag() }}
+
+    {{ form.name.label }}
+    {{ form.name(size=30) }}
+    {% for error in form.name.errors %}
+        <p style="color: red;">{{ error }}</p>
+    {% endfor %}
+
+    <button type="submit">Actualizar</button>
+    <a href="{{ url_for('furniture_types.list_furniture_types') }}">Cancelar</a>
+</form>
+{% endblock %}
