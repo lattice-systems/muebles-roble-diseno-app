@@ -1,6 +1,6 @@
-# Sistema de Gestión de Mueblería – Backend
+# Sistema de Gestión de Mueblería
 
-Backend desarrollado en **Flask** para la gestión del proceso productivo de una mueblería, permitiendo administrar:
+Aplicación desarrollado en **Flask** para la gestión del proceso productivo de una mueblería, permitiendo administrar:
 
 * Inventario de materia prima (madera e insumos)
 * Inventario de productos terminados (mesas, sillas, closets, etc.)
@@ -53,7 +53,7 @@ Python 3.10.11
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd backend-muebleria
+cd muebles-roble-diseno-app
 ```
 
 ---
@@ -135,7 +135,7 @@ pytest
 ## 📂 Estructura del Proyecto
 
 ```
-backend-furniture-store/
+muebles-roble-diseno-app/
 │
 ├── app/                          # Paquete principal de la aplicación
 │   ├── __init__.py               # Factory de la aplicación Flask (create_app)
@@ -284,4 +284,4 @@ Navegador Web
 Lattice Systems
 
 Ingeniería en Desarrollo y Gestión de Software
-Backend Developer – Sistema de Gestión de Mueblería
+Sistema de Gestión de Mueblería
