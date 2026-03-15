@@ -65,7 +65,7 @@ class FurnitureTypeService:
         Obtiene un tipo de mueble por su ID.
 
         Args:
-            id_, NotFoundError: Identificador del tipo de mueble.
+            id_furniture_type (int): Identificador del tipo de mueble.
 
         Returns:
             FurnitureType: Objeto del tipo de mueble encontrado.
