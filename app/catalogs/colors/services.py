@@ -21,7 +21,7 @@ class ColorService:
         Returns:
             list[Color]: Lista de objetos Color activos
         """
-        return Color.query.filter_by(active=True).all()
+        return Color.query.filter_by(status=True).all()
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -106,10 +106,10 @@ class ColorService:
         name = name.strip()
 
         existing = (
-                db.session.query(Color.id_color)
-                .filter(func.lower(Color.name) == name.lower(), Color.id_color != id_color)
-                .first()
-                is not None
+            db.session.query(Color.id)
+            .filter(func.lower(Color.name) == name.lower(), Color.id != id_color)
+            .first()
+            is not None
         )
 
         if existing:
@@ -138,7 +138,6 @@ class ColorService:
         """
         color = ColorService.get_by_id(id_color)
 
-        color.active = False
-        color.deleted_at = func.current_timestamp()
+        color.status = False
 
         db.session.commit()

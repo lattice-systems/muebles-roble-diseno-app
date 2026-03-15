@@ -3,7 +3,6 @@ Servicios de lógica de negocio para tipo de mueble.
 """
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import func
 
 from app.extensions import db
 from app.models.furniture_type import FurnitureType
@@ -21,7 +20,7 @@ class FurnitureTypeService:
         Returns:
             list[FurnitureType]: Lista de objetos FurnitureType activos
         """
-        return FurnitureType.query.filter_by(active=True).all()
+        return FurnitureType.query.filter_by(status=True).all()
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -64,19 +63,21 @@ class FurnitureTypeService:
     def get_by_id(id_furniture_type: int) -> FurnitureType:
         """
         Obtiene un tipo de mueble por su ID.
-        
+
         Args:
-            id_, NotFoundError: Identificador del tipo de mueble.
-            
+            id_furniture_type (int): Identificador del tipo de mueble.
+
         Returns:
             FurnitureType: Objeto del tipo de mueble encontrado.
-            
+
         Raises:
             NotFoundError: Si el tipo de mueble no existe.
         """
         furniture_type = FurnitureType.query.get(id_furniture_type)
         if not furniture_type:
-            raise NotFoundError(f"No se encontró el tipo de mueble con ID {id_furniture_type}")
+            raise NotFoundError(
+                f"No se encontró el tipo de mueble con ID {id_furniture_type}"
+            )
         return furniture_type
 
     @staticmethod
@@ -105,7 +106,9 @@ class FurnitureTypeService:
         name = name.strip()
 
         # Verificar si existe OTRO tipo de mueble diferente que ya tenga este nombre
-        existing = FurnitureType.query.filter(FurnitureType.name == name, FurnitureType.id_furniture_type != id_furniture_type).first()
+        existing = FurnitureType.query.filter(
+            FurnitureType.name == name, FurnitureType.id != id_furniture_type
+        ).first()
         if existing:
             raise ConflictError(f"Ya existe un tipo de mueble con el nombre '{name}'")
 
@@ -115,7 +118,9 @@ class FurnitureTypeService:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            raise ConflictError(f"Error de integridad al actualizar el tipo de mueble '{name}'")
+            raise ConflictError(
+                f"Error de integridad al actualizar el tipo de mueble '{name}'"
+            )
 
         return furniture_type.to_dict()
 
@@ -124,8 +129,8 @@ class FurnitureTypeService:
         """
         Realiza una eliminación lógica (Soft Delete) de un tipo de mueble.
 
-        Marca el tipo de mueble como inactivo y establece la fecha de eliminación.
-        No elimina el registro de la base de datos.
+        Marca el tipo de mueble como inactivo mediante el campo ``status``.
+        No elimina físicamente el registro de la base de datos.
 
         Args:
             id_furniture_type: Identificador del tipo de mueble a eliminar.
@@ -137,7 +142,6 @@ class FurnitureTypeService:
         furniture_type = FurnitureTypeService.get_by_id(id_furniture_type)
 
         # Aplicamos el Soft Delete
-        furniture_type.active = False
-        furniture_type.deleted_at = func.current_timestamp()
+        furniture_type.status = False
 
         db.session.commit()

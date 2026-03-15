@@ -3,7 +3,6 @@ Servicios de lógica de negocio para unidades de medida.
 """
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import func
 
 from app.extensions import db
 from app.models.unit_of_measure import UnitOfMeasure
@@ -21,8 +20,8 @@ class UnitOfMeasureService:
         Returns:
             list[UnitOfMeasure]: Lista de objetos UnitOfMeasure activos
         """
-        return UnitOfMeasure.query.filter_by(active=True).all()
-    
+        return UnitOfMeasure.query.filter_by(status=True).all()
+
     @staticmethod
     def create(data: dict) -> dict:
         """
@@ -38,30 +37,33 @@ class UnitOfMeasureService:
             ValidationError: Si los datos proporcionados no son válidos
             ConflictError: Si ya existe una unidad de medida con el mismo nombre
         """
-        name = data.get("name", "").strip() 
-        abbreviation = data.get("abbreviation", "").strip() 
-        active = data.get("active", True) 
+        name = data.get("name", "").strip()
+        abbreviation = data.get("abbreviation", "").strip()
+        active = data.get("active", True)
         if not name:
             raise ValidationError("El nombre de la unidad de medida es requerido")
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
-        existing = UnitOfMeasure.query.filter(func.lower(UnitOfMeasure.name) == func.lower(name)).first()
+        existing = UnitOfMeasure.query.filter(
+            func.lower(UnitOfMeasure.name) == func.lower(name)
+        ).first()
         if existing:
-            raise ConflictError(f"Ya existe una unidad de medida con el nombre '{name}'")
+            raise ConflictError(
+                f"Ya existe una unidad de medida con el nombre '{name}'"
+            )
         unit_of_measure = UnitOfMeasure(
-            name=name,
-            abbreviation=abbreviation,
-            active=active
+            name=name, abbreviation=abbreviation, status=active
         )
         db.session.add(unit_of_measure)
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            raise ConflictError("Ocurrió un error al crear la unidad de medida. Intente nuevamente.")
+            raise ConflictError(
+                "Ocurrió un error al crear la unidad de medida. Intente nuevamente."
+            )
         return unit_of_measure.to_dict()
-    
-    
+
     @staticmethod
     def get_by_id(id_unit_of_measure: int) -> UnitOfMeasure:
         """
@@ -99,37 +101,40 @@ class UnitOfMeasureService:
             NotFoundError: Si no se encuentra la unidad de medida con el identificador dado
         """
         unit_of_measure = UnitOfMeasureService.get_by_id(id_unit_of_measure)
-        
-        name = data.get("name", "").strip() 
-        abbreviation = data.get("abbreviation", "").strip() 
-        
+
+        name = data.get("name", "").strip()
+        abbreviation = data.get("abbreviation", "").strip()
 
         if not name:
             raise ValidationError("El nombre de la unidad de medida es requerido")
-        
+
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
 
         existing = UnitOfMeasure.query.filter(
             func.lower(UnitOfMeasure.name) == func.lower(name),
-            UnitOfMeasure.id_unit_of_measure != id_unit_of_measure  # Excluir la unidad actual del chequeo
+            UnitOfMeasure.id
+            != id_unit_of_measure,  # Excluir la unidad actual del chequeo
         ).first()
-        
+
         if existing:
-            raise ConflictError(f"Ya existe una unidad de medida con el nombre '{name}'")
+            raise ConflictError(
+                f"Ya existe una unidad de medida con el nombre '{name}'"
+            )
 
         unit_of_measure.name = name
         unit_of_measure.abbreviation = abbreviation
-        
 
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            raise ConflictError("Ocurrió un error al actualizar la unidad de medida. Intente nuevamente.")
+            raise ConflictError(
+                "Ocurrió un error al actualizar la unidad de medida. Intente nuevamente."
+            )
 
         return unit_of_measure.to_dict()
-    
+
     @staticmethod
     def delete(id_unit_of_measure: int) -> None:
         """
@@ -142,8 +147,7 @@ class UnitOfMeasureService:
             NotFoundError: Si no se encuentra la unidad de medida con el identificador dado
         """
         unit_of_measure = UnitOfMeasureService.get_by_id(id_unit_of_measure)
-        
-        unit_of_measure.active = False
-        unit_of_measure.deleted_at = func.current_timestamp()
+
+        unit_of_measure.status = False
 
         db.session.commit()
