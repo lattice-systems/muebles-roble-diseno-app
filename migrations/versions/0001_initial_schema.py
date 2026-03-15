@@ -3,6 +3,36 @@
 Revision ID: 0001_initial_schema
 Revises:
 Create Date: 2026-03-15 08:18:00
+
+Migration reset / upgrade notes
+--------------------------------
+This revision is intended to serve as the new base ("initial") schema.
+Earlier Alembic revision files have been removed or consolidated.
+
+For **new** environments:
+    - You can run the usual migration workflow, for example:
+        flask db upgrade
+
+For **existing** environments that were created using the old revisions:
+    - If the live database schema is already equivalent to this initial
+      schema, you should realign Alembic's version table by running:
+
+        flask db stamp 0001_initial_schema
+
+      This will mark the current database as being at revision
+      ``0001_initial_schema`` without applying any schema changes.
+
+    - If the schema has drifted or does not match this migration, you
+      should follow your project's documented rebuild/backup procedure,
+      for example:
+        1. Take a full backup of the existing database.
+        2. Drop and recreate the schema or a new database.
+        3. Run ``flask db upgrade`` to apply migrations from this
+           new base revision.
+        4. Restore or migrate data as appropriate.
+
+Ensure these steps are followed in staging before applying them to
+production to avoid data loss.
 """
 
 from alembic import op
