@@ -5,8 +5,8 @@ Servicios de lógica de negocio para tipos de madera.
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.exceptions import ConflictError, NotFoundError, ValidationError
-from app.models.role import Role
 from app.models.wood_type import WoodType
+
 
 class WoodTypeService:
     """Servicio para operaciones de negocio relacionadas con tipos de madera."""
@@ -19,7 +19,7 @@ class WoodTypeService:
         Returns:
             list[WoodType]: Lista de objetos WoodType activos
         """
-        return WoodType.query.filter_by(active=True).all()
+        return WoodType.query.filter_by(status=True).all()
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -37,7 +37,7 @@ class WoodTypeService:
             ConflictError: Si ya existe un tipo de madera con el mismo nombre
         """
         name = data.get("name")
-        description = data.get("description")   
+        description = data.get("description")
 
         if not name or not name.strip():
             raise ValidationError("El nombre del tipo de madera es requerido")
@@ -63,20 +63,22 @@ class WoodTypeService:
     def get_by_id(id_wood_type: int) -> WoodType:
         """
         Obtiene un tipo de madera por su ID.
-        
+
         Args:
             id_wood_type: Identificador del tipo de madera.
-            
+
         Returns:
             WoodType: Objeto del tipo de madera encontrado.
-            
+
         Raises:
             NotFoundError: Si el tipo de madera no existe.
         """
         wood_type = WoodType.query.get(id_wood_type)
         if not wood_type:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
-        return wood_type    
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
+        return wood_type
 
     @staticmethod
     def update(id_wood_type: int, data: dict) -> dict:
@@ -96,8 +98,10 @@ class WoodTypeService:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.active:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
+        if not wood_type or not wood_type.status:
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
 
         name = data.get("name")
         description = data.get("description")
@@ -107,7 +111,9 @@ class WoodTypeService:
 
         name = name.strip()
 
-        existing = WoodType.query.filter(WoodType.name == name, WoodType.id_wood_type != id_wood_type).first()
+        existing = WoodType.query.filter(
+            WoodType.name == name, WoodType.id != id_wood_type
+        ).first()
         if existing:
             raise ConflictError(f"Ya existe otro tipo de madera con el nombre '{name}'")
 
@@ -121,7 +127,7 @@ class WoodTypeService:
             raise ConflictError(f"Ya existe otro tipo de madera con el nombre '{name}'")
 
         return wood_type.to_dict()
-    
+
     @staticmethod
     def delete(id_wood_type: int) -> None:
         """
@@ -134,8 +140,10 @@ class WoodTypeService:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.active:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
+        if not wood_type or not wood_type.status:
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
 
-        wood_type.active = False
+        wood_type.status = False
         db.session.commit()

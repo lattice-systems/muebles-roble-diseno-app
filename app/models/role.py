@@ -1,58 +1,32 @@
-from sqlalchemy.sql import func
+from sqlalchemy.orm import synonym
+
 from ..extensions import db
 
+
 class Role(db.Model):
-    """
-    Modelo de Rol para la gestión de permisos y perfiles de usuario.
+    """Modelo para la tabla roles."""
 
-    Attributes:
-          id_role: Identificador único del rol.
-          name: Nombre del rol (ej. 'Admin', 'Editor', 'Viewer').
-          active: Indica si el rol está activo o no.
+    __tablename__ = "roles"
 
-          created_at: Fecha de creación del rol.
-          updated_at: Fecha de última actualización del rol.
-          deleted_at: Fecha de eliminación lógica del rol.
-
-          created_by: Usuario que creó el rol.
-          updated_by: Usuario que actualizó el rol.
-          deleted_by: Usuario que eliminó el rol.
-    """
-
-    __tablename__ = 'roles'
-
-    id_role = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, unique=True)
-    active = db.Column(db.Boolean, nullable=False, default=True)
-
+    id = db.Column(db.Integer, primary_key=True)
+    id_role = synonym("id")
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.Boolean, nullable=False, default=True)
+    active = synonym("status")
     created_at = db.Column(
-        db.TIMESTAMP,
-        nullable=False,
-        server_default=func.current_timestamp()
+        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
     )
-    updated_at = db.Column(
-        db.TIMESTAMP,
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp()
-    )
-    deleted_at = db.Column(db.TIMESTAMP, nullable=True)
 
-    created_by = db.Column(db.String(100), nullable=True)
-    updated_by = db.Column(db.String(100), nullable=True)
-    deleted_by = db.Column(db.String(100), nullable=True)
-    
+    users = db.relationship("User", back_populates="role", lazy=True)
+
     def to_dict(self) -> dict:
-        """
-        Serializa el modelo a diccionario.
-
-        Returns:
-            dict: Representación del rol en formato diccionario
-        """
         return {
+            "id": self.id,
             "id_role": self.id_role,
             "name": self.name,
+            "description": self.description,
+            "status": self.status,
             "active": self.active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
