@@ -129,8 +129,8 @@ class FurnitureTypeService:
         """
         Realiza una eliminación lógica (Soft Delete) de un tipo de mueble.
 
-        Marca el tipo de mueble como inactivo y establece la fecha de eliminación.
-        No elimina el registro de la base de datos.
+        Marca el tipo de mueble como inactivo mediante el campo ``status``.
+        No elimina físicamente el registro de la base de datos.
 
         Args:
             id_furniture_type: Identificador del tipo de mueble a eliminar.
