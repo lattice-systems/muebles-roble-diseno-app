@@ -132,6 +132,60 @@ pytest
 
 ---
 
+## 🔍 Control de Calidad de Código
+
+Este proyecto incluye herramientas automáticas para mantener la calidad del código:
+
+### 📋 Herramientas Configuradas
+
+| Herramienta | Descripción                                  | Comando                    |
+|-------------|----------------------------------------------|----------------------------|
+| **Black**   | Formateador de código Python                 | `black .`                  |
+| **Ruff**    | Linter rápido para Python                    | `ruff check .`             |
+| **Mypy**    | Verificador de tipos estático                | `mypy app/`                |
+| **djLint**  | Formateador de templates HTML                | `djlint app/templates/`    |
+
+### 🚀 Ejecución Local de Checks
+
+Antes de hacer commit, ejecuta los siguientes comandos para asegurar la calidad:
+
+```bash
+# Formatear código con Black
+black .
+
+# Verificar linting con Ruff
+ruff check .
+
+# Verificar tipos con Mypy
+mypy app/ --config-file=mypy.ini
+
+# Lint y formatear templates HTML
+djlint app/templates/ --lint
+djlint app/templates/ --reformat
+```
+
+### 🤖 CI/CD Automático
+
+El proyecto utiliza **GitHub Actions** para ejecutar estos checks automáticamente en:
+
+- ✅ Push a `main` o `dev`
+- ✅ Pull Requests a `main` o `dev`
+
+El workflow se define en `.github/workflows/ci.yml`.
+
+### 🔐 Pre-commit Hooks
+
+Opcionalmente, puedes instalar pre-commit hooks para ejecutar estos checks antes de hacer commit:
+
+```bash
+# Instalar pre-commit hooks
+pre-commit install
+
+# (Los hooks se ejecutarán automáticamente al hacer git commit)
+```
+
+---
+
 ## 📂 Estructura del Proyecto
 
 ```
@@ -295,6 +349,7 @@ Navegador Web
 
 | Documento                                               | Descripción                                         |
 |---------------------------------------------------------|-----------------------------------------------------|
+| [🛠️ Herramientas de Desarrollo](docs/DEVELOPMENT_TOOLS.md) | Herramientas de calidad, CI/CD y pre-commit        |
 | [📐 Arquitectura](docs/ARCHITECTURE.md)                 | Documentación detallada de la arquitectura en capas |
 | [📋 Convenciones de Código](docs/CODING_CONVENTIONS.md) | Estándares y convenciones de desarrollo             |
 

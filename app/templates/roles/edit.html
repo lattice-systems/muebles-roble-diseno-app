@@ -1,20 +1,16 @@
 {% extends "base.html" %}
-
-{% block title %}Editar Rol - Furniture Store{% endblock %}
-
+{% block title %}
+  Editar Rol - Furniture Store
+{% endblock title %}
 {% block content %}
-<h1>Editar rol: {{ role.name }}</h1>
-
-<form method="POST" action="{{ url_for('roles.edit_role', id_role=role.id_role) }}">
+  <h1>Editar rol: {{ role.name }}</h1>
+  <form method="post"
+        action="{{ url_for('roles.edit_role', id_role=role.id_role) }}">
     {{ form.hidden_tag() }}
-
     {{ form.name.label }}
     {{ form.name(size=30) }}
-    {% for error in form.name.errors %}
-        <p style="color: red;">{{ error }}</p>
-    {% endfor %}
-
+    {% for error in form.name.errors %}<p class="text-red-600">{{ error }}</p>{% endfor %}
     <button type="submit">Actualizar</button>
     <a href="{{ url_for('roles.list_roles') }}">Cancelar</a>
-</form>
-{% endblock %}
+  </form>
+{% endblock content %}

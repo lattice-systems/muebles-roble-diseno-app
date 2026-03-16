@@ -1,19 +1,15 @@
 {% extends "base.html" %}
-
-{% block title %}Crear Tipo de Mueble - Furniture Store{% endblock %}
-
+{% block title %}
+  Crear Tipo de Mueble - Furniture Store
+{% endblock title %}
 {% block content %}
-<h1>Agregar nuevo tipo de mueble</h1>
-
-<form method="POST" action="{{ url_for('furniture_type.create_furniture_type') }}">
+  <h1>Agregar nuevo tipo de mueble</h1>
+  <form method="post"
+        action="{{ url_for('furniture_type.create_furniture_type') }}">
     {{ form.hidden_tag() }}
-
     {{ form.name.label }}
     {{ form.name(size=30) }}
-    {% for error in form.name.errors %}
-        <p style="color: red;">{{ error }}</p>
-    {% endfor %}
-
+    {% for error in form.name.errors %}<p class="text-red-600">{{ error }}</p>{% endfor %}
     <button type="submit">Crear</button>
-</form>
-{% endblock %}
+  </form>
+{% endblock content %}

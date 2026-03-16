@@ -1,0 +1,99 @@
+name: CI - Linting, Formatting & Type Checks
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  quality-checks:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check formatting with Black
+        run: black --check . 2>&1 | tee black-report.txt || true
+
+      - name: Lint with Ruff
+        run: ruff check . --output-format=json > ruff-report.json 2>&1 || true
+
+      - name: Type check with Mypy
+        run: mypy app/ --config-file=mypy.ini 2>&1 | tee mypy-report.txt || true
+
+      - name: Lint HTML templates with djLint
+        run: djlint app/templates/ --lint 2>&1 | tee djlint-lint-report.txt || true
+
+      - name: Check HTML template formatting with djLint
+        run: djlint app/templates/ --check 2>&1 | tee djlint-check-report.txt || true
+
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            black-report.txt
+            ruff-report.json
+            mypy-report.txt
+            djlint-lint-report.txt
+            djlint-check-report.txt
+          retention-days: 30
+
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install bandit
+
+      - name: Run Bandit for Python security
+        run: bandit -r app/ -ll -f json > bandit-report.json 2>&1 || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: bandit-report.json
+          retention-days: 30
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [quality-checks]
+    if: always()
+
+    steps:
+      - name: Check workflow status
+        run: |
+          if [ "${{ needs.quality-checks.result }}" != "success" ]; then
+            echo "❌ Code quality checks failed"
+            exit 1
+          fi
+          echo "✅ All checks passed!"

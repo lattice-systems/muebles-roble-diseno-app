@@ -23,19 +23,23 @@ black --check .
 ```toml
 # pyproject.toml
 [tool.black]
-line-length = 100
-target-version = ['py310']
-include = '\.pyi?$'
+line-length = 88
+target-version = ["py310"]
 exclude = '''
 /(
     \.git
   | \.venv
   | venv
-  | __pycache__
+  | node_modules
   | migrations
+  | build
+  | dist
+  | __pycache__
 )/
 '''
 ```
+
+**Nota:** Line-length es **88 caracteres** (no 100). Ver [DEVELOPMENT_TOOLS.md](DEVELOPMENT_TOOLS.md) para más detalles.
 
 ---
 
@@ -435,4 +439,33 @@ from app.exceptions import ConflictError
 - [ ] Se aplica el patrón PRG después de POST
 - [ ] No hay código comentado innecesario
 - [ ] Los imports están ordenados correctamente
+
+---
+
+## 🛠️ Herramientas de Calidad
+
+El proyecto incluye herramientas automatizadas que se ejecutan localmente y en CI/CD:
+
+### Herramientas Locales
+
+| Herramienta | Comando | Descripción |
+|-------------|---------|-------------|
+| **Black** | `black .` | Formatea código Python automáticamente |
+| **Ruff** | `ruff check .` | Linting rápido de Python |
+| **Mypy** | `mypy app/` | Type checking estático |
+| **djLint** | `djlint app/templates/ --lint` | Linting de templates HTML/Jinja2 |
+
+### Pre-commit Hooks
+
+Para ejecutar estos checks automáticamente antes de hacer commit:
+
+```bash
+pre-commit install
+```
+
+### CI/CD en GitHub Actions
+
+El proyecto ejecuta automáticamente todos los checks en cada push/PR a `main` o `dev`.
+
+Ver [DEVELOPMENT_TOOLS.md](DEVELOPMENT_TOOLS.md) para configuración completa y solución de problemas.
 
