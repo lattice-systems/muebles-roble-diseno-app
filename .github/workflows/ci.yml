@@ -37,6 +37,9 @@ jobs:
         run: mypy app/ --config-file=mypy.ini
         continue-on-error: false
 
+      - name: Lint HTML templates with djLint
+        run: djlint app/templates/ --lint
+
       - name: Check HTML template formatting with djLint
         run: djlint app/templates/ --check
 

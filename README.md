@@ -159,7 +159,8 @@ ruff check .
 # Verificar tipos con Mypy
 mypy app/ --config-file=mypy.ini
 
-# Verificar y formatear templates HTML
+# Lint y formatear templates HTML
+djlint app/templates/ --lint
 djlint app/templates/ --reformat
 ```
 
