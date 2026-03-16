@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Editar Rol - Furniture Store{% endblock title %}
+{% block title %}
+  Editar Rol - Furniture Store
+{% endblock title %}
 {% block content %}
   <h1>Editar rol: {{ role.name }}</h1>
   <form method="post"
@@ -12,4 +14,3 @@
     <a href="{{ url_for('roles.list_roles') }}">Cancelar</a>
   </form>
 {% endblock content %}
-

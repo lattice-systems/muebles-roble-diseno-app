@@ -48,7 +48,9 @@
 {% macro product_card(product) %}
   <div class="bg-neutral-primary-soft block w-full max-w-sm border border-default rounded-base shadow-xs hover:bg-neutral-secondary-medium group">
     <a href="{{ product.url | default('#') }}">
-      <img class="p-8 rounded-t-base h-64 w-full object-cover group-hover:opacity-90 transition-opacity" width="512" height="256"
+      <img class="p-8 rounded-t-base h-64 w-full object-cover group-hover:opacity-90 transition-opacity"
+           width="512"
+           height="256"
            src="{{ product.image | default('https://flowbite.com/docs/images/products/apple-watch.png') }}"
            alt="{{ product.title }}" />
     </a>
@@ -64,4 +66,3 @@
     </div>
   </div>
 {% endmacro %}
-

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Editar Color - Furniture Store{% endblock title %}
+{% block title %}
+  Editar Color - Furniture Store
+{% endblock title %}
 {% block content %}
   <h1>Editar color: {{ color.name }}</h1>
   <form method="post"
@@ -12,4 +14,3 @@
     <a href="{{ url_for('colors.list_colors') }}">Cancelar</a>
   </form>
 {% endblock content %}
-

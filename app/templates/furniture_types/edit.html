@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Editar Tipos de Mueble - Furniture Store{% endblock title %}
+{% block title %}
+  Editar Tipos de Mueble - Furniture Store
+{% endblock title %}
 {% block content %}
   <h1>Editar tipo de mueble: {{ furniture_type.name }}</h1>
   <form method="post"
@@ -12,4 +14,3 @@
     <a href="{{ url_for('furniture_types.list_furniture_types') }}">Cancelar</a>
   </form>
 {% endblock content %}
-
