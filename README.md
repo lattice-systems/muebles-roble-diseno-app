@@ -153,9 +153,49 @@ muebles-roble-diseno-app/
 │   │   └── color.py              # Modelo de Color
 │   │
 │   └── templates/                # Templates Jinja2
-│       ├── base.html             # Template base (layout)
-│       └── colors/
-│           └── create.html       # Formulario de creación
+│       ├── layouts/
+│       │   ├── store.html
+│       │   └── admin.html
+│       │
+│       ├── store/
+│       │   ├── home.html
+│       │   ├── product_detail.html
+│       │   └── cart.html
+│       │
+│       ├── admin/
+│       │   ├── dashboard.html
+│       │   └── catalogs/
+│       │       └── colors/
+│       │           ├── list.html
+│       │           ├── create.html
+│       │           └── edit.html
+│       │
+│       └── components/
+│           ├── forms/
+│           │   ├── input.html
+│           │   ├── select.html
+│           │   └── textarea.html
+│           │
+│           ├── tables/
+│           │   └── table.html
+│           │
+│           ├── ui/
+│           │   ├── button.html
+│           │   ├── badge.html
+│           │   ├── alert.html
+│           │   ├── modal.html
+│           │   └── card.html
+│           │
+│           ├── ecommerce/
+│           │   ├── product_card.html
+│           │   ├── price_tag.html
+│           │   ├── rating_stars.html
+│           │   └── add_to_cart_button.html
+│           │
+│           └── admin/
+│               ├── sidebar.html
+│               ├── navbar.html
+│               └── stats_card.html
 │
 ├── docs/                         # Documentación del proyecto
 │   ├── ARCHITECTURE.md           # Documentación de arquitectura

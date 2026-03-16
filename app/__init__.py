@@ -45,4 +45,9 @@ def create_app():
     from .catalogs.unit_of_measures import unit_of_measures_bp
     app.register_blueprint(unit_of_measures_bp, url_prefix='/unit-of-measures')
 
+    @app.route('/test-macros')
+    def test_macros():
+        from flask import render_template
+        return render_template('test_macros.html')
+
     return app
