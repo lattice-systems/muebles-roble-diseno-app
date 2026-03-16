@@ -12,5 +12,5 @@ with app.app_context():
     except Exception as e:
         print(f"Database connection failed: {e}")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)

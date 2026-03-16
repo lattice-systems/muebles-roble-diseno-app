@@ -1,9 +1,10 @@
-""""
+""" "
 Rutas/Endpoints para el módulo de tipos de madera.
 """
+
 from flask import flash, redirect, render_template, url_for
 from . import woods_types_bp
-from .forms import WoodTypeForm 
+from .forms import WoodTypeForm
 from .services import WoodTypeService
 from app.exceptions import ConflictError
 
@@ -19,8 +20,9 @@ def list_wood_types():
     wood_types = WoodTypeService.get_all()
     return render_template("wood_types/list.html", wood_types=wood_types)
 
+
 @woods_types_bp.route("/create", methods=["GET", "POST"])
-def create_wood_type(): 
+def create_wood_type():
     """
     Muestra el formulario y crea un nuevo tipo de madera en el catálogo.
 
@@ -33,10 +35,7 @@ def create_wood_type():
     form = WoodTypeForm()
 
     if form.validate_on_submit():
-        data = {
-            "name": form.name.data,
-            "description": form.description.data
-        }
+        data = {"name": form.name.data, "description": form.description.data}
         try:
             WoodTypeService.create(data)
             flash("Tipo de madera creado exitosamente", "success")
@@ -46,8 +45,9 @@ def create_wood_type():
 
     return render_template("wood_types/create.html", form=form)
 
+
 @woods_types_bp.route("/<int:id_wood_type>/edit", methods=["GET", "POST"])
-def edit_wood_type(id_wood_type: int):  
+def edit_wood_type(id_wood_type: int):
     """
     Muestra el formulario pre-poblado y actualiza un tipo de madera existente.
 
@@ -61,14 +61,13 @@ def edit_wood_type(id_wood_type: int):
     form = WoodTypeForm()
 
     if form.validate_on_submit():
-        data = {
-            "name": form.name.data,
-            "description": form.description.data
-        }
+        data = {"name": form.name.data, "description": form.description.data}
         try:
             WoodTypeService.update(id_wood_type, data)
             flash("Tipo de madera actualizado exitosamente", "success")
-            return redirect(url_for("woods_types.edit_wood_type", id_wood_type=id_wood_type))
+            return redirect(
+                url_for("woods_types.edit_wood_type", id_wood_type=id_wood_type)
+            )
         except ConflictError as e:
             flash(e.message, "error")
 
@@ -83,8 +82,9 @@ def edit_wood_type(id_wood_type: int):
 
     return render_template("wood_types/edit.html", form=form, wood_type=wood_type)
 
+
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])
-def delete_wood_type(id_wood_type: int):    
+def delete_wood_type(id_wood_type: int):
     """
     Elimina un tipo de madera existente.
 

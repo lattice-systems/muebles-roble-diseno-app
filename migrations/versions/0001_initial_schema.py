@@ -399,7 +399,9 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("bom_id", sa.Integer(), nullable=False),
         sa.Column("raw_material_id", sa.Integer(), nullable=False),
-        sa.Column("quantity_required", sa.Numeric(precision=12, scale=3), nullable=False),
+        sa.Column(
+            "quantity_required", sa.Numeric(precision=12, scale=3), nullable=False
+        ),
         sa.ForeignKeyConstraint(["bom_id"], ["bom.id"]),
         sa.ForeignKeyConstraint(["raw_material_id"], ["raw_materials.id"]),
         sa.PrimaryKeyConstraint("id"),

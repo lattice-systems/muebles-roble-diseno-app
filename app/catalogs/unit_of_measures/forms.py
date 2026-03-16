@@ -22,6 +22,6 @@ class UnitOfMeasureForm(FlaskForm):
         validators=[
             DataRequired(message="La abreviatura de la unidad de medida es requerida"),
             Length(max=10, message="La abreviatura no puede exceder 10 caracteres"),
-        ]
+        ],
     )
     active = BooleanField("Activo", default=True)
