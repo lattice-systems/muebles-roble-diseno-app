@@ -2,6 +2,7 @@
 Servicios de lógica de negocio para unidades de medida.
 """
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
