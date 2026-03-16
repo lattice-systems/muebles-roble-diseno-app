@@ -1,59 +1,54 @@
 {% extends "base.html" %}
-
-{% block title %}Unidades de Medida - Furniture Store{% endblock %}
-
+{% block title %}Unidades de Medida - Furniture Store{% endblock title %}
 {% block content %}
-<style>
-    .unit-of-measures-table {
-        border-collapse: collapse;
-    }
+  <style>
+      .unit-of-measures-table {
+          border-collapse: collapse;
+      }
 
-    .unit-of-measures-table th,
-    .unit-of-measures-table td {
-        border: 1px solid #000;
-        padding: 5px;
-    }
-</style>
-<h1>Catálogo de Unidades de Medida</h1>
-
-
-
-<h2>Lista de unidades de medida</h2>
-{% if unit_of_measures %}
-<table class="unit-of-measures-table" aria-label="Tabla del catálogo de unidades de medida">
-    <caption>Tabla del catálogo de unidades de medida</caption>
-    <thead>
+      .unit-of-measures-table th,
+      .unit-of-measures-table td {
+          border: 1px solid #000;
+          padding: 5px;
+      }
+  </style>
+  <h1>Catálogo de Unidades de Medida</h1>
+  <h2>Lista de unidades de medida</h2>
+  {% if unit_of_measures %}
+    <table class="unit-of-measures-table"
+           aria-label="Tabla del catálogo de unidades de medida">
+      <caption>Tabla del catálogo de unidades de medida</caption>
+      <thead>
         <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Activo</th>
-            <th scope="col">Creado</th>
-            <th scope="col">Acciones</th> </tr>
-    </thead>
-    <tbody>
+          <th scope="col">ID</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Activo</th>
+          <th scope="col">Creado</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for unit_of_measure in unit_of_measures %}
-        <tr>
+          <tr>
             <td>{{ unit_of_measure.id_unit_of_measure }}</td>
             <td>{{ unit_of_measure.name }}</td>
             <td>{{ "Sí" if unit_of_measure.active else "No" }}</td>
             <td>{{ unit_of_measure.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
             <td>
-            <a href="{{ url_for('unit_of_measures.edit_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}"> Editar </a>
-            
-            <form method="POST" 
-                action="{{ url_for('unit_of_measures.delete_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}" 
-                onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta unidad de medida?');"> 
-
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                
-                <button type="submit">Eliminar</button> 
-            </form> 
-        </td>
-        </tr>
+              <a href="{{ url_for('unit_of_measures.edit_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}"> Editar </a>
+              <form method="post"
+                    action="{{ url_for('unit_of_measures.delete_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}"
+                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta unidad de medida?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No hay unidades de medida registradas.</p>
-{% endif %}
-{% endblock %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay unidades de medida registradas.</p>
+  {% endif %}
+{% endblock content %}
+

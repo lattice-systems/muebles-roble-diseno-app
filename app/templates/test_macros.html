@@ -3,202 +3,186 @@
 {% import "macros/tables.html" as tables %}
 {% import "macros/ui.html" as ui %}
 {% import "macros/ecommerce.html" as ecommerce %}
-
-{% block title %}Test Macros - Furniture Store{% endblock %}
-
+{% block title %}Test Macros - Furniture Store{% endblock title %}
 {% block content %}
-<div class="container mx-auto p-8 space-y-12">
-    <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white border-b pb-4">Demostración de Macros Jinja con Flowbite</h1>
-
+  <div class="container mx-auto p-8 space-y-12">
+    <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white border-b pb-4">
+      Demostración de Macros Jinja con Flowbite
+    </h1>
     <!-- UI MACROS -->
     <section>
-        <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">1. UI Macros (ui.html)</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Buttons -->
-            <div class="space-y-4">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Botones</h3>
-                <div class="flex flex-wrap gap-2">
-                    {{ ui.button("Primario") }}
-                    {{ ui.button("Alternativo", color="alternative") }}
-                    {{ ui.button("Peligroso", color="red") }}
-                    {{ ui.button("Pequeño", size="sm", color="green") }}
-                </div>
-            </div>
-
-            <!-- Badges -->
-            <div class="space-y-4">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Etiquetas (Badges)</h3>
-                <div class="flex flex-wrap gap-2">
-                    {{ ui.badge("Nuevo", "blue") }}
-                    {{ ui.badge("Pendiente", "yellow") }}
-                    {{ ui.badge("Agotado", "red") }}
-                    {{ ui.badge("Completado", "green") }}
-                </div>
-            </div>
-
-            <!-- Alerts -->
-            <div class="space-y-4 md:col-span-2">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Alertas</h3>
-                <div class="space-y-2">
-                    {{ ui.alert("¡Éxito! La operación se completó correctamente.", "green") }}
-                    {{ ui.alert("Advertencia: Asegúrate de guardar los cambios.", "yellow") }}
-                </div>
-            </div>
-
-            <!-- Cards -->
-            <div class="space-y-4">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Tarjetas de Información (Cards)</h3>
-                {{ ui.card("Tarjeta de Prueba", "Este es el contenido de una tarjeta genérica creada utilizando macros. Puedes poner cualquier HTML aquí.") }}
-            </div>
-
-            <!-- UI Interactive -->
-            <div class="space-y-4">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Dropdowns y Stats</h3>
-                <div class="flex flex-col gap-4">
-                    <div>
-                        {{ ui.dropdown("Opciones", [
-                            {"label": "Perfil", "url": "#"},
-                            {"label": "Configuración", "url": "#"},
-                            {"label": "Salir", "url": "#"}
-                        ]) }}
-                    </div>
-                    {{ ui.stats_card("Usuarios Activos", "2,450") }}
-                </div>
-            </div>
-            
-            <!-- Breadcrumbs -->
-            <div class="space-y-4 md:col-span-2">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Migas de Pan (Breadcrumbs)</h3>
-                {{ ui.breadcrumb([
-                    {"label": "Inicio", "url": "#"},
-                    {"label": "Catálogos", "url": "#"},
-                    {"label": "Productos", "url": "#"}
-                ]) }}
-            </div>
-
-            <!-- Modals -->
-            <div class="space-y-4 md:col-span-2">
-                <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Modales</h3>
-                <button data-modal-target="test-modal" data-modal-toggle="test-modal" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
-                    Abrir Modal de Prueba
-                </button>
-                {{ ui.modal("test-modal", "Condiciones de Servicio", "<p class='text-base leading-relaxed text-gray-500 dark:text-gray-400'>Lea detenidamente nuestras condiciones de servicio para continuar utilizando la plataforma.</p>") }}
-            </div>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">1. UI Macros (ui.html)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Buttons -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Botones</h3>
+          <div class="flex flex-wrap gap-2">
+            {{ ui.button("Primario") }}
+            {{ ui.button("Alternativo", color="alternative") }}
+            {{ ui.button("Peligroso", color="red") }}
+            {{ ui.button("Pequeño", size="sm", color="green") }}
+          </div>
         </div>
+        <!-- Badges -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Etiquetas (Badges)</h3>
+          <div class="flex flex-wrap gap-2">
+            {{ ui.badge('Nuevo', 'blue') }}
+            {{ ui.badge('Pendiente', 'yellow') }}
+            {{ ui.badge('Agotado', 'red') }}
+            {{ ui.badge('Completado', 'green') }}
+          </div>
+        </div>
+        <!-- Alerts -->
+        <div class="space-y-4 md:col-span-2">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Alertas</h3>
+          <div class="space-y-2">
+            {{ ui.alert('¡Éxito! La operación se completó correctamente.', 'green') }}
+            {{ ui.alert('Advertencia: Asegúrate de guardar los cambios.', 'yellow') }}
+          </div>
+        </div>
+        <!-- Cards -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Tarjetas de Información (Cards)</h3>
+          {{ ui.card('Tarjeta de Prueba', 'Este es el contenido de una tarjeta genérica creada utilizando macros. Puedes poner cualquier HTML aquí.') }}
+        </div>
+        <!-- UI Interactive -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Dropdowns y Stats</h3>
+          <div class="flex flex-col gap-4">
+            <div>
+              {{ ui.dropdown('Opciones', [{'label': 'Perfil', 'url': '#'}, {'label': 'Configuración', 'url': '#'}, {'label': 'Salir', 'url': '#'}]) }}
+            </div>
+            {{ ui.stats_card('Usuarios Activos', '2,450') }}
+          </div>
+        </div>
+        <!-- Breadcrumbs -->
+        <div class="space-y-4 md:col-span-2">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Migas de Pan (Breadcrumbs)</h3>
+          {{ ui.breadcrumb([
+            {
+              "label": "Inicio",
+              "url": "#"
+            },
+            {
+              "label": "Catálogos",
+              "url": "#"
+            },
+            {
+              "label": "Productos",
+              "url": "#"
+            }
+          ]) }}
+        </div>
+        <!-- Modals -->
+        <div class="space-y-4 md:col-span-2">
+          <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300">Modales</h3>
+          <button data-modal-target="test-modal"
+                  data-modal-toggle="test-modal"
+                  class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  type="button">Abrir Modal de Prueba</button>
+          {{ ui.modal('test-modal', 'Condiciones de Servicio', "<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">Lea detenidamente nuestras condiciones de servicio para continuar utilizando la plataforma.</p>") }}
+        </div>
+      </div>
     </section>
-
     <!-- FORMS MACROS -->
     <section>
-        <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">2. Forms Macros (forms.html)</h2>
-        
-        <div class="p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-            {{ forms.form_errors({"email": ["El formato de correo no es válido"], "password": ["La contraseña es demasiado corta"]}) }}
-            
-            <form action="#" method="POST" class="max-w-xl">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-                    <div class="md:col-span-2">
-                        {{ forms.input("fullname", "Nombre Completo", placeholder="Ej. Juan Pérez", required=True) }}
-                    </div>
-                    
-                    <div>
-                        {{ forms.select("category", "Categoría", options=[
-                            ("1", "Sillas"),
-                            ("2", "Mesas"),
-                            ("3", "Camas")
-                        ], selected="2") }}
-                    </div>
-                    
-                    <div>
-                        {{ forms.input("price", "Precio", type="number", placeholder="0.00") }}
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        {{ forms.textarea("description", "Descripción del producto", rows=4, placeholder="Escribe los detalles aquí...") }}
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        {{ forms.radio_group("status", "Estado", options=[
-                            ("active", "Activo"),
-                            ("inactive", "Inactivo"),
-                            ("draft", "Borrador")
-                        ], selected="active") }}
-                    </div>
-
-                    <div class="md:col-span-2 mt-2">
-                        {{ forms.checkbox("terms", "Acepto los términos y condiciones", checked=True) }}
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    {{ forms.submit_button("Guardar Cambios") }}
-                </div>
-            </form>
-        </div>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">2. Forms Macros (forms.html)</h2>
+      <div class="p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+        {{ forms.form_errors({
+          "email": [
+            "El formato de correo no es válido"
+          ],
+          "password": [
+            "La contraseña es demasiado corta"
+          ]
+        }) }}
+        <form action="#" method="post" class="max-w-xl">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+            <div class="md:col-span-2">
+              {{ forms.input("fullname", "Nombre Completo", placeholder="Ej. Juan Pérez", required=True) }}
+            </div>
+            <div>
+              {{ forms.select("category", "Categoría", options=[
+                            ("1", "Sillas") ,
+              ("2", "Mesas"),
+              ("3", "Camas")
+              ], selected="2") }}
+            </div>
+            <div>{{ forms.input("price", "Precio", type="number", placeholder="0.00") }}</div>
+            <div class="md:col-span-2">
+              {{ forms.textarea("description", "Descripción del producto", rows=4, placeholder="Escribe los detalles aquí...") }}
+            </div>
+            <div class="md:col-span-2">
+              {{ forms.radio_group("status", "Estado", options=[
+                            ("active", "Activo") ,
+              ("inactive", "Inactivo"),
+              ("draft", "Borrador")
+              ], selected="active") }}
+            </div>
+            <div class="md:col-span-2 mt-2">{{ forms.checkbox("terms", "Acepto los términos y condiciones", checked=True) }}</div>
+          </div>
+          <div class="mt-4">{{ forms.submit_button("Guardar Cambios") }}</div>
+        </form>
+      </div>
     </section>
-
     <!-- TABLES MACROS -->
     <section>
-        <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">3. Tables Macros (tables.html)</h2>
-        
-        <div class="space-y-8">
-            <div>
-                <h3 class="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">Tabla con Datos</h3>
-                {% set headers = ["ID", "Producto", "Categoría", "Precio", "Acciones"] %}
-                {% set rows = [
-                    ["1", "Silla de Oficina", "Sillas", "$120.00", tables.table_actions(edit_url="#", view_url="#", delete_url="#")],
-                    ["2", "Mesa Comedor", "Mesas", "$450.00", tables.table_actions(edit_url="#", delete_url="#")],
-                    ["3", "Cama King Size", "Camas", "$899.00", tables.table_actions(view_url="#")]
-                ] %}
-                {{ tables.table(headers, rows) }}
-                {{ tables.pagination(2, 5) }}
-            </div>
-
-            <div>
-                <h3 class="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">Estado Vacío</h3>
-                <div class="max-w-2xl">
-                    {{ tables.empty_state("No se encontraron clientes") }}
-                </div>
-            </div>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">3. Tables Macros (tables.html)</h2>
+      <div class="space-y-8">
+        <div>
+          <h3 class="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">Tabla con Datos</h3>
+          {% set headers = ["ID", "Producto", "Categoría", "Precio", "Acciones"] %}
+          {% set rows = [
+                      ["1", "Silla de Oficina", "Sillas", "$120.00", tables.table_actions(edit_url="#", view_url="#", delete_url="#")],
+                      ["2", "Mesa Comedor", "Mesas", "$450.00", tables.table_actions(edit_url="#", delete_url="#")],
+                      ["3", "Cama King Size", "Camas", "$899.00", tables.table_actions(view_url="#")]
+                    ] %}
+          {{ tables.table(headers, rows) }}
+          {{ tables.pagination(2, 5) }}
         </div>
+        <div>
+          <h3 class="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">Estado Vacío</h3>
+          <div class="max-w-2xl">{{ tables.empty_state("No se encontraron clientes") }}</div>
+        </div>
+      </div>
     </section>
-
     <!-- ECOMMERCE MACROS -->
     <section>
-        <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">4. Ecommerce Macros (ecommerce.html)</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-                {{ ecommerce.product_card({
-                    "id": 1,
-                    "title": "Sofá Minimalista Gris",
-                    "price": "599.00",
-                    "rating": 4,
-                    "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-1.jpg",
-                    "url": "#"
-                }) }}
-            </div>
-            <div>
-                {{ ecommerce.product_card({
-                    "id": 2,
-                    "title": "Mesa de Centro en Roble",
-                    "price": "249.50",
-                    "rating": 5,
-                    "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-2.jpg",
-                    "url": "#"
-                }) }}
-            </div>
-            <div>
-                {{ ecommerce.product_card({
-                    "id": 3,
-                    "title": "Lámpara de Pie Nórdica",
-                    "price": "89.99",
-                    "rating": 3,
-                    "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-3.jpg",
-                    "url": "#"
-                }) }}
-            </div>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">4. Ecommerce Macros (ecommerce.html)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          {{ ecommerce.product_card({
+            "id": 1,
+            "title": "Sofá Minimalista Gris",
+            "price": "599.00",
+            "rating": 4,
+            "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-1.jpg",
+            "url": "#"
+          }) }}
         </div>
+        <div>
+          {{ ecommerce.product_card({
+            "id": 2,
+            "title": "Mesa de Centro en Roble",
+            "price": "249.50",
+            "rating": 5,
+            "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-2.jpg",
+            "url": "#"
+          }) }}
+        </div>
+        <div>
+          {{ ecommerce.product_card({
+            "id": 3,
+            "title": "Lámpara de Pie Nórdica",
+            "price": "89.99",
+            "rating": 3,
+            "image": "https://flowbite.s3.amazonaws.com/docs/gallery/square/image-3.jpg",
+            "url": "#"
+          }) }}
+        </div>
+      </div>
     </section>
-</div>
-{% endblock %}
+  </div>
+{% endblock content %}
+

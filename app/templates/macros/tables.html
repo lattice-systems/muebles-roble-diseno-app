@@ -1,27 +1,18 @@
 {# app/templates/macros/tables.html #}
-
 {% macro table_header(headers) %}
   <thead class="text-sm text-body bg-neutral-secondary-soft border-b rounded-base border-default">
     <tr>
-      {% for header in headers %}
-        <th scope="col" class="px-6 py-3 font-medium">
-          {{ header }}
-        </th>
-      {% endfor %}
+      {% for header in headers %}<th scope="col" class="px-6 py-3 font-medium">{{ header }}</th>{% endfor %}
     </tr>
   </thead>
 {% endmacro %}
-
 {% macro table_row(row) %}
   <tr class="bg-neutral-primary border-b border-default hover:bg-neutral-secondary-medium">
     {% for cell in row %}
-      <td class="px-6 py-4 {% if loop.first %}font-medium text-heading whitespace-nowrap{% endif %}">
-        {{ cell|safe }}
-      </td>
+      <td class="px-6 py-4 {% if loop.first %}font-medium text-heading whitespace-nowrap{% endif %}">{{ cell|safe }}</td>
     {% endfor %}
   </tr>
 {% endmacro %}
-
 {% macro table(headers, rows) %}
   <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
     <table class="w-full text-sm text-left rtl:text-right text-body">
@@ -31,63 +22,69 @@
           {{ table_row(row) }}
         {% else %}
           <tr>
-            <td colspan="{{ headers|length }}">
-              {{ empty_state("No hay registros disponibles") }}
-            </td>
+            <td colspan="{{ headers|length }}">{{ empty_state("No hay registros disponibles") }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 {% endmacro %}
-
 {% macro table_actions(edit_url=None, delete_url=None, view_url=None) %}
   <div class="flex items-center gap-3">
     {% if view_url %}
-        <a href="{{ view_url }}" class="font-medium text-fg-brand hover:underline">Ver</a>
+      <a href="{{ view_url }}"
+         class="font-medium text-fg-brand hover:underline">Ver</a>
     {% endif %}
     {% if edit_url %}
-        <a href="{{ edit_url }}" class="font-medium text-fg-success-strong hover:underline">Editar</a>
+      <a href="{{ edit_url }}"
+         class="font-medium text-fg-success-strong hover:underline">Editar</a>
     {% endif %}
     {% if delete_url %}
-        <a href="{{ delete_url }}" class="font-medium text-fg-danger-strong hover:underline">Eliminar</a>
+      <a href="{{ delete_url }}"
+         class="font-medium text-fg-danger-strong hover:underline">Eliminar</a>
     {% endif %}
   </div>
 {% endmacro %}
-
 {% macro empty_state(message="No hay registros") %}
   <div class="flex flex-col items-center justify-center p-8 text-center bg-neutral-primary-soft border border-default rounded-base shadow-xs">
-    <svg class="w-12 h-12 mb-4 text-body-subtle" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+    <svg class="w-12 h-12 mb-4 text-body-subtle"
+         aria-hidden="true"
+         xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
     </svg>
     <h5 class="mb-2 text-xl font-medium text-heading">{{ message }}</h5>
     <p class="text-sm text-body">Intenta cambiar los filtros o añadir un nuevo registro.</p>
   </div>
 {% endmacro %}
-
 {% macro pagination(page, total_pages) %}
-  <nav class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 pb-4" aria-label="Table navigation">
-      <span class="text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando página <span class="font-semibold text-heading">{{ page }}</span> de <span class="font-semibold text-heading">{{ total_pages }}</span></span>
-      <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+  <nav class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 pb-4"
+       aria-label="Table navigation">
+    <span class="text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando página <span class="font-semibold text-heading">{{ page }}</span> de <span class="font-semibold text-heading">{{ total_pages }}</span></span>
+    <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+      <li>
+        <a href="?page={{ page - 1 if page > 1 else 1 }}"
+           class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-body bg-neutral-primary border border-default-medium rounded-s-base hover:bg-neutral-secondary-medium hover:text-heading {% if page == 1 %}pointer-events-none opacity-50{% endif %}">Anterior</a>
+      </li>
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
           <li>
-              <a href="?page={{ page - 1 if page > 1 else 1 }}" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-body bg-neutral-primary border border-default-medium rounded-s-base hover:bg-neutral-secondary-medium hover:text-heading {% if page == 1 %}pointer-events-none opacity-50{% endif %}">Anterior</a>
+            <a href="#"
+               aria-current="page"
+               class="flex items-center justify-center px-3 h-8 text-fg-brand-strong border border-brand-subtle bg-brand-softer hover:bg-brand-soft hover:text-fg-brand-strong">{{ p }}</a>
           </li>
-          
-          {% for p in range(1, total_pages + 1) %}
-            {% if p == page %}
-              <li>
-                  <a href="#" aria-current="page" class="flex items-center justify-center px-3 h-8 text-fg-brand-strong border border-brand-subtle bg-brand-softer hover:bg-brand-soft hover:text-fg-brand-strong">{{ p }}</a>
-              </li>
-            {% else %}
-              <li>
-                  <a href="?page={{ p }}" class="flex items-center justify-center px-3 h-8 leading-tight text-body bg-neutral-primary border border-default-medium hover:bg-neutral-secondary-medium hover:text-heading">{{ p }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
-          
+        {% else %}
           <li>
-              <a href="?page={{ page + 1 if page < total_pages else total_pages }}" class="flex items-center justify-center px-3 h-8 leading-tight text-body bg-neutral-primary border border-default-medium rounded-e-base hover:bg-neutral-secondary-medium hover:text-heading {% if page == total_pages %}pointer-events-none opacity-50{% endif %}">Siguiente</a>
+            <a href="?page={{ p }}"
+               class="flex items-center justify-center px-3 h-8 leading-tight text-body bg-neutral-primary border border-default-medium hover:bg-neutral-secondary-medium hover:text-heading">{{ p }}</a>
           </li>
-      </ul>
+        {% endif %}
+      {% endfor %}
+      <li>
+        <a href="?page={{ page + 1 if page < total_pages else total_pages }}"
+           class="flex items-center justify-center px-3 h-8 leading-tight text-body bg-neutral-primary border border-default-medium rounded-e-base hover:bg-neutral-secondary-medium hover:text-heading {% if page == total_pages %}pointer-events-none opacity-50{% endif %}">Siguiente</a>
+      </li>
+    </ul>
   </nav>
 {% endmacro %}

@@ -1,20 +1,15 @@
 {% extends "base.html" %}
-
-{% block title %}Editar Color - Furniture Store{% endblock %}
-
+{% block title %}Editar Color - Furniture Store{% endblock title %}
 {% block content %}
-    <h1>Editar color: {{ color.name }}</h1>
+  <h1>Editar color: {{ color.name }}</h1>
+  <form method="post"
+        action="{{ url_for('colors.edit_color', id_color=color.id_color) }}">
+    {{ form.hidden_tag() }}
+    {{ form.name.label }}
+    {{ form.name(size=30) }}
+    {% for error in form.name.errors %}<p class="text-red-600">{{ error }}</p>{% endfor %}
+    <button type="submit">Actualizar</button>
+    <a href="{{ url_for('colors.list_colors') }}">Cancelar</a>
+  </form>
+{% endblock content %}
 
-    <form method="POST" action="{{ url_for('colors.edit_color', id_color=color.id_color) }}">
-        {{ form.hidden_tag() }}
-
-        {{ form.name.label }}
-        {{ form.name(size=30) }}
-        {% for error in form.name.errors %}
-            <p style="color: red;">{{ error }}</p>
-        {% endfor %}
-
-        <button type="submit">Actualizar</button>
-        <a href="{{ url_for('colors.list_colors') }}">Cancelar</a>
-    </form>
-{% endblock %}

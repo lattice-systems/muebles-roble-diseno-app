@@ -1,19 +1,13 @@
 {% extends "base.html" %}
-
-{% block title %}Crear Color - Furniture Store{% endblock %}
-
+{% block title %}Crear Color - Furniture Store{% endblock title %}
 {% block content %}
-<h1>Agregar nuevo color</h1>
-
-<form method="POST" action="{{ url_for('colors.create_color') }}">
+  <h1>Agregar nuevo color</h1>
+  <form method="post" action="{{ url_for('colors.create_color') }}">
     {{ form.hidden_tag() }}
-
     {{ form.name.label }}
     {{ form.name(size=30) }}
-    {% for error in form.name.errors %}
-        <p style="color: red;">{{ error }}</p>
-    {% endfor %}
-
+    {% for error in form.name.errors %}<p class="text-red-600">{{ error }}</p>{% endfor %}
     <button type="submit">Crear</button>
-</form>
-{% endblock %}
+  </form>
+{% endblock content %}
+

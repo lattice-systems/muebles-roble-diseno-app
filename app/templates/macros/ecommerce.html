@@ -1,47 +1,67 @@
 {# app/templates/macros/ecommerce.html #}
-
 {% macro price_tag(price, currency="$") %}
   <span class="text-3xl font-bold text-heading">{{ currency }}{{ price }}</span>
 {% endmacro %}
-
 {% macro rating_stars(rating, max=5) %}
   <div class="flex items-center mt-2.5 mb-5 space-x-1">
     {% for i in range(max) %}
       {% if i < rating %}
-        <svg class="w-5 h-5 text-fg-yellow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/></svg>
+        <svg class="w-5 h-5 text-fg-yellow"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             fill="currentColor"
+             viewBox="0 0 24 24">
+          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z">
+          </path>
+        </svg>
       {% else %}
-        <svg class="w-5 h-5 text-fg-disabled" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/></svg>
+        <svg class="w-5 h-5 text-fg-disabled"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             fill="currentColor"
+             viewBox="0 0 24 24">
+          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
+        </svg>
       {% endif %}
     {% endfor %}
     <span class="bg-brand-softer text-fg-brand-strong text-xs font-medium px-2.5 py-0.5 rounded ml-3">{{ rating }}</span>
   </div>
 {% endmacro %}
-
 {% macro add_to_cart_button(product_id) %}
-  <button type="button" data-product-id="{{ product_id }}" class="inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-    <svg class="w-3.5 h-3.5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
-      <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z"/>
+  <button type="button"
+          data-product-id="{{ product_id }}"
+          class="inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+    <svg class="w-3.5 h-3.5 mr-2"
+         aria-hidden="true"
+         xmlns="http://www.w3.org/2000/svg"
+         fill="currentColor"
+         viewBox="0 0 18 21">
+      <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
     </svg>
     Añadir al carrito
   </button>
 {% endmacro %}
-
 {% macro product_card(product) %}
   <div class="bg-neutral-primary-soft block w-full max-w-sm border border-default rounded-base shadow-xs hover:bg-neutral-secondary-medium group">
+    <a href="{{ product.url | default('#') }}">
+      <img class="p-8 rounded-t-base h-64 w-full object-cover group-hover:opacity-90 transition-opacity" width="512" height="256"
+           src="{{ product.image | default('https://flowbite.com/docs/images/products/apple-watch.png') }}"
+           alt="{{ product.title }}" />
+    </a>
+    <div class="px-6 pb-6 border-t border-default pt-4">
       <a href="{{ product.url | default('#') }}">
-          <img class="p-8 rounded-t-base h-64 w-full object-cover group-hover:opacity-90 transition-opacity" src="{{ product.image | default('https://flowbite.com/docs/images/products/apple-watch.png') }}" alt="{{ product.title }}" />
+        <h5 class="mb-3 text-2xl font-semibold tracking-tight text-heading leading-8">{{ product.title }}</h5>
       </a>
-      <div class="px-6 pb-6 border-t border-default pt-4">
-          <a href="{{ product.url | default('#') }}">
-              <h5 class="mb-3 text-2xl font-semibold tracking-tight text-heading leading-8">{{ product.title }}</h5>
-          </a>
-          
-          {{ rating_stars(product.rating | default(0)) }}
-          
-          <div class="flex items-center justify-between mt-4">
-              {{ price_tag(product.price | default(0)) }}
-              {{ add_to_cart_button(product.id) }}
-          </div>
+      {{ rating_stars(product.rating | default(0) ) }}
+      <div class="flex items-center justify-between mt-4">
+        {{ price_tag(product.price | default(0) ) }}
+        {{ add_to_cart_button(product.id) }}
       </div>
+    </div>
   </div>
 {% endmacro %}
+
