@@ -117,6 +117,26 @@ En GitHub:
 3. Haz clic en el run que corresponda
 4. Revisa los detalles de cada job
 
+### Descargar Reportes
+
+El workflow genera automáticamente reportes que se guardan como **Artifacts** por 30 días:
+
+#### Quality Reports (Calidad de Código)
+- `black-report.txt` - Resultados de Black
+- `ruff-report.json` - Reporte detallado de Ruff
+- `mypy-report.txt` - Resultados de Mypy
+- `djlint-lint-report.txt` - Linting de templates
+- `djlint-check-report.txt` - Formateo de templates
+
+#### Security Reports (Seguridad)
+- `bandit-report.json` - Análisis de seguridad Python
+
+**Cómo descargar:**
+1. En la página del workflow run
+2. Baja hasta **"Artifacts"**
+3. Haz clic en el artifact que necesites
+4. Se descargará automáticamente
+
 ## ⚙️ Configuración Específica
 
 ### Black (Formateador Python)
