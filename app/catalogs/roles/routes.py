@@ -76,7 +76,7 @@ def edit_role(id_role: int):
             return redirect(url_for("roles.list_roles"))
         except (ConflictError, ValidationError) as e:
             flash(e.message, "error")
-            
+
     elif request.method == "GET":
         # Pre-poblar el formulario en peticiones GET
         form.name.data = role.name
@@ -99,6 +99,6 @@ def delete_role(id_role: int):
         flash("Rol eliminado exitosamente", "success")
     except NotFoundError as e:
         flash(e.message, "error")
-    
+
     # Redirección al listado (Patrón PRG)
     return redirect(url_for("roles.list_roles"))

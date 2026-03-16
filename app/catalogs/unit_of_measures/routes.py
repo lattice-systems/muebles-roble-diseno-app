@@ -24,7 +24,10 @@ def list_unit_of_measures():
         HTML: Página con la lista de unidades de medida
     """
     unit_of_measures = UnitOfMeasureService.get_all()
-    return render_template("unit_of_measures/list.html", unit_of_measures=unit_of_measures)
+    return render_template(
+        "unit_of_measures/list.html", unit_of_measures=unit_of_measures
+    )
+
 
 @unit_of_measures_bp.route("/create", methods=["GET", "POST"])
 def create_unit_of_measure():
@@ -44,7 +47,7 @@ def create_unit_of_measure():
         data = {
             "name": form.name.data,
             "abbreviation": form.abbreviation.data,
-            "active": form.active.data
+            "active": form.active.data,
         }
         try:
             UnitOfMeasureService.create(data)
@@ -53,8 +56,8 @@ def create_unit_of_measure():
         except (ConflictError, ValidationError) as e:
             flash(str(e), "danger")
 
-    
     return render_template("unit_of_measures/create.html", form=form)
+
 
 @unit_of_measures_bp.route("/<int:id_unit_of_measure>/edit", methods=["GET", "POST"])
 def edit_unit_of_measure(id_unit_of_measure):
@@ -76,14 +79,11 @@ def edit_unit_of_measure(id_unit_of_measure):
     except NotFoundError:
         flash("Unidad de medida no encontrada", "danger")
         return redirect(url_for("unit_of_measures.list_unit_of_measures"))
-    
+
     form = UnitOfMeasureForm()
 
     if form.validate_on_submit():
-        data = {
-            "name": form.name.data,
-            "abbreviation": form.abbreviation.data
-        }
+        data = {"name": form.name.data, "abbreviation": form.abbreviation.data}
         try:
             UnitOfMeasureService.update(id_unit_of_measure, data)
             flash("Unidad de medida actualizada exitosamente", "success")
@@ -96,7 +96,10 @@ def edit_unit_of_measure(id_unit_of_measure):
         form.abbreviation.data = unit_of_measure.abbreviation
         form.active.data = unit_of_measure.active
 
-    return render_template("unit_of_measures/edit.html", form=form, unit_of_measure=unit_of_measure)
+    return render_template(
+        "unit_of_measures/edit.html", form=form, unit_of_measure=unit_of_measure
+    )
+
 
 @unit_of_measures_bp.route("/<int:id_unit_of_measure>/delete", methods=["POST"])
 def delete_unit_of_measure(id_unit_of_measure: int):
@@ -114,5 +117,5 @@ def delete_unit_of_measure(id_unit_of_measure: int):
         flash("Unidad de medida eliminada exitosamente", "success")
     except NotFoundError:
         flash("Unidad de medida no encontrada", "danger")
-    
+
     return redirect(url_for("unit_of_measures.list_unit_of_measures"))

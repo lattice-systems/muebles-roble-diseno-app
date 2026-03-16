@@ -34,20 +34,25 @@ def create_app():
 
     # Register blueprints
     from .catalogs.colors import colors_bp
-    app.register_blueprint(colors_bp, url_prefix='/colors')
-    
+
+    app.register_blueprint(colors_bp, url_prefix="/colors")
+
     from .catalogs.roles import roles_bp
-    app.register_blueprint(roles_bp, url_prefix='/roles')
+
+    app.register_blueprint(roles_bp, url_prefix="/roles")
 
     from .catalogs.wood_types import woods_types_bp
-    app.register_blueprint(woods_types_bp, url_prefix='/wood-types')
+
+    app.register_blueprint(woods_types_bp, url_prefix="/wood-types")
 
     from .catalogs.unit_of_measures import unit_of_measures_bp
-    app.register_blueprint(unit_of_measures_bp, url_prefix='/unit-of-measures')
 
-    @app.route('/test-macros')
+    app.register_blueprint(unit_of_measures_bp, url_prefix="/unit-of-measures")
+
+    @app.route("/test-macros")
     def test_macros():
         from flask import render_template
-        return render_template('test_macros.html')
+
+        return render_template("test_macros.html")
 
     return app
