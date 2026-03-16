@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./app/static/css/src/input.css -o ./app/static/css/output.css --watch"
+    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --watch"
   },
   "repository": {
     "type": "git",
@@ -22,9 +22,7 @@
   },
   "homepage": "https://github.com/furniture-store-utl/backend-furniture-store#readme",
   "devDependencies": {
-    "tailwindcss": "^3.4.19"
-  },
-  "dependencies": {
-    "flowbite": "^4.0.1"
+    "@tailwindcss/cli": "^4.2.1",
+    "tailwindcss": "^4.2.1"
   }
 }
