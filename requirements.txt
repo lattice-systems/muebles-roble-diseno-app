@@ -1,4 +1,5 @@
 alembic==1.18.4
+bandit==1.7.8
 black==26.3.1
 blinker==1.9.0
 cffi==2.0.0
@@ -45,11 +46,15 @@ SQLAlchemy==2.0.48
 sqlalchemy-stubs==0.4
 tomli==2.4.0
 tqdm==4.67.3
+types-click==7.1.8
+types-Flask==1.1.6
+types-Flask-Migrate==4.1.0.20250809
 types-Flask-SQLAlchemy==2.5.9.4
+types-Jinja2==2.11.9
+types-MarkupSafe==1.1.10
 types-SQLAlchemy==1.4.53.38
-types-Flask==4.0.16
-types-Flask-Migrate==4.0.7
-types-WTForms==3.1.0.20240106
+types-Werkzeug==1.0.9
+types-WTForms==3.2.1.20260312
 typing_extensions==4.15.0
 virtualenv==21.2.0
 Werkzeug==3.1.6
