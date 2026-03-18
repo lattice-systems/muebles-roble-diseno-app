@@ -33,6 +33,10 @@ def create_app():
     register_error_handlers(app)
 
     # Register blueprints
+    from .login import login_bp
+
+    app.register_blueprint(login_bp, url_prefix="/login")
+
     from .catalogs.colors import colors_bp
 
     app.register_blueprint(colors_bp, url_prefix="/colors")

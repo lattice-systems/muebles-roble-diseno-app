@@ -19,10 +19,11 @@
     {{ label }}
   </button>
 {% endmacro %}
-{% macro link_button(label, href="#", variant="default", external=false, icon=none) %}
+{% macro link_button(label, href="#", variant="default", external=false, icon=none, extra_classes="") %}
   {% set color_classes = _variants.get(variant, _variants["default"]) %}
+  {% set classes = (_base ~ " " ~ color_classes ~ (" " ~ extra_classes if extra_classes else "")).strip() %}
   <a href="{{ href }}"
-     class="{{ _base }} {{ color_classes }}"
+     class="{{ classes }}"
      {{ 'target="_blank" rel="noopener noreferrer"' | safe if external }}>
     {% if icon %}<span class="mr-2">{{ icon | safe }}</span>{% endif %}
     {{ label }}

@@ -1,0 +1,87 @@
+{% extends "layouts/login.html" %}
+{% from "macros/admin/ui.html" import link_button %}
+{% block title %}
+  Roble y Diseño - Login
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col w-full justify-between items-center p-2">
+    <div class="w-full">
+      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           alt="Logo Roble Diseño"
+           width="188"
+           height="51">
+    </div>
+    <main class="flex flex-col gap-12 items-center">
+      <div>
+        <h1 class="w-full text-center text-2xl font-semibold">Inicio de Sesión</h1>
+        <p class="w-full text-center text-body-subtle text-base font-normal">
+          Ingresa tus credenciales para acceder a tu
+          cuenta
+        </p>
+      </div>
+      <div class="flex flex-col gap-2 w-full">
+        <div class="flex flex-col w-full gap-6">
+          <div>
+            <label for="username" class="block mb-2.5 text-sm font-medium text-heading">Usuario o contraseña</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-5 h-5 text-body-subtle dark:text-white"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9h3m-3 3h3m-3 3h3m-6 1c-.306-.613-.933-1-1.618-1H7.618c-.685 0-1.312.387-1.618 1M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm7 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z">
+                  </path>
+                </svg>
+              </div>
+              <input type="text"
+                     id="username"
+                     class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                     placeholder="Ingrese su usuario o correo electrónico"
+                     required>
+            </div>
+          </div>
+          <div>
+            <label for="password" class="block mb-2.5 text-sm font-medium text-heading">Contraseña</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-5 h-5 text-body-subtle dark:text-white"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v3m-3-6V7a3 3 0 1 1 6 0v4m-8 0h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z">
+                  </path>
+                </svg>
+              </div>
+              <input type="text"
+                     id="password"
+                     class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                     placeholder="Ingrese su usuario o correo electrónico"
+                     required>
+            </div>
+          </div>
+        </div>
+        <div class="w-full pb-4 text-end">
+          <a href="#" class="text-brand hover:underline">¿Olvidó su contraseña?</a>
+        </div>
+        <div class="w-full">{{ link_button("Iniciar Sesión", extra_classes="w-full") }}</div>
+      </div>
+    </main>
+    <footer class="text-body-subtle flex flex-row justify-between w-full">
+      <p>Lattice Systems - 2026</p>
+      <a href="#" class="hover:underline">Política de privacidad</a>
+    </footer>
+  </div>
+  <div class="w-full h-full">
+    <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
+         alt="Persona sentada trabajando"
+         width="750"
+         height="600"
+         class="w-full h-full object-cover rounded-base">
+  </div>
+{% endblock content %}
