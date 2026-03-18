@@ -19,6 +19,9 @@ class User(db.Model, UserMixin):
     fs_uniquifier = db.Column(
         db.String(64), unique=True, nullable=False, default=lambda: uuid.uuid4().hex
     )
+    tf_primary_method = db.Column(db.String(64), nullable=True)
+    tf_totp_secret = db.Column(db.String(255), nullable=True)
+    tf_phone_number = db.Column(db.String(128), nullable=True)
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")

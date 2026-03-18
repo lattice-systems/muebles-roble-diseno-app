@@ -42,6 +42,12 @@
           {{ login_user_form.remember() }}
           <span>Recordarme</span>
         </label>
+        {% if security.recoverable %}
+          <div class="w-full text-end">
+            <a href="{{ url_for_security('forgot_password') }}"
+               class="text-brand hover:underline">¿Olvido su contrasena?</a>
+          </div>
+        {% endif %}
         <button type="submit"
                 class="w-full py-2.5 px-4 rounded-base bg-brand text-white font-semibold hover:opacity-90">
           Iniciar Sesion

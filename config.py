@@ -28,6 +28,19 @@ class Config:
 
     # Flask Security
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
+    SECURITY_POST_LOGIN_VIEW = "/admin"
+    SECURITY_TWO_FACTOR = True
+    SECURITY_TWO_FACTOR_REQUIRED = True
+    SECURITY_TWO_FACTOR_ENABLED_METHODS = ["authenticator"]
+    SECURITY_TOTP_ISSUER = os.getenv("SECURITY_TOTP_ISSUER", "RobleDiseno")
+    _security_totp_secret = os.getenv("SECURITY_TOTP_SECRET")
+    if not _security_totp_secret:
+        if os.getenv("FLASK_ENV") == "production":
+            raise ValueError(
+                "SECURITY_TOTP_SECRET must be set in production environment"
+            )
+        _security_totp_secret = "dev-totp-secret"
+    SECURITY_TOTP_SECRETS = {"1": _security_totp_secret}
 
     # Have session and remember cookie be samesite (flask/flask_login)
     REMEMBER_COOKIE_SAMESITE = "strict"
