@@ -4,66 +4,67 @@
   Roble y Diseno - Login
 {% endblock title %}
 {% block content %}
-  <div class="flex flex-col w-full justify-between items-center p-2">
-    <div class="w-full">
-      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
-           alt="Logo Roble Diseno"
-           width="188"
-           height="51">
-    </div>
-    <main class="flex flex-col gap-10 items-center w-full max-w-xl">
+  <form action="{{ url_for_security("login") }}{{ prop_next() }}"
+        method="post"
+        name="login_user_form"
+        class="flex flex-col gap-4 w-full">
+    {{ login_user_form.hidden_tag() }}
+    {% if login_user_form.email and "email" in identity_attributes %}
       <div>
-        <h1 class="w-full text-center text-2xl font-semibold">Inicio de Sesion</h1>
-        <p class="w-full text-center text-body-subtle text-base font-normal">
-          Ingresa tus credenciales para acceder a tu cuenta
-        </p>
-      </div>
-      {% include "security/_messages.html" %}
-      <form action="{{ url_for_security("login") }}{{ prop_next() }}"
-            method="post"
-            name="login_user_form"
-            class="flex flex-col gap-4 w-full">
-        {{ login_user_form.hidden_tag() }}
-        {% if login_user_form.email and "email" in identity_attributes %}
-          <div>
-            <label for="{{ login_user_form.email.id }}"
-                   class="block mb-2.5 text-sm font-medium text-heading">Correo electronico</label>
-            {{ login_user_form.email(class_="block w-full ps-3 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="correo@dominio.com") }}
-            {% for error in login_user_form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
+        <label for="{{ login_user_form.email.id }}"
+               class="block mb-2.5 text-sm font-medium text-heading">Correo electrónico</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+            <svg class="w-5 h-5 text-body-subtle dark:text-white"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9h3m-3 3h3m-3 3h3m-6 1c-.306-.613-.933-1-1.618-1H7.618c-.685 0-1.312.387-1.618 1M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm7 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z">
+              </path>
+            </svg>
           </div>
-        {% endif %}
-        <div>
-          <label for="{{ login_user_form.password.id }}"
-                 class="block mb-2.5 text-sm font-medium text-heading">Contrasena</label>
-          {{ login_user_form.password(class_="block w-full ps-3 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ingresa tu contrasena") }}
-          {% for error in login_user_form.password.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
+          {{ login_user_form.email(class_="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="correo@dominio.com") }}
         </div>
-        <label class="inline-flex items-center gap-2 text-sm text-body">
-          {{ login_user_form.remember() }}
-          <span>Recordarme</span>
-        </label>
-        {% if security.recoverable %}
-          <div class="w-full text-end">
-            <a href="{{ url_for_security('forgot_password') }}"
-               class="text-brand hover:underline">¿Olvido su contrasena?</a>
-          </div>
-        {% endif %}
-        <button type="submit"
-                class="w-full py-2.5 px-4 rounded-base bg-brand text-white font-semibold hover:opacity-90">
-          Iniciar Sesion
-        </button>
-      </form>
-    </main>
-    <footer class="text-body-subtle flex flex-row justify-between w-full">
-      <p>Lattice Systems - 2026</p>
-      <a href="#" class="hover:underline">Politica de privacidad</a>
-    </footer>
-  </div>
-  <div class="w-full h-full">
-    <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
-         alt="Persona sentada trabajando"
-         width="750"
-         height="600"
-         class="w-full h-full object-cover rounded-base">
-  </div>
+        {% for error in login_user_form.email.errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <div>
+      <label for="{{ login_user_form.password.id }}"
+             class="block mb-2.5 text-sm font-medium text-heading">Contraseña</label>
+      <div class="relative">
+        <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+          <svg class="w-5 h-5 text-body-subtle dark:text-white"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v3m-3-6V7a3 3 0 1 1 6 0v4m-8 0h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z">
+            </path>
+          </svg>
+        </div>
+        {{ login_user_form.password(class_="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ingresa tu contrasena") }}
+      </div>
+      {% for error in login_user_form.password.errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}
+    </div>
+    <label class="inline-flex items-center gap-2 select-none ms-2 text-sm font-medium text-heading">
+      {{ login_user_form.remember(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+      <span>Recordarme</span>
+    </label>
+    {% if security.recoverable %}
+      <div class="w-full text-end">
+        <a href="{{ url_for_security('forgot_password') }}"
+           class="text-brand hover:underline">¿Olvido su contrasena?</a>
+      </div>
+    {% endif %}
+    {% include "security/_messages.html" %}
+    <button type="submit"
+            class="w-full py-2.5 px-4 rounded-base bg-brand text-white font-semibold hover:opacity-90">
+      Iniciar Sesion
+    </button>
+  </form>
 {% endblock content %}
