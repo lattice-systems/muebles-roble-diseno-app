@@ -25,3 +25,10 @@ class Config:
         if os.getenv("FLASK_ENV") == "production":
             raise ValueError("SECRET_KEY must be set in production environment")
         SECRET_KEY = "dev-secret-key-change-in-production"
+
+    # Flask Security
+    SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
+
+    # Have session and remember cookie be samesite (flask/flask_login)
+    REMEMBER_COOKIE_SAMESITE = "strict"
+    SESSION_COOKIE_SAMESITE = "strict"

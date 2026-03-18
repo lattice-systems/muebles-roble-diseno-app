@@ -2,7 +2,7 @@ from flask import Flask
 
 from config import Config
 from .exceptions import register_error_handlers
-from .extensions import csrf, db, migrate
+from .extensions import csrf, db, migrate, security
 
 
 def create_app():
@@ -25,6 +25,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    security.init_app(app, db)
 
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401
