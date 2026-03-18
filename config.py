@@ -41,6 +41,28 @@ class Config:
             )
         _security_totp_secret = "dev-totp-secret"
     SECURITY_TOTP_SECRETS = {"1": _security_totp_secret}
+    SECURITY_MSG_EMAIL_NOT_PROVIDED = ("Debes ingresar tu correo electronico.", "error")
+    SECURITY_MSG_INVALID_EMAIL_ADDRESS = (
+        "El correo electronico no es valido.",
+        "error",
+    )
+    SECURITY_MSG_PASSWORD_NOT_PROVIDED = ("Debes ingresar tu contrasena.", "error")
+    SECURITY_MSG_USER_DOES_NOT_EXIST = ("El usuario no existe.", "error")
+    SECURITY_MSG_INVALID_PASSWORD = ("La contrasena es incorrecta.", "error")
+    SECURITY_MSG_LOGIN = ("Inicia sesion para acceder a esta pagina.", "info")
+    SECURITY_MSG_CODE_HAS_BEEN_SENT = ("El codigo fue enviado.", "info")
+    SECURITY_MSG_TWO_FACTOR_INVALID_TOKEN = (
+        "El codigo de verificacion no es valido.",
+        "error",
+    )
+    SECURITY_MSG_TWO_FACTOR_LOGIN_SUCCESSFUL = (
+        "Tu codigo de verificacion fue confirmado.",
+        "success",
+    )
+    SECURITY_MSG_TWO_FACTOR_SETUP_EXPIRED = (
+        "La configuracion 2FA expiro. Inicia el proceso de nuevo.",
+        "error",
+    )
 
     # Have session and remember cookie be samesite (flask/flask_login)
     REMEMBER_COOKIE_SAMESITE = "strict"
