@@ -2,7 +2,7 @@
 Rutas/Endpoints para el módulo de tipos de madera.
 """
 
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template, url_for, request
 from . import woods_types_bp
 from .forms import WoodTypeForm
 from .services import WoodTypeService
@@ -12,25 +12,34 @@ from app.exceptions import ConflictError
 @woods_types_bp.route("/", methods=["GET"])
 def list_wood_types():
     """
-    Muestra la lista de tipos de madera del catálogo.
+    Muestra la lista de tipos de madera del catálogo filtrada.
 
     Returns:
         HTML: Página con la lista de tipos de madera
     """
-    wood_types = WoodTypeService.get_all()
-    return render_template("wood_types/list.html", wood_types=wood_types)
+    search_term = request.args.get("q", "")
+    status_filter = request.args.get("status", "all")
+    
+    wood_types = WoodTypeService.get_all(search_term=search_term, status_filter=status_filter)
+    form = WoodTypeForm()
+    
+    return render_template(
+        "wood_types/list.html", 
+        wood_types=wood_types, 
+        form=form,
+        search_term=search_term,
+        status_filter=status_filter
+    )
 
 
-@woods_types_bp.route("/create", methods=["GET", "POST"])
+@woods_types_bp.route("/create", methods=["POST"])
 def create_wood_type():
     """
-    Muestra el formulario y crea un nuevo tipo de madera en el catálogo.
+    Crea un nuevo tipo de madera y maneja el modal de creación.
 
-    GET: Renderiza el formulario de creación.
-    POST: Valida el formulario, crea el tipo de madera y redirige.
+    POST: Valida el formulario, crea el tipo de madera y redirige o vuelve a la lista.
     Returns:
-        GET - HTML: Página con el formulario de creación de tipo de madera
-        POST - Redirect: Redirige al formulario con mensaje flash
+        POST - Redirect: Redirige a la lista o re-renderiza con errores
     """
     form = WoodTypeForm()
 
@@ -39,24 +48,22 @@ def create_wood_type():
         try:
             WoodTypeService.create(data)
             flash("Tipo de madera creado exitosamente", "success")
-            return redirect(url_for("woods_types.create_wood_type"))
+            return redirect(url_for("woods_types.list_wood_types"))
         except ConflictError as e:
             flash(e.message, "error")
 
-    return render_template("wood_types/create.html", form=form)
+    wood_types = WoodTypeService.get_all()
+    return render_template("wood_types/list.html", wood_types=wood_types, form=form, show_create_modal=True)
 
 
-@woods_types_bp.route("/<int:id_wood_type>/edit", methods=["GET", "POST"])
+@woods_types_bp.route("/<int:id_wood_type>/edit", methods=["POST"])
 def edit_wood_type(id_wood_type: int):
     """
-    Muestra el formulario pre-poblado y actualiza un tipo de madera existente.
+    Actualiza un tipo de madera existente manejado a través de modales.
 
-    GET: Renderiza el formulario con los datos actuales del tipo de madera.
-    POST: Valida el formulario, actualiza el tipo de madera y redirige (Patrón PRG).
-
+    POST: Valida el formulario, actualiza el tipo de madera y redirige o vuelve a la lista.
     Returns:
-        GET - HTML: Página con el formulario de edición de tipo de madera.
-        POST - Redirect: Redirige al formulario con mensaje flash
+        POST - Redirect o Render HTML con errores
     """
     form = WoodTypeForm()
 
@@ -65,28 +72,19 @@ def edit_wood_type(id_wood_type: int):
         try:
             WoodTypeService.update(id_wood_type, data)
             flash("Tipo de madera actualizado exitosamente", "success")
-            return redirect(
-                url_for("woods_types.edit_wood_type", id_wood_type=id_wood_type)
-            )
+            return redirect(url_for("woods_types.list_wood_types"))
         except ConflictError as e:
             flash(e.message, "error")
 
-    wood_type = WoodTypeService.get_by_id(id_wood_type)
-    if not wood_type:
-        flash("Tipo de madera no encontrado", "error")
-        return redirect(url_for("woods_types.list_wood_types"))
-
-    # Pre-popular el formulario con los datos actuales del tipo de madera
-    form.name.data = wood_type.name
-    form.description.data = wood_type.description
-
-    return render_template("wood_types/edit.html", form=form, wood_type=wood_type)
+    wood_types = WoodTypeService.get_all()
+    blank_form = WoodTypeForm()
+    return render_template("wood_types/list.html", wood_types=wood_types, form=blank_form, edit_form=form, show_edit_modal=id_wood_type)
 
 
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])
 def delete_wood_type(id_wood_type: int):
     """
-    Elimina un tipo de madera existente.
+    Elimina (inactiva) un tipo de madera existente.
 
     POST: Elimina el tipo de madera y redirige.
 

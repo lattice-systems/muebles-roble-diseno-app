@@ -3,6 +3,7 @@ Servicios de lógica de negocio para tipos de madera.
 """
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 from app.extensions import db
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.models.wood_type import WoodType
@@ -12,14 +13,29 @@ class WoodTypeService:
     """Servicio para operaciones de negocio relacionadas con tipos de madera."""
 
     @staticmethod
-    def get_all() -> list[WoodType]:
+    def get_all(search_term: str = None, status_filter: str = "all") -> list[WoodType]:
         """
-        Obtiene todos los tipos de madera activos.
+        Obtiene los tipos de madera, con opciones de filtrado.
+
+        Args:
+            search_term (str, optional): Término de búsqueda para el nombre o descripción.
+            status_filter (str, optional): Estado para filtrar ('active', 'inactive', 'all').
 
         Returns:
-            list[WoodType]: Lista de objetos WoodType activos
+            list[WoodType]: Lista de objetos WoodType
         """
-        return WoodType.query.filter_by(status=True).all()
+        query = WoodType.query
+
+        if search_term:
+            search = f"%{search_term}%"
+            query = query.filter(or_(WoodType.name.ilike(search), WoodType.description.ilike(search)))
+
+        if status_filter == 'active':
+            query = query.filter_by(status=True)
+        elif status_filter == 'inactive':
+            query = query.filter_by(status=False)
+            
+        return query.order_by(WoodType.id.desc()).all()
 
     @staticmethod
     def create(data: dict) -> dict:
