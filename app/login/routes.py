@@ -2,11 +2,12 @@
 Rutas/Endpoints para el módulo de login.
 """
 
-from flask import render_template
+from flask import redirect
+from flask_security import url_for_security
 
 from app.login import login_bp
 
 
 @login_bp.route("/", methods=["GET"])
 def index():
-    return render_template("login/index.html")
+    return redirect(url_for_security("login"))

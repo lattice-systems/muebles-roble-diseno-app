@@ -1,0 +1,63 @@
+{% extends "layouts/login.html" %}
+{% from "security/_macros.html" import prop_next %}
+{% block title %}
+  Roble y Diseno - Login
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col w-full justify-between items-center p-2">
+    <div class="w-full">
+      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           alt="Logo Roble Diseno"
+           width="188"
+           height="51">
+    </div>
+    <main class="flex flex-col gap-10 items-center w-full max-w-xl">
+      <div>
+        <h1 class="w-full text-center text-2xl font-semibold">Inicio de Sesion</h1>
+        <p class="w-full text-center text-body-subtle text-base font-normal">
+          Ingresa tus credenciales para acceder a tu cuenta
+        </p>
+      </div>
+      {% include "security/_messages.html" %}
+      <form action="{{ url_for_security("login") }}{{ prop_next() }}"
+            method="post"
+            name="login_user_form"
+            class="flex flex-col gap-4 w-full">
+        {{ login_user_form.hidden_tag() }}
+        {% if login_user_form.email and "email" in identity_attributes %}
+          <div>
+            <label for="{{ login_user_form.email.id }}"
+                   class="block mb-2.5 text-sm font-medium text-heading">Correo electronico</label>
+            {{ login_user_form.email(class_="block w-full ps-3 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="correo@dominio.com") }}
+            {% for error in login_user_form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+        <div>
+          <label for="{{ login_user_form.password.id }}"
+                 class="block mb-2.5 text-sm font-medium text-heading">Contrasena</label>
+          {{ login_user_form.password(class_="block w-full ps-3 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ingresa tu contrasena") }}
+          {% for error in login_user_form.password.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
+        </div>
+        <label class="inline-flex items-center gap-2 text-sm text-body">
+          {{ login_user_form.remember() }}
+          <span>Recordarme</span>
+        </label>
+        <button type="submit"
+                class="w-full py-2.5 px-4 rounded-base bg-brand text-white font-semibold hover:opacity-90">
+          Iniciar Sesion
+        </button>
+      </form>
+    </main>
+    <footer class="text-body-subtle flex flex-row justify-between w-full">
+      <p>Lattice Systems - 2026</p>
+      <a href="#" class="hover:underline">Politica de privacidad</a>
+    </footer>
+  </div>
+  <div class="w-full h-full">
+    <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
+         alt="Persona sentada trabajando"
+         width="750"
+         height="600"
+         class="w-full h-full object-cover rounded-base">
+  </div>
+{% endblock content %}
