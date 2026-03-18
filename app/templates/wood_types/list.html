@@ -165,13 +165,20 @@
                               </ul>
                           </div>
 
-                          <!-- Delete button matching Figma -->
-                          <form method="POST" action="{{ url_for('woods_types.delete_wood_type', id_wood_type=wood_type.id_wood_type) }}" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este tipo de madera?');">
+                          <!-- Delete / Activate button matching Figma -->
+                          <form method="POST" action="{{ url_for('woods_types.delete_wood_type', id_wood_type=wood_type.id_wood_type) }}" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas cambiar el estado de este registro?');">
                               <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}" />
+                              {% if wood_type.status %}
                               <button type="submit" class="py-1.5 px-3 flex items-center text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300">
                                   <svg class="h-4 w-4 mr-1 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 1.414.586l2 2A2 2 0 0 1 18 6v1h2a1 1 0 1 1 0 2h-1v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9H4a1 1 0 0 1 0-2h2V6a2 2 0 0 1 .586-1.414l2-2ZM11 11a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0v-7Z" clip-rule="evenodd"/></svg>
-                                  Delete
+                                  Desactivar
                               </button>
+                              {% else %}
+                              <button type="submit" class="py-1.5 px-3 flex items-center text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
+                                  <svg class="h-4 w-4 mr-1 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm4.707 7.293a1 1 0 00-1.414-1.414L11 12.586 8.707 10.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l5-5z" clip-rule="evenodd"/></svg>
+                                  Activar
+                              </button>
+                              {% endif %}
                           </form>
                       </td>
                   </tr>
@@ -184,7 +191,7 @@
                                   <h3 class="text-lg font-semibold text-gray-900">
                                       Editar Tipo de Madera
                                   </h3>
-                                  <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-toggle="editModal-{{ wood_type.id_wood_type }}">
+                                  <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="editModal-{{ wood_type.id_wood_type }}">
                                       <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 14 14">
                                           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                                       </svg>
@@ -192,15 +199,21 @@
                                   </button>
                               </div>
                               <form class="p-4 md:p-5" method="POST" action="{{ url_for('woods_types.edit_wood_type', id_wood_type=wood_type.id_wood_type) }}">
-                                  {{ form.hidden_tag() if form and form.hidden_tag else '' }}
+                                  {{ edit_form.hidden_tag() if edit_form and edit_form.hidden_tag else '' }}
                                   <div class="grid gap-4 mb-4 grid-cols-2">
                                       <div class="col-span-2">
                                           <label for="name-{{ wood_type.id_wood_type }}" class="block mb-2 text-sm font-medium text-gray-900">Nombre</label>
                                           <input type="text" name="name" id="name-{{ wood_type.id_wood_type }}" value="{{ wood_type.name }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" placeholder="Ej. Roble" required>
+                                          {% if show_edit_modal == wood_type.id_wood_type and edit_form and edit_form.name.errors %}
+                                            <p class="mt-2 text-sm text-red-600">{{ edit_form.name.errors[0] }}</p>
+                                          {% endif %}
                                       </div>
                                       <div class="col-span-2">
                                           <label for="description-{{ wood_type.id_wood_type }}" class="block mb-2 text-sm font-medium text-gray-900">Descripción</label>
                                           <textarea id="description-{{ wood_type.id_wood_type }}" name="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Añade una descripción">{{ wood_type.description if wood_type.description else '' }}</textarea>
+                                          {% if show_edit_modal == wood_type.id_wood_type and edit_form and edit_form.description.errors %}
+                                            <p class="mt-2 text-sm text-red-600">{{ edit_form.description.errors[0] }}</p>
+                                          {% endif %}
                                       </div>
                                   </div>
                                   <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
@@ -232,7 +245,7 @@
                 <h3 class="text-lg font-semibold text-gray-900">
                     Añadir Nuevo Tipo de Madera
                 </h3>
-                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-toggle="createModal">
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="createModal">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 14 14">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                     </svg>
@@ -245,10 +258,16 @@
                     <div class="col-span-2">
                         <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Nombre</label>
                         <input type="text" name="name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" placeholder="Ej. Roble" required>
+                        {% if show_create_modal and form and form.name.errors %}
+                          <p class="mt-2 text-sm text-red-600">{{ form.name.errors[0] }}</p>
+                        {% endif %}
                     </div>
                     <div class="col-span-2">
                         <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Descripción</label>
                         <textarea id="description" name="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Añade una descripción"></textarea>
+                        {% if show_create_modal and form and form.description.errors %}
+                          <p class="mt-2 text-sm text-red-600">{{ form.description.errors[0] }}</p>
+                        {% endif %}
                     </div>
                 </div>
                 <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
@@ -263,11 +282,7 @@
 {% if show_create_modal %}
 <script>
     document.addEventListener("DOMContentLoaded", function(event) {
-        if (typeof Modal !== 'undefined') {
-            const modalElement = document.getElementById('createModal');
-            const modal = new Modal(modalElement);
-            modal.show();
-        }
+        document.querySelector('[data-modal-target="createModal"]').click();
     });
 </script>
 {% endif %}
@@ -275,13 +290,8 @@
 {% if show_edit_modal %}
 <script>
     document.addEventListener("DOMContentLoaded", function(event) {
-        if (typeof Modal !== 'undefined') {
-            const modalElement = document.getElementById('editModal-{{ show_edit_modal }}');
-            if (modalElement) {
-                const modal = new Modal(modalElement);
-                modal.show();
-            }
-        }
+        const btn = document.querySelector('[data-modal-target="editModal-{{ show_edit_modal }}"]');
+        if (btn) btn.click();
     });
 </script>
 {% endif %}

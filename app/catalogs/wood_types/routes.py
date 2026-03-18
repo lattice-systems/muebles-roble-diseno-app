@@ -84,16 +84,16 @@ def edit_wood_type(id_wood_type: int):
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])
 def delete_wood_type(id_wood_type: int):
     """
-    Elimina (inactiva) un tipo de madera existente.
+    Alterna el estado (Activo/Inactivo) de un tipo de madera existente.
 
-    POST: Elimina el tipo de madera y redirige.
+    POST: Cambia el estatus y redirige.
 
     Returns:
         POST - Redirect: Redirige a la lista con mensaje flash
     """
     try:
-        WoodTypeService.delete(id_wood_type)
-        flash("Tipo de madera eliminado exitosamente", "success")
+        WoodTypeService.toggle_status(id_wood_type)
+        flash("Estado del tipo de madera actualizado exitosamente", "success")
     except Exception as e:
         flash(str(e), "error")
 

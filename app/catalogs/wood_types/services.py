@@ -114,7 +114,7 @@ class WoodTypeService:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.status:
+        if not wood_type:
             raise NotFoundError(
                 f"No se encontró el tipo de madera con ID {id_wood_type}"
             )
@@ -145,21 +145,21 @@ class WoodTypeService:
         return wood_type.to_dict()
 
     @staticmethod
-    def delete(id_wood_type: int) -> None:
+    def toggle_status(id_wood_type: int) -> None:
         """
-        Elimina (desactiva) un tipo de madera por su ID.
+        Activa o inactiva un tipo de madera por su ID (toggle).
 
         Args:
-            id_wood_type: ID del tipo de madera a eliminar
+            id_wood_type: ID del tipo de madera a ser alternado
 
         Raises:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.status:
+        if not wood_type:
             raise NotFoundError(
                 f"No se encontró el tipo de madera con ID {id_wood_type}"
             )
 
-        wood_type.status = False
+        wood_type.status = not wood_type.status
         db.session.commit()
