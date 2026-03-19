@@ -13,7 +13,12 @@ class WoodTypeService:
     """Servicio para operaciones de negocio relacionadas con tipos de madera."""
 
     @staticmethod
-    def get_all(search_term: str = None, status_filter: str = "all", page: int = 1, per_page: int = 10):
+    def get_all(
+        search_term: str = None,
+        status_filter: str = "all",
+        page: int = 1,
+        per_page: int = 10,
+    ):
         """
         Obtiene los tipos de madera paginados, con opciones de filtrado.
 
@@ -30,14 +35,18 @@ class WoodTypeService:
 
         if search_term:
             search = f"%{search_term}%"
-            query = query.filter(or_(WoodType.name.ilike(search), WoodType.description.ilike(search)))
+            query = query.filter(
+                or_(WoodType.name.ilike(search), WoodType.description.ilike(search))
+            )
 
-        if status_filter == 'active':
+        if status_filter == "active":
             query = query.filter_by(status=True)
-        elif status_filter == 'inactive':
+        elif status_filter == "inactive":
             query = query.filter_by(status=False)
-            
-        return query.order_by(WoodType.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+        return query.order_by(WoodType.id.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -66,7 +75,9 @@ class WoodTypeService:
         if existing:
             raise ConflictError(f"Ya existe un tipo de madera con el nombre '{name}'")
 
-        wood_type = WoodType(name=name, description=description, status=data.get("status", True))
+        wood_type = WoodType(
+            name=name, description=description, status=data.get("status", True)
+        )
         db.session.add(wood_type)
 
         try:
@@ -183,7 +194,7 @@ class WoodTypeService:
             return 0
 
         count = WoodType.query.filter(
-            WoodType.id.in_(ids), WoodType.status == True
+            WoodType.id.in_(ids), WoodType.status == True  # noqa: E712
         ).update({WoodType.status: False}, synchronize_session="fetch")
         db.session.commit()
         return count

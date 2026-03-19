@@ -20,17 +20,19 @@ def list_wood_types():
     search_term = request.args.get("q", "")
     status_filter = request.args.get("status", "all")
     page = request.args.get("page", 1, type=int)
-    
-    pagination = WoodTypeService.get_all(search_term=search_term, status_filter=status_filter, page=page)
+
+    pagination = WoodTypeService.get_all(
+        search_term=search_term, status_filter=status_filter, page=page
+    )
     form = WoodTypeForm()
-    
+
     return render_template(
-        "wood_types/list.html", 
+        "wood_types/list.html",
         wood_types=pagination.items,
         pagination=pagination,
         form=form,
         search_term=search_term,
-        status_filter=status_filter
+        status_filter=status_filter,
     )
 
 
@@ -48,7 +50,11 @@ def create_wood_type():
     if form.validate_on_submit():
         # Read the status from the select (not part of WTForms)
         raw_status = request.form.get("status", "1")
-        data = {"name": form.name.data, "description": form.description.data, "status": bool(int(raw_status)) if raw_status.isdigit() else True}
+        data = {
+            "name": form.name.data,
+            "description": form.description.data,
+            "status": bool(int(raw_status)) if raw_status.isdigit() else True,
+        }
         try:
             WoodTypeService.create(data)
             flash("Tipo de madera creado exitosamente", "success")
@@ -57,7 +63,13 @@ def create_wood_type():
             flash(e.message, "error")
 
     pagination = WoodTypeService.get_all()
-    return render_template("wood_types/list.html", wood_types=pagination.items, pagination=pagination, form=form, show_create_modal=True)
+    return render_template(
+        "wood_types/list.html",
+        wood_types=pagination.items,
+        pagination=pagination,
+        form=form,
+        show_create_modal=True,
+    )
 
 
 @woods_types_bp.route("/<int:id_wood_type>/edit", methods=["POST"])
@@ -76,7 +88,7 @@ def edit_wood_type(id_wood_type: int):
         data = {
             "name": form.name.data,
             "description": form.description.data,
-            "status": bool(int(raw_status)) if raw_status.isdigit() else True
+            "status": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
             WoodTypeService.update(id_wood_type, data)
@@ -87,7 +99,14 @@ def edit_wood_type(id_wood_type: int):
 
     pagination = WoodTypeService.get_all()
     blank_form = WoodTypeForm()
-    return render_template("wood_types/list.html", wood_types=pagination.items, pagination=pagination, form=blank_form, edit_form=form, show_edit_modal=id_wood_type)
+    return render_template(
+        "wood_types/list.html",
+        wood_types=pagination.items,
+        pagination=pagination,
+        form=blank_form,
+        edit_form=form,
+        show_edit_modal=id_wood_type,
+    )
 
 
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])
@@ -125,7 +144,11 @@ def bulk_deactivate():
         return redirect(url_for("woods_types.list_wood_types"))
 
     try:
-        ids = [int(id_str.strip()) for id_str in ids_str.split(",") if id_str.strip().isdigit()]
+        ids = [
+            int(id_str.strip())
+            for id_str in ids_str.split(",")
+            if id_str.strip().isdigit()
+        ]
         count = WoodTypeService.bulk_deactivate(ids)
         flash(f"{count} tipo(s) de madera desactivado(s) exitosamente", "success")
     except Exception as e:
@@ -150,7 +173,11 @@ def bulk_activate():
         return redirect(url_for("woods_types.list_wood_types"))
 
     try:
-        ids = [int(id_str.strip()) for id_str in ids_str.split(",") if id_str.strip().isdigit()]
+        ids = [
+            int(id_str.strip())
+            for id_str in ids_str.split(",")
+            if id_str.strip().isdigit()
+        ]
         count = WoodTypeService.bulk_activate(ids)
         flash(f"{count} tipo(s) de madera activado(s) exitosamente", "success")
     except Exception as e:
