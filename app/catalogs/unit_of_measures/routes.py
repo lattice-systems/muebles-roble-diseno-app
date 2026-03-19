@@ -43,6 +43,7 @@ def create_unit_of_measure():
         data = {
             "name": form.name.data,
             "abbreviation": form.abbreviation.data,
+            "type": form.type.data,
             "active": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
@@ -79,6 +80,7 @@ def edit_unit_of_measure(id_unit_of_measure):
         data = {
             "name": form.name.data,
             "abbreviation": form.abbreviation.data,
+            "type": form.type.data,
             "active": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
@@ -117,4 +119,37 @@ def delete_unit_of_measure(id_unit_of_measure: int):
     except NotFoundError:
         flash("Unidad de medida no encontrada", "error")
 
+    return redirect(url_for("unit_of_measures.list_unit_of_measures"))
+
+
+@unit_of_measures_bp.route("/bulk-activate", methods=["POST"])
+def bulk_activate_unit_of_measures():
+    ids_str = request.form.get("ids", "")
+    if ids_str:
+        ids = [int(i.strip()) for i in ids_str.split(",") if i.strip().isdigit()]
+        if ids:
+            try:
+                UnitOfMeasureService.bulk_toggle_status(ids, True)
+                flash(
+                    f"{len(ids)} unidades de medida activadas exitosamente", "success"
+                )
+            except Exception as e:
+                flash(f"Error al activar unidades de medida: {e}", "error")
+    return redirect(url_for("unit_of_measures.list_unit_of_measures"))
+
+
+@unit_of_measures_bp.route("/bulk-deactivate", methods=["POST"])
+def bulk_deactivate_unit_of_measures():
+    ids_str = request.form.get("ids", "")
+    if ids_str:
+        ids = [int(i.strip()) for i in ids_str.split(",") if i.strip().isdigit()]
+        if ids:
+            try:
+                UnitOfMeasureService.bulk_toggle_status(ids, False)
+                flash(
+                    f"{len(ids)} unidades de medida desactivadas exitosamente",
+                    "success",
+                )
+            except Exception as e:
+                flash(f"Error al desactivar unidades de medida: {e}", "error")
     return redirect(url_for("unit_of_measures.list_unit_of_measures"))
