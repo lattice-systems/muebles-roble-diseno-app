@@ -32,6 +32,8 @@ class Config:
     SECURITY_TWO_FACTOR = True
     SECURITY_TWO_FACTOR_REQUIRED = True
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ["authenticator"]
+    SECURITY_TWO_FACTOR_RESCUE_EMAIL = False
+    SECURITY_MULTI_FACTOR_RECOVERY_CODES = False
     SECURITY_TOTP_ISSUER = os.getenv("SECURITY_TOTP_ISSUER", "RobleDiseno")
     _security_totp_secret = os.getenv("SECURITY_TOTP_SECRET")
     if not _security_totp_secret:

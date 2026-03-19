@@ -4,22 +4,20 @@
   Roble y Diseno - Verificacion 2FA
 {% endblock title %}
 {% block step_description %}
-  Ingresa el codigo de tu aplicacion autenticadora para continuar.
+  Ingresa el código de tu aplicacion autenticadora
 {% endblock step_description %}
 {% block content %}
-  <div class="w-full max-w-lg min-w-0 max-h-[58vh] overflow-y-auto pr-1 flex flex-col gap-4">
+  <div class="w-full min-w-0 max-h-[58vh] items-center overflow-y-auto flex flex-col gap-4">
     {% include "security/_messages.html" %}
-    <div class="rounded-base border border-default-medium bg-neutral-secondary-medium p-4">
-      <p class="text-sm text-body-subtle">
-        Metodo activo:
-        <span class="font-semibold text-heading">{{ chosen_method }}</span>
-      </p>
-    </div>
+    <p class="text-sm text-body-subtle">
+      Metodo activo:
+      <span class="font-semibold text-heading">{{ chosen_method }}</span>
+    </p>
     <form action="{{ url_for_security("two_factor_token_validation") }}{{ prop_next() }}"
           method="post"
           name="two_factor_verify_code_form"
           id="two_factor_verify_code_form"
-          class="flex flex-col gap-4">
+          class="flex flex-col gap-4 w-full">
       {{ two_factor_verify_code_form.hidden_tag() }}
       <div>
         <label for="{{ two_factor_verify_code_form.code.id }}"
@@ -40,7 +38,7 @@
                    data-otp-slot
                    data-otp-index="{{ i }}"
                    value="{{ current_code[i] if current_code|length > i else '' }}"
-                   class="w-12 h-12 text-center text-lg font-semibold bg-neutral-secondary-medium border border-default-medium text-heading rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                   class="w-12 h-12 text-center text-lg font-semibold bg-neutral-secondary-medium border border-default-medium text-heading rounded-base focus:ring-brand focus:border-brand block px-3 py-2.5 shadow-xs placeholder:text-body">
           {% endfor %}
         </div>
         {% for error in two_factor_verify_code_form.code.errors %}
@@ -48,32 +46,31 @@
         {% endfor %}
       </div>
       <button type="submit"
-              class="w-full py-2.5 px-4 rounded-base bg-brand text-white font-semibold hover:opacity-90">
+              class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
         Verificar codigo
       </button>
     </form>
     {% if two_factor_rescue_form %}
-      <div class="w-full overflow-hidden rounded-base border border-default-medium p-4 flex flex-col gap-3">
-        <p class="text-sm text-body-subtle wrap-break-word">
-          ¿No tienes acceso al autenticador? Usa una opcion de recuperacion.
+      <div class="w-full overflow-hidden rounded-base border border-default-medium p-4 flex flex-col">
+        <p class="block mb-2.5 text-sm font-medium text-heading">
+          ¿No tienes acceso al autenticador?
         </p>
         <form action="{{ url_for_security("two_factor_rescue") }}{{ prop_next() }}"
               method="post"
               name="two_factor_rescue_form"
-              class="w-full h-fit flex flex-col gap-3">
+              class="w-full h-fit flex flex-col gap-2">
           {{ render_csrf(two_factor_rescue_form, "rescue") }}
-          <label class="flex items-start gap-2 text-sm font-medium text-heading">
-            {{ two_factor_rescue_form.help_setup(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
-            <span class="wrap-break-word">Solicitar ayuda de recuperacion</span>
-          </label>
-          {% if problem == "email" %}
-            <p class="text-sm text-body-subtle wrap-break-word">Se envió un codigo de recuperacion a tu correo electronico.</p>
-          {% endif %}
+          <input type="hidden"
+                 id="help-setup"
+                 name="{{ two_factor_rescue_form.help_setup.name }}"
+                 value="help">
+          <p class="text-body text-sm">Se notificará al equipo administrador para ayudarte a recuperar el acceso.</p>
           {% if problem == "help" %}
-            <p class="text-sm text-body-subtle wrap-break-word">Se envió una solicitud de recuperacion al equipo administrador.</p>
+            <p class="text-sm text-body-subtle wrap-break-word">Se envió una solicitud de recuperacion al equipo
+              administrador.</p>
           {% endif %}
           <button type="submit"
-                  class="w-full py-2.5 px-4 rounded-base border border-default-medium text-heading font-semibold hover:bg-neutral-secondary-medium">
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
             Enviar recuperacion
           </button>
         </form>
@@ -81,69 +78,69 @@
     {% endif %}
   </div>
   <script>
-      (() => {
-          const form = document.getElementById('two_factor_verify_code_form');
-          if (!form) return;
+    (() => {
+      const form = document.getElementById('two_factor_verify_code_form');
+      if (!form) return;
 
-          const hiddenCode = form.querySelector('input[name="{{ two_factor_verify_code_form.code.name }}"]');
-          const slots = Array.from(form.querySelectorAll('[data-otp-slot]'));
-          if (!hiddenCode || !slots.length) return;
+      const hiddenCode = form.querySelector('input[name="{{ two_factor_verify_code_form.code.name }}"]');
+      const slots = Array.from(form.querySelectorAll('[data-otp-slot]'));
+      if (!hiddenCode || !slots.length) return;
 
-          const syncCode = () => {
-              hiddenCode.value = slots.map((slot) => (slot.value || '').replace(/\D/g, '')).join('');
-          };
+      const syncCode = () => {
+        hiddenCode.value = slots.map((slot) => (slot.value || '').replace(/\D/g, '')).join('');
+      };
 
-          const fillFromText = (text) => {
-              const digits = (text || '').replace(/\D/g, '').slice(0, slots.length).split('');
-              slots.forEach((slot, index) => {
-                  slot.value = digits[index] || '';
-              });
-              syncCode();
-              const nextIndex = Math.min(digits.length, slots.length - 1);
-              slots[nextIndex].focus();
-              slots[nextIndex].select();
-          };
+      const fillFromText = (text) => {
+        const digits = (text || '').replace(/\D/g, '').slice(0, slots.length).split('');
+        slots.forEach((slot, index) => {
+          slot.value = digits[index] || '';
+        });
+        syncCode();
+        const nextIndex = Math.min(digits.length, slots.length - 1);
+        slots[nextIndex].focus();
+        slots[nextIndex].select();
+      };
 
-          slots.forEach((slot, index) => {
-              slot.addEventListener('input', (event) => {
-                  const value = (event.target.value || '').replace(/\D/g, '');
-                  event.target.value = value ? value[value.length - 1] : '';
-                  syncCode();
-                  if (event.target.value && index < slots.length - 1) {
-                      slots[index + 1].focus();
-                      slots[index + 1].select();
-                  }
-              });
-
-              slot.addEventListener('keydown', (event) => {
-                  if (event.key === 'Backspace' && !event.target.value && index > 0) {
-                      slots[index - 1].focus();
-                      slots[index - 1].value = '';
-                      syncCode();
-                      event.preventDefault();
-                  }
-                  if (event.key === 'ArrowLeft' && index > 0) {
-                      slots[index - 1].focus();
-                      event.preventDefault();
-                  }
-                  if (event.key === 'ArrowRight' && index < slots.length - 1) {
-                      slots[index + 1].focus();
-                      event.preventDefault();
-                  }
-              });
-
-              slot.addEventListener('focus', () => slot.select());
-          });
-
-          form.addEventListener('paste', (event) => {
-              const pasted = event.clipboardData?.getData('text') || '';
-              if (!pasted) return;
-              event.preventDefault();
-              fillFromText(pasted);
-          });
-
-          form.addEventListener('submit', syncCode);
+      slots.forEach((slot, index) => {
+        slot.addEventListener('input', (event) => {
+          const value = (event.target.value || '').replace(/\D/g, '');
+          event.target.value = value ? value[value.length - 1] : '';
           syncCode();
-      })();
+          if (event.target.value && index < slots.length - 1) {
+            slots[index + 1].focus();
+            slots[index + 1].select();
+          }
+        });
+
+        slot.addEventListener('keydown', (event) => {
+          if (event.key === 'Backspace' && !event.target.value && index > 0) {
+            slots[index - 1].focus();
+            slots[index - 1].value = '';
+            syncCode();
+            event.preventDefault();
+          }
+          if (event.key === 'ArrowLeft' && index > 0) {
+            slots[index - 1].focus();
+            event.preventDefault();
+          }
+          if (event.key === 'ArrowRight' && index < slots.length - 1) {
+            slots[index + 1].focus();
+            event.preventDefault();
+          }
+        });
+
+        slot.addEventListener('focus', () => slot.select());
+      });
+
+      form.addEventListener('paste', (event) => {
+        const pasted = event.clipboardData?.getData('text') || '';
+        if (!pasted) return;
+        event.preventDefault();
+        fillFromText(pasted);
+      });
+
+      form.addEventListener('submit', syncCode);
+      syncCode();
+    })();
   </script>
 {% endblock content %}
