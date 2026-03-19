@@ -14,14 +14,31 @@ class UnitOfMeasureService:
     """Servicio para operaciones de negocio relacionadas con unidades de medida."""
 
     @staticmethod
-    def get_all() -> list[UnitOfMeasure]:
+    def get_all(
+        search_term: str = "", status_filter: str = "all", page: int = 1, per_page: int = 10
+    ):
         """
-        Obtiene todas las unidades de medida activas.
+        Obtiene las unidades de medida con filtros de búsqueda y paginación.
+        """
+        query = UnitOfMeasure.query
 
-        Returns:
-            list[UnitOfMeasure]: Lista de objetos UnitOfMeasure activos
-        """
-        return UnitOfMeasure.query.filter_by(status=True).all()
+        if search_term:
+            search_pattern = f"%{search_term}%"
+            query = query.filter(
+                db.or_(
+                    UnitOfMeasure.name.ilike(search_pattern),
+                    UnitOfMeasure.abbreviation.ilike(search_pattern)
+                )
+            )
+
+        if status_filter == "active":
+            query = query.filter(UnitOfMeasure.status == True)
+        elif status_filter == "inactive":
+            query = query.filter(UnitOfMeasure.status == False)
+
+        return query.order_by(UnitOfMeasure.id_unit_of_measure.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -105,6 +122,7 @@ class UnitOfMeasureService:
 
         name = data.get("name", "").strip()
         abbreviation = data.get("abbreviation", "").strip()
+        active = data.get("active", unit_of_measure.status)
 
         if not name:
             raise ValidationError("El nombre de la unidad de medida es requerido")
@@ -125,6 +143,7 @@ class UnitOfMeasureService:
 
         unit_of_measure.name = name
         unit_of_measure.abbreviation = abbreviation
+        unit_of_measure.status = active
 
         try:
             db.session.commit()
@@ -137,18 +156,18 @@ class UnitOfMeasureService:
         return unit_of_measure.to_dict()
 
     @staticmethod
-    def delete(id_unit_of_measure: int) -> None:
+    def toggle_status(id_unit_of_measure: int) -> None:
         """
-        Elimina una unidad de medida del catálogo.
+        Alterna el estado de una unidad de medida.
 
         Args:
-            id_unit_of_measure (int): Identificador único de la unidad de medida a eliminar
+            id_unit_of_measure (int): Identificador único de la unidad de medida a alterar
 
         Raises:
             NotFoundError: Si no se encuentra la unidad de medida con el identificador dado
         """
         unit_of_measure = UnitOfMeasureService.get_by_id(id_unit_of_measure)
 
-        unit_of_measure.status = False
+        unit_of_measure.status = not unit_of_measure.status
 
         db.session.commit()
