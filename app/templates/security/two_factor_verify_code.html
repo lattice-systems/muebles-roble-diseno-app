@@ -1,0 +1,146 @@
+{% extends "layouts/login.html" %}
+{% from "security/_macros.html" import prop_next, render_csrf %}
+{% block title %}
+  Roble y Diseno - Verificacion 2FA
+{% endblock title %}
+{% block step_description %}
+  Ingresa el código de tu aplicacion autenticadora
+{% endblock step_description %}
+{% block content %}
+  <div class="w-full min-w-0 max-h-[58vh] items-center overflow-y-auto flex flex-col gap-4">
+    {% include "security/_messages.html" %}
+    <p class="text-sm text-body-subtle">
+      Metodo activo:
+      <span class="font-semibold text-heading">{{ chosen_method }}</span>
+    </p>
+    <form action="{{ url_for_security("two_factor_token_validation") }}{{ prop_next() }}"
+          method="post"
+          name="two_factor_verify_code_form"
+          id="two_factor_verify_code_form"
+          class="flex flex-col gap-4 w-full">
+      {{ two_factor_verify_code_form.hidden_tag() }}
+      <div>
+        <label for="{{ two_factor_verify_code_form.code.id }}"
+               class="block mb-2.5 text-sm font-medium text-heading">Codigo de verificacion</label>
+        {% set current_code = (two_factor_verify_code_form.code.data or "")|string %}
+        <input type="hidden"
+               id="{{ two_factor_verify_code_form.code.id }}"
+               name="{{ two_factor_verify_code_form.code.name }}"
+               value="{{ current_code }}"
+               autocomplete="one-time-code">
+        <div class="flex items-center justify-center gap-2" data-otp-group>
+          {% for i in range(0, 6) %}
+            {% if i == 3 %}<span class="text-body-subtle px-1">-</span>{% endif %}
+            <input type="text"
+                   maxlength="1"
+                   inputmode="numeric"
+                   pattern="[0-9]*"
+                   data-otp-slot
+                   data-otp-index="{{ i }}"
+                   value="{{ current_code[i] if current_code|length > i else '' }}"
+                   class="w-12 h-12 text-center text-lg font-semibold bg-neutral-secondary-medium border border-default-medium text-heading rounded-base focus:ring-brand focus:border-brand block px-3 py-2.5 shadow-xs placeholder:text-body">
+          {% endfor %}
+        </div>
+        {% for error in two_factor_verify_code_form.code.errors %}
+          <p class="mt-1 text-sm text-danger">{{ error }}</p>
+        {% endfor %}
+      </div>
+      <button type="submit"
+              class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+        Verificar codigo
+      </button>
+    </form>
+    {% if two_factor_rescue_form %}
+      <div class="w-full overflow-hidden rounded-base border border-default-medium p-4 flex flex-col">
+        <p class="block mb-2.5 text-sm font-medium text-heading">
+          ¿No tienes acceso al autenticador?
+        </p>
+        <form action="{{ url_for_security("two_factor_rescue") }}{{ prop_next() }}"
+              method="post"
+              name="two_factor_rescue_form"
+              class="w-full h-fit flex flex-col gap-2">
+          {{ render_csrf(two_factor_rescue_form, "rescue") }}
+          <input type="hidden"
+                 id="help-setup"
+                 name="{{ two_factor_rescue_form.help_setup.name }}"
+                 value="help">
+          <p class="text-body text-sm">Se notificará al equipo administrador para ayudarte a recuperar el acceso.</p>
+          {% if problem == "help" %}
+            <p class="text-sm text-body-subtle wrap-break-word">Se envió una solicitud de recuperacion al equipo
+              administrador.</p>
+          {% endif %}
+          <button type="submit"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Enviar recuperacion
+          </button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  <script>
+    (() => {
+      const form = document.getElementById('two_factor_verify_code_form');
+      if (!form) return;
+
+      const hiddenCode = form.querySelector('input[name="{{ two_factor_verify_code_form.code.name }}"]');
+      const slots = Array.from(form.querySelectorAll('[data-otp-slot]'));
+      if (!hiddenCode || !slots.length) return;
+
+      const syncCode = () => {
+        hiddenCode.value = slots.map((slot) => (slot.value || '').replace(/\D/g, '')).join('');
+      };
+
+      const fillFromText = (text) => {
+        const digits = (text || '').replace(/\D/g, '').slice(0, slots.length).split('');
+        slots.forEach((slot, index) => {
+          slot.value = digits[index] || '';
+        });
+        syncCode();
+        const nextIndex = Math.min(digits.length, slots.length - 1);
+        slots[nextIndex].focus();
+        slots[nextIndex].select();
+      };
+
+      slots.forEach((slot, index) => {
+        slot.addEventListener('input', (event) => {
+          const value = (event.target.value || '').replace(/\D/g, '');
+          event.target.value = value ? value[value.length - 1] : '';
+          syncCode();
+          if (event.target.value && index < slots.length - 1) {
+            slots[index + 1].focus();
+            slots[index + 1].select();
+          }
+        });
+
+        slot.addEventListener('keydown', (event) => {
+          if (event.key === 'Backspace' && !event.target.value && index > 0) {
+            slots[index - 1].focus();
+            slots[index - 1].value = '';
+            syncCode();
+            event.preventDefault();
+          }
+          if (event.key === 'ArrowLeft' && index > 0) {
+            slots[index - 1].focus();
+            event.preventDefault();
+          }
+          if (event.key === 'ArrowRight' && index < slots.length - 1) {
+            slots[index + 1].focus();
+            event.preventDefault();
+          }
+        });
+
+        slot.addEventListener('focus', () => slot.select());
+      });
+
+      form.addEventListener('paste', (event) => {
+        const pasted = event.clipboardData?.getData('text') || '';
+        if (!pasted) return;
+        event.preventDefault();
+        fillFromText(pasted);
+      });
+
+      form.addEventListener('submit', syncCode);
+      syncCode();
+    })();
+  </script>
+{% endblock content %}

@@ -1,9 +1,10 @@
+from flask_security import RoleMixin
 from sqlalchemy.orm import synonym
 
 from ..extensions import db
 
 
-class Role(db.Model):
+class Role(db.Model, RoleMixin):
     """Modelo para la tabla roles."""
 
     __tablename__ = "roles"
