@@ -1,57 +1,416 @@
 {% extends "base.html" %}
 {% block title %}
-  Colores - Furniture Store
+  Colors - Furniture Store
 {% endblock title %}
 {% block content %}
-  <style>
-      .colors-table {
-          border-collapse: collapse;
+  <div class="container mx-auto p-4">
+    <!-- Header -->
+    <h1 class="text-2xl font-bold mb-4">Catálogo de Colores</h1>
+    <!-- Search & Filter Tabs -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+      <form method="get" class="flex items-center space-x-2 mb-2 md:mb-0">
+        <input type="text"
+               name="search"
+               placeholder="Buscar por nombre"
+               value="{{ request.args.get('search', '') }}"
+               class="input input-bordered w-full md:w-64" />
+        <button type="submit" class="btn btn-primary">Buscar</button>
+      </form>
+      <div class="flex space-x-2">
+        <a href="{{ url_for('colors.list_colors', status='all') }}"
+           class="{{ 'bg-brand text-white' if request.args.get("status") == 'all' or not request.args.get('status') else 'bg-gray-200' }} px-4 py-2 rounded">Todos</a>
+        <a href="{{ url_for('colors.list_colors', status='active') }}"
+           class="{{ 'bg-brand text-white' if request.args.get("status") == 'active' else 'bg-gray-200' }} px-4 py-2 rounded">Activos</a>
+        <a href="{{ url_for('colors.list_colors', status='inactive') }}"
+           class="{{ 'bg-brand text-white' if request.args.get("status") == 'inactive' else 'bg-gray-200' }} px-4 py-2 rounded">Inactivos</a>
+      </div>
+    </div>
+    <!-- Bulk Action Buttons -->
+    <div class="flex items-center space-x-2 mb-4">
+      <button id="bulk-activate"
+              data-modal-target="activate-modal"
+              data-modal-toggle="activate-modal"
+              class="btn btn-success hidden">Activar seleccionados</button>
+      <button id="bulk-deactivate"
+              data-modal-target="deactivate-modal"
+              data-modal-toggle="deactivate-modal"
+              class="btn btn-danger hidden">Desactivar seleccionados</button>
+    </div>
+    <!-- Table -->
+    {% if colors.items %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-2">
+                <input type="checkbox" id="select-all" class="checkbox" />
+              </th>
+              <th class="p-2 text-left">ID</th>
+              <th class="p-2 text-left">Nombre</th>
+              <th class="p-2 text-left">Código Hex</th>
+              <th class="p-2 text-left">Descripción</th>
+              <th class="p-2 text-left">Estado</th>
+              <th class="p-2 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for color in colors.items %}
+              <tr class="border-t">
+                <td class="p-2">
+                  <input type="checkbox" class="row-checkbox checkbox" value="{{ color.id }}" />
+                </td>
+                <td class="p-2">{{ color.id }}</td>
+                <td class="p-2">{{ color.name }}</td>
+                <td class="p-2">
+                  <span class="inline-block w-4 h-4 mr-2 rounded"
+                        style="background-color: {{ color.hex_code }}"></span>
+                  {{ color.hex_code }}
+                </td>
+                <td class="p-2">{{ color.description or '' }}</td>
+                <td class="p-2">
+                  {% if color.status %}
+                    <span class="badge badge-success">Activo</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactivo</span>
+                  {% endif %}
+                </td>
+                <td class="p-2 space-x-2">
+                  <button data-modal-target="edit-modal-{{ color.id }}"
+                          data-modal-toggle="edit-modal-{{ color.id }}"
+                          class="btn btn-sm btn-primary">Editar</button>
+                  {% if color.status %}
+                    <button data-modal-target="deactivate-modal-{{ color.id }}"
+                            data-modal-toggle="deactivate-modal-{{ color.id }}"
+                            class="btn btn-sm btn-danger">Desactivar</button>
+                  {% else %}
+                    <button data-modal-target="activate-modal-{{ color.id }}"
+                            data-modal-toggle="activate-modal-{{ color.id }}"
+                            class="btn btn-sm btn-success">Activar</button>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination -->
+      <div class="flex justify-between items-center mt-4">
+        <div>
+          Mostrando {{ colors.page * colors.per_page - colors.per_page + 1 }} -
+          {{ (colors.page * colors.per_page) if (colors.page * colors.per_page) < colors.total else colors.total }} de {{ colors.total }} colores
+        </div>
+        <div class="join">
+          {% if colors.has_prev %}
+            <a href="{{ url_for('colors.list_colors', page=colors.prev_num, search=request.args.get('search') , status=request.args.get('status')) }}"
+               class="join-item btn btn-outline">Anterior</a>
+          {% else %}
+            <button class="join-item btn btn-outline btn-disabled">Anterior</button>
+          {% endif %}
+          {% if colors.has_next %}
+            <a href="{{ url_for('colors.list_colors', page=colors.next_num, search=request.args.get('search') , status=request.args.get('status')) }}"
+               class="join-item btn btn-outline">Siguiente</a>
+          {% else %}
+            <button class="join-item btn btn-outline btn-disabled">Siguiente</button>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <p class="text-gray-600">No hay colores registrados.</p>
+    {% endif %}
+    <!-- Create Modal -->
+    <div id="create-modal"
+         tabindex="-1"
+         class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+      <div class="relative w-full max-w-lg max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+          <div class="flex items-start justify-between p-4 border-b rounded-t">
+            <h3 class="text-xl font-semibold">Crear Color</h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                    data-modal-hide="create-modal">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                </path>
+              </svg>
+            </button>
+          </div>
+          <form method="post"
+                action="{{ url_for('colors.create_color') }}"
+                class="p-6">
+            {{ csrf_token() }}
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1" for="name">Nombre</label>
+              <input type="text"
+                     name="name"
+                     id="name"
+                     class="input input-bordered w-full"
+                     required />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1" for="hex_code">Código Hexadecimal</label>
+              <input type="color"
+                     name="hex_code"
+                     id="hex_code"
+                     class="input input-bordered w-full h-10 p-0"
+                     required />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1" for="description">Descripción (opcional)</label>
+              <textarea name="description"
+                        id="description"
+                        class="textarea textarea-bordered w-full"
+                        rows="3"></textarea>
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button"
+                      class="btn btn-secondary"
+                      data-modal-hide="create-modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Crear</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Modals (one per color) -->
+    {% for color in colors.items %}
+      <div id="edit-modal-{{ color.id }}"
+           tabindex="-1"
+           class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="relative w-full max-w-lg max-h-full">
+          <div class="relative bg-white rounded-lg shadow">
+            <div class="flex items-start justify-between p-4 border-b rounded-t">
+              <h3 class="text-xl font-semibold">Editar Color</h3>
+              <button type="button"
+                      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                      data-modal-hide="edit-modal-{{ color.id }}">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                  </path>
+                </svg>
+              </button>
+            </div>
+            <form method="post"
+                  action="{{ url_for('colors.edit_color', id_color=color.id) }}"
+                  class="p-6">
+              {{ csrf_token() }}
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1" for="name-{{ color.id }}">Nombre</label>
+                <input type="text"
+                       name="name"
+                       id="name-{{ color.id }}"
+                       class="input input-bordered w-full"
+                       value="{{ color.name }}"
+                       required />
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1" for="hex_code-{{ color.id }}">Código Hexadecimal</label>
+                <input type="color"
+                       name="hex_code"
+                       id="hex_code-{{ color.id }}"
+                       class="input input-bordered w-full h-10 p-0"
+                       value="{{ color.hex_code }}"
+                       required />
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1"
+                       for="description-{{ color.id }}">Descripción</label>
+                <textarea name="description"
+                          id="description-{{ color.id }}"
+                          class="textarea textarea-bordered w-full"
+                          rows="3">{{ color.description }}</textarea>
+              </div>
+              <div class="flex justify-end space-x-2">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-modal-hide="edit-modal-{{ color.id }}">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    <!-- Activate/Deactivate Confirmation Modals -->
+    {% for color in colors.items %}
+      <!-- Deactivate Modal -->
+      {% if color.status %}
+        <div id="deactivate-modal-{{ color.id }}"
+             tabindex="-1"
+             class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+          <div class="relative w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow">
+              <div class="flex items-start justify-between p-4 border-b rounded-t">
+                <h3 class="text-xl font-semibold">Desactivar Color</h3>
+                <button type="button"
+                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                        data-modal-hide="deactivate-modal-{{ color.id }}">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+              <form method="post"
+                    action="{{ url_for('colors.deactivate_color', id_color=color.id) }}"
+                    class="p-6">
+                {{ csrf_token() }}
+                <p>¿Estás seguro de que deseas desactivar el color "{{ color.name }}"?</p>
+                <div class="flex justify-end space-x-2 mt-4">
+                  <button type="button"
+                          class="btn btn-secondary"
+                          data-modal-hide="deactivate-modal-{{ color.id }}">Cancelar</button>
+                  <button type="submit" class="btn btn-danger">Desactivar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <!-- Activate Modal -->
+        <div id="activate-modal-{{ color.id }}"
+             tabindex="-1"
+             class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+          <div class="relative w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow">
+              <div class="flex items-start justify-between p-4 border-b rounded-t">
+                <h3 class="text-xl font-semibold">Activar Color</h3>
+                <button type="button"
+                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                        data-modal-hide="activate-modal-{{ color.id }}">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+              <form method="post"
+                    action="{{ url_for('colors.activate_color', id_color=color.id) }}"
+                    class="p-6">
+                {{ csrf_token() }}
+                <p>¿Estás seguro de que deseas activar el color "{{ color.name }}"?</p>
+                <div class="flex justify-end space-x-2 mt-4">
+                  <button type="button"
+                          class="btn btn-secondary"
+                          data-modal-hide="activate-modal-{{ color.id }}">Cancelar</button>
+                  <button type="submit" class="btn btn-success">Activar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+    <!-- Bulk Activate Modal -->
+    <div id="activate-modal"
+         tabindex="-1"
+         class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+      <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+          <div class="flex items-start justify-between p-4 border-b rounded-t">
+            <h3 class="text-xl font-semibold">Activar colores seleccionados</h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                    data-modal-hide="activate-modal">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                </path>
+              </svg>
+            </button>
+          </div>
+          <form method="post"
+                action="{{ url_for('colors.bulk_activate') }}"
+                class="p-6"
+                id="bulk-activate-form">
+            {{ csrf_token() }}
+            <input type="hidden" name="ids" id="bulk-activate-ids" />
+            <p>¿Activar todos los colores seleccionados?</p>
+            <div class="flex justify-end space-x-2 mt-4">
+              <button type="button"
+                      class="btn btn-secondary"
+                      data-modal-hide="activate-modal">Cancelar</button>
+              <button type="submit" class="btn btn-success">Activar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Bulk Deactivate Modal -->
+    <div id="deactivate-modal"
+         tabindex="-1"
+         class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center">
+      <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+          <div class="flex items-start justify-between p-4 border-b rounded-t">
+            <h3 class="text-xl font-semibold">Desactivar colores seleccionados</h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                    data-modal-hide="deactivate-modal">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd">
+                </path>
+              </svg>
+            </button>
+          </div>
+          <form method="post"
+                action="{{ url_for('colors.bulk_deactivate') }}"
+                class="p-6"
+                id="bulk-deactivate-form">
+            {{ csrf_token() }}
+            <input type="hidden" name="ids" id="bulk-deactivate-ids" />
+            <p>¿Desactivar todos los colores seleccionados?</p>
+            <div class="flex justify-end space-x-2 mt-4">
+              <button type="button"
+                      class="btn btn-secondary"
+                      data-modal-hide="deactivate-modal">Cancelar</button>
+              <button type="submit" class="btn btn-danger">Desactivar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      // Select all checkbox handling
+      const selectAll = document.getElementById('select-all');
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      const bulkActivateBtn = document.getElementById('bulk-activate');
+      const bulkDeactivateBtn = document.getElementById('bulk-deactivate');
+      const bulkActivateIds = document.getElementById('bulk-activate-ids');
+      const bulkDeactivateIds = document.getElementById('bulk-deactivate-ids');
+
+      function updateBulkButtons() {
+          const checked = Array.from(rowCheckboxes).filter(cb => cb.checked);
+          if (checked.length > 0) {
+              bulkActivateBtn.classList.remove('hidden');
+              bulkDeactivateBtn.classList.remove('hidden');
+          } else {
+              bulkActivateBtn.classList.add('hidden');
+              bulkDeactivateBtn.classList.add('hidden');
+          }
       }
 
-      .colors-table th,
-      .colors-table td {
-          border: 1px solid #000;
-          padding: 5px;
+      if (selectAll) {
+          selectAll.addEventListener('change', (e) => {
+              rowCheckboxes.forEach(cb => cb.checked = e.target.checked);
+              updateBulkButtons();
+          });
       }
-  </style>
-  <h1>Catálogo de Colores</h1>
-  <a href="{{ url_for('colors.create_color') }}">Agregar nuevo color</a>
-  <h2>Lista de colores</h2>
-  {% if colors %}
-    <table class="colors-table" aria-label="Tabla del catálogo de colores">
-      <caption>Tabla del catálogo de colores</caption>
-      <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Nombre</th>
-          <th scope="col">Activo</th>
-          <th scope="col">Creado</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for color in colors %}
-          <tr>
-            <td>{{ color.id_color }}</td>
-            <td>{{ color.name }}</td>
-            <td>{{ "Sí" if color.active else "No" }}</td>
-            <td>{{ color.created_at.strftime("%Y-%m-%d %H:%M") if color.created_at else 'N/A' }}</td>
-            <td>
-              <a href="{{ url_for('colors.edit_color', id_color=color.id_color) }}">Editar</a>
-              <form method="post"
-                    action="{{ url_for('colors.delete_color', id_color=color.id_color) }}"
-                    class="inline"
-                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar este rol?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit"
-                        class="text-red-600 bg-transparent border-0 cursor-pointer underline p-0">Eliminar</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No hay colores registrados.</p>
-  {% endif %}
+
+      rowCheckboxes.forEach(cb => {
+          cb.addEventListener('change', () => {
+              if (!cb.checked) selectAll.checked = false;
+              updateBulkButtons();
+          });
+      });
+
+      bulkActivateBtn?.addEventListener('click', () => {
+          const ids = Array.from(rowCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(',');
+          bulkActivateIds.value = ids;
+      });
+
+      bulkDeactivateBtn?.addEventListener('click', () => {
+          const ids = Array.from(rowCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(',');
+          bulkDeactivateIds.value = ids;
+      });
+  </script>
 {% endblock content %}

@@ -12,6 +12,7 @@ class Color(db.Model):
     id_color = synonym("id")
     name = db.Column(db.String(100), nullable=False, unique=True)
     hex_code = db.Column(db.String(7), nullable=True)
+    description = db.Column(db.String(200), nullable=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
     created_at = db.Column(
@@ -32,6 +33,7 @@ class Color(db.Model):
             "id_color": self.id_color,
             "name": self.name,
             "hex_code": self.hex_code,
+            "description": self.description,
             "status": self.status,
             "active": self.active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
