@@ -59,4 +59,8 @@ def create_app():
 
         return render_template("layouts/admin.html")
 
+    from .catalogs.furniture_type import furniture_type_bp
+
+    app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+
     return app
