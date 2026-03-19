@@ -8,7 +8,15 @@ class RawMaterial(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    material_type = db.Column(db.String(80), nullable=False)
+    status = db.Column(db.Boolean, nullable=False, default=True)
+
     unit_id = db.Column(db.Integer, db.ForeignKey("units.id"), nullable=False)
+
+    usual_supplier = db.Column(db.String(150), nullable=True)
+    estimated_cost = db.Column(db.Numeric(12, 2), nullable=True)
+
     waste_percentage = db.Column(db.Numeric(5, 2), nullable=False, default=0)
     stock = db.Column(db.Numeric(12, 3), nullable=False, default=0)
 
@@ -25,7 +33,14 @@ class RawMaterial(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
+            "material_type": self.material_type,
+            "status": self.status,
             "unit_id": self.unit_id,
+            "usual_supplier": self.usual_supplier,
+            "estimated_cost": (
+                float(self.estimated_cost) if self.estimated_cost is not None else None
+            ),
             "waste_percentage": (
                 float(self.waste_percentage)
                 if self.waste_percentage is not None

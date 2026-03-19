@@ -12,6 +12,7 @@ class RawMaterialMovement(db.Model):
     )
     movement_type = db.Column(db.String(30), nullable=False)
     quantity = db.Column(db.Numeric(12, 3), nullable=False)
+    reason = db.Column(db.String(255), nullable=False)
     reference = db.Column(db.String(100), nullable=True)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
@@ -25,6 +26,7 @@ class RawMaterialMovement(db.Model):
             "raw_material_id": self.raw_material_id,
             "movement_type": self.movement_type,
             "quantity": float(self.quantity) if self.quantity is not None else None,
+            "reason": self.reason,
             "reference": self.reference,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
