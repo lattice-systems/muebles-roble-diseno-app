@@ -1,8 +1,9 @@
 from flask import Flask
+from flask_security import SQLAlchemyUserDatastore, auth_required
 
 from config import Config
 from .exceptions import register_error_handlers
-from .extensions import csrf, db, migrate
+from .extensions import csrf, db, migrate, security
 
 
 def create_app():
@@ -28,6 +29,11 @@ def create_app():
 
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401
+    from .models import Role, User
+
+    # Setup Flask-Security datastore
+    user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+    security.init_app(app, user_datastore)
 
     # Register error handlers
     register_error_handlers(app)
@@ -54,6 +60,7 @@ def create_app():
     app.register_blueprint(unit_of_measures_bp, url_prefix="/unit-of-measures")
 
     @app.route("/admin")
+    @auth_required()
     def index_admin():
         from flask import render_template
 
