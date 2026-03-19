@@ -1,25 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Inicio de Sesión de Roble y Diseño" />
-    <meta name="author" content="Lattice Systems" />
-    <meta name="keywords"
-          content="muebles, gestión, colores, roles, tipos de madera, unidades de medida, login" />
-    <title>
-      {% block title %}
-        Roble y Diseño - Login
-      {% endblock title %}
-    </title>
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='dist/output.css') }}">
-  </head>
-  <body>
-    <div class="flex flex-row gap-8 p-8 w-full h-screen">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Inicio de Sesión de Roble y Diseño"/>
+  <meta name="author" content="Lattice Systems"/>
+  <meta name="keywords"
+        content="muebles, gestión, colores, roles, tipos de madera, unidades de medida, login"/>
+  <title>
+    {% block title %}
+      Roble y Diseño - Login
+    {% endblock title %}
+  </title>
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='dist/output.css') }}">
+</head>
+<body>
+<div class="flex flex-row gap-8 p-8 w-full h-screen">
+  <div class="flex flex-col w-full justify-between items-center p-2">
+    <div class="w-full">
+      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           alt="Logo Roble Diseño"
+           width="188"
+           height="51">
+    </div>
+    <main class="flex flex-col gap-6 items-center">
+      <div>
+        <h1 class="w-full text-center text-2xl font-semibold text-heading">Inicio de Sesión</h1>
+        <p class="w-full text-center text-body-subtle text-base font-normal">
+          {% block step_description %}
+            Ingresa tus credenciales para acceder a tu cuenta
+          {% endblock step_description %}
+        </p>
+      </div>
       {% block content %}
       {% endblock content %}
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
-  </body>
+    </main>
+    <footer class="text-body-subtle flex flex-row justify-between w-full">
+      <p>Lattice Systems - 2026</p>
+      <a href="#" class="hover:underline">Política de privacidad</a>
+    </footer>
+  </div>
+  <div class="w-full h-full">
+    <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
+         alt="Persona sentada trabajando"
+         width="750"
+         height="600"
+         class="w-full h-full object-cover rounded-base">
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+</body>
 </html>

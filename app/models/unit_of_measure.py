@@ -10,8 +10,8 @@ class UnitOfMeasure(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     id_unit_of_measure = synonym("id")
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    abbreviation = db.Column(db.String(20), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    abbreviation = db.Column(db.String(20), nullable=False)
     type = db.Column(db.String(50), nullable=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")

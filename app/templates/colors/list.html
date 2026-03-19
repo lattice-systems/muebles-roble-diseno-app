@@ -13,7 +13,7 @@
         <option>Tipo de Muebles</option>
         <option>Tipo de Madera</option>
         <option>Unidad de Medida</option>
-        <option>Roles</option>
+        <option>Método de Pago</option>
       </select>
     </div>
     <ul class="hidden text-sm font-medium text-center text-body sm:flex -space-x-px mb-4 mt-2">
@@ -22,7 +22,7 @@
            class="inline-block w-full text-heading bg-neutral-secondary-medium border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium leading-5 text-sm px-4 py-2.5 focus:outline-none">Colores</a>
       </li>
       <li class="w-full focus-within:z-10">
-        <a href="#"
+        <a href="{{ url_for('furniture_type.list_furniture_type') }}"
            class="inline-block w-full text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium leading-5 text-sm px-4 py-2.5 focus:outline-none">Tipo
         de Muebles</a>
       </li>
@@ -32,13 +32,14 @@
         de Madera</a>
       </li>
       <li class="w-full focus-within:z-10">
-        <a href="#"
+        <a href="{{ url_for('unit_of_measures.list_unit_of_measures') }}"
            class="inline-block w-full text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium leading-5 text-sm px-4 py-2.5 focus:outline-none">Unidad
         de Medida</a>
       </li>
       <li class="w-full focus-within:z-10">
         <a href="#"
-           class="inline-block w-full text-body bg-neutral-primary-soft border border-default rounded-e-base hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium leading-5 text-sm px-4 py-2.5 focus:outline-none">Roles</a>
+           class="inline-block w-full text-body bg-neutral-primary-soft border border-default rounded-e-base hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium leading-5 text-sm px-4 py-2.5 focus:outline-none">Método
+        de Pago</a>
       </li>
     </ul>
     <!-- Header Section -->
