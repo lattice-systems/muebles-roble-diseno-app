@@ -64,7 +64,7 @@ class WoodTypeService:
         if existing:
             raise ConflictError(f"Ya existe un tipo de madera con el nombre '{name}'")
 
-        wood_type = WoodType(name=name, description=description)
+        wood_type = WoodType(name=name, description=description, status=data.get("status", True))
         db.session.add(wood_type)
 
         try:
@@ -135,6 +135,8 @@ class WoodTypeService:
 
         wood_type.name = name
         wood_type.description = description
+        if "status" in data:
+            wood_type.status = data["status"]
 
         try:
             db.session.commit()
@@ -163,3 +165,43 @@ class WoodTypeService:
 
         wood_type.status = not wood_type.status
         db.session.commit()
+
+    @staticmethod
+    def bulk_deactivate(ids: list[int]) -> int:
+        """
+        Desactiva múltiples tipos de madera por sus IDs.
+
+        Args:
+            ids: Lista de IDs de tipos de madera a desactivar
+
+        Returns:
+            int: Cantidad de registros desactivados
+        """
+        if not ids:
+            return 0
+
+        count = WoodType.query.filter(
+            WoodType.id.in_(ids), WoodType.status == True
+        ).update({WoodType.status: False}, synchronize_session="fetch")
+        db.session.commit()
+        return count
+
+    @staticmethod
+    def bulk_activate(ids: list[int]) -> int:
+        """
+        Activa múltiples tipos de madera por sus IDs.
+
+        Args:
+            ids: Lista de IDs de tipos de madera a activar
+
+        Returns:
+            int: Cantidad de registros activados
+        """
+        if not ids:
+            return 0
+
+        count = WoodType.query.filter(
+            WoodType.id.in_(ids), WoodType.status == False  # noqa: E712
+        ).update({WoodType.status: True}, synchronize_session="fetch")
+        db.session.commit()
+        return count
