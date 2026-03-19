@@ -8,7 +8,7 @@
                  id="simple-search"
                  class="px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium rounded-base text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body"
                  placeholder="Buscar"
-                 required />
+                 required/>
         </div>
         <button type="submit"
                 class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-10 h-10 focus:outline-none">
@@ -19,7 +19,8 @@
                height="24"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
             </path>
           </svg>
           <span class="sr-only">Icon description</span>
@@ -35,7 +36,8 @@
              height="24"
              fill="none"
              viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z">
           </path>
         </svg>
         <span class="top-2.5 left-3.5 absolute  w-3 h-3 bg-warning border-2 border-buffer rounded-full"></span>
@@ -69,9 +71,13 @@
                class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
           </li>
           <li>
-            <a href="#"
-               class="block w-full p-2 hover:bg-neutral-tertiary-medium text-fg-danger rounded-md">Cerrar
-            Sesión</a>
+            <form action="{{ url_for('login.logout') }}" method="post" class="w-full">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="cursor-pointer block w-full p-2 text-left hover:bg-neutral-tertiary-medium text-fg-danger rounded-md">
+                Cerrar sesión
+              </button>
+            </form>
           </li>
         </ul>
       </div>
