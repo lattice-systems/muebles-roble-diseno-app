@@ -12,20 +12,22 @@ from app.exceptions import ConflictError
 @woods_types_bp.route("/", methods=["GET"])
 def list_wood_types():
     """
-    Muestra la lista de tipos de madera del catálogo filtrada.
+    Muestra la lista de tipos de madera del catálogo filtrada y paginada.
 
     Returns:
         HTML: Página con la lista de tipos de madera
     """
     search_term = request.args.get("q", "")
     status_filter = request.args.get("status", "all")
+    page = request.args.get("page", 1, type=int)
     
-    wood_types = WoodTypeService.get_all(search_term=search_term, status_filter=status_filter)
+    pagination = WoodTypeService.get_all(search_term=search_term, status_filter=status_filter, page=page)
     form = WoodTypeForm()
     
     return render_template(
         "wood_types/list.html", 
-        wood_types=wood_types, 
+        wood_types=pagination.items,
+        pagination=pagination,
         form=form,
         search_term=search_term,
         status_filter=status_filter
@@ -54,8 +56,8 @@ def create_wood_type():
         except ConflictError as e:
             flash(e.message, "error")
 
-    wood_types = WoodTypeService.get_all()
-    return render_template("wood_types/list.html", wood_types=wood_types, form=form, show_create_modal=True)
+    pagination = WoodTypeService.get_all()
+    return render_template("wood_types/list.html", wood_types=pagination.items, pagination=pagination, form=form, show_create_modal=True)
 
 
 @woods_types_bp.route("/<int:id_wood_type>/edit", methods=["POST"])
@@ -83,9 +85,9 @@ def edit_wood_type(id_wood_type: int):
         except ConflictError as e:
             flash(e.message, "error")
 
-    wood_types = WoodTypeService.get_all()
+    pagination = WoodTypeService.get_all()
     blank_form = WoodTypeForm()
-    return render_template("wood_types/list.html", wood_types=wood_types, form=blank_form, edit_form=form, show_edit_modal=id_wood_type)
+    return render_template("wood_types/list.html", wood_types=pagination.items, pagination=pagination, form=blank_form, edit_form=form, show_edit_modal=id_wood_type)
 
 
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])

@@ -13,16 +13,18 @@ class WoodTypeService:
     """Servicio para operaciones de negocio relacionadas con tipos de madera."""
 
     @staticmethod
-    def get_all(search_term: str = None, status_filter: str = "all") -> list[WoodType]:
+    def get_all(search_term: str = None, status_filter: str = "all", page: int = 1, per_page: int = 10):
         """
-        Obtiene los tipos de madera, con opciones de filtrado.
+        Obtiene los tipos de madera paginados, con opciones de filtrado.
 
         Args:
             search_term (str, optional): Término de búsqueda para el nombre o descripción.
             status_filter (str, optional): Estado para filtrar ('active', 'inactive', 'all').
+            page (int): Número de página (1-indexed).
+            per_page (int): Registros por página.
 
         Returns:
-            list[WoodType]: Lista de objetos WoodType
+            Pagination: Objeto de paginación de SQLAlchemy
         """
         query = WoodType.query
 
@@ -35,7 +37,7 @@ class WoodTypeService:
         elif status_filter == 'inactive':
             query = query.filter_by(status=False)
             
-        return query.order_by(WoodType.id.desc()).all()
+        return query.order_by(WoodType.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
     def create(data: dict) -> dict:

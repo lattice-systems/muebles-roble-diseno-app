@@ -213,16 +213,16 @@
                   </ul>
                 </div>
 
-                <!-- Delete / Activar button -->
-                <form method="POST" action="{{ url_for('woods_types.delete_wood_type', id_wood_type=wood_type.id_wood_type) }}" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas cambiar el estado de este registro?');">
+                <!-- Desactivar / Activar button -->
+                <form id="toggleForm-{{ wood_type.id_wood_type }}" method="POST" action="{{ url_for('woods_types.delete_wood_type', id_wood_type=wood_type.id_wood_type) }}" class="inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}" />
                   {% if wood_type.status %}
-                  <button type="submit" class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
+                  <button type="button" data-confirm-action="deactivate" data-confirm-form="toggleForm-{{ wood_type.id_wood_type }}" class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
                     <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 1.414.586l2 2A2 2 0 0 1 18 6v1h2a1 1 0 1 1 0 2h-1v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9H4a1 1 0 0 1 0-2h2V6a2 2 0 0 1 .586-1.414l2-2ZM11 11a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0v-7Z" clip-rule="evenodd"/></svg>
                     Desactivar
                   </button>
                   {% else %}
-                  <button type="submit" class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
+                  <button type="button" data-confirm-action="activate" data-confirm-form="toggleForm-{{ wood_type.id_wood_type }}" class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
                     <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm4.707 7.293a1 1 0 00-1.414-1.414L11 12.586 8.707 10.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l5-5z" clip-rule="evenodd"/></svg>
                     Activar
                   </button>
@@ -240,24 +240,41 @@
     <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 border-t border-gray-200" aria-label="Table navigation">
       <span class="text-sm font-normal text-gray-500">
         Showing
-        <span class="font-semibold text-gray-900">1-{{ wood_types|length }}</span>
+        <span class="font-semibold text-gray-900">{{ ((pagination.page - 1) * pagination.per_page) + 1 }}-{{ [pagination.page * pagination.per_page, pagination.total] | min }}</span>
         of
-        <span class="font-semibold text-gray-900">{{ wood_types|length }}</span>
+        <span class="font-semibold text-gray-900">{{ pagination.total }}</span>
       </span>
+      {% if pagination.pages > 1 %}
       <ul class="inline-flex items-stretch -space-x-px">
         <li>
-          <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+          <a href="{{ url_for('woods_types.list_wood_types', page=pagination.prev_num if pagination.has_prev else 1, q=search_term, status=status_filter) }}"
+             class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 {{ 'pointer-events-none opacity-50' if not pagination.has_prev }}">
             <span class="sr-only">Previous</span>
             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
           </a>
         </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            {% if p == pagination.page %}
         <li>
-          <a href="#" aria-current="page" class="flex items-center justify-center text-sm z-10 py-2 px-3 leading-tight text-blue-600 bg-blue-50 border border-blue-300 hover:bg-blue-100 hover:text-blue-700">1</a>
+          <a href="{{ url_for('woods_types.list_wood_types', page=p, q=search_term, status=status_filter) }}" aria-current="page" class="flex items-center justify-center text-sm z-10 py-2 px-3 leading-tight text-blue-600 bg-blue-50 border border-blue-300 hover:bg-blue-100 hover:text-blue-700">{{ p }}</a>
         </li>
+            {% else %}
         <li>
-          <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+          <a href="{{ url_for('woods_types.list_wood_types', page=p, q=search_term, status=status_filter) }}" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">{{ p }}</a>
+        </li>
+            {% endif %}
+          {% else %}
+        <li>
+          <span class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300">…</span>
+        </li>
+          {% endif %}
+        {% endfor %}
+        <li>
+          <a href="{{ url_for('woods_types.list_wood_types', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term, status=status_filter) }}"
+             class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 {{ 'pointer-events-none opacity-50' if not pagination.has_next }}">
             <span class="sr-only">Next</span>
             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -265,6 +282,7 @@
           </a>
         </li>
       </ul>
+      {% endif %}
     </nav>
 
     {% if not wood_types %}
@@ -293,13 +311,14 @@
 document.addEventListener("DOMContentLoaded", function() {
   const checkAll = document.getElementById("checkbox-all");
   const rowCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="checkbox-"]:not(#checkbox-all)');
+  let pendingAction = null; // stores a function to call on confirm
 
+  // Select-all
   if (checkAll) {
     checkAll.addEventListener("change", function() {
       rowCheckboxes.forEach(cb => cb.checked = checkAll.checked);
     });
   }
-
   rowCheckboxes.forEach(cb => {
     cb.addEventListener("change", function() {
       if (!this.checked) checkAll.checked = false;
@@ -308,26 +327,65 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   function getCheckedIds() {
-    const checked = [...rowCheckboxes].filter(cb => cb.checked);
-    return checked.map(cb => cb.id.replace("checkbox-", ""));
+    return [...rowCheckboxes].filter(cb => cb.checked).map(cb => cb.id.replace("checkbox-", ""));
   }
+
+  // Helper: show a confirmation modal
+  function showConfirmModal(modalId, onConfirm) {
+    pendingAction = onConfirm;
+    const modalEl = document.getElementById(modalId);
+    const modal = new Modal(modalEl);
+    modal.show();
+    // Store modal instance so we can hide it
+    modalEl._modalInstance = modal;
+  }
+
+  // Wire up all Confirmar buttons inside confirmation modals
+  document.querySelectorAll('[data-confirm-submit]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modalEl = this.closest('[id^="confirmModal"]');
+      if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
+      if (pendingAction) { pendingAction(); pendingAction = null; }
+    });
+  });
+
+  // Wire up all Cancel / Close buttons inside confirmation modals
+  document.querySelectorAll('[data-confirm-cancel]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modalEl = this.closest('[id^="confirmModal"]');
+      if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
+      pendingAction = null;
+    });
+  });
+
+  // Row-level Desactivar / Activar buttons
+  document.querySelectorAll('[data-confirm-action]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const action = this.getAttribute('data-confirm-action');
+      const formId = this.getAttribute('data-confirm-form');
+      const modalId = action === 'deactivate' ? 'confirmModalDeactivate' : 'confirmModalActivate';
+      showConfirmModal(modalId, () => document.getElementById(formId).submit());
+    });
+  });
 
   // Bulk deactivate
   document.getElementById("bulkDeactivateBtn").addEventListener("click", function() {
     const ids = getCheckedIds();
     if (ids.length === 0) { alert("Selecciona al menos un registro."); return; }
-    if (!confirm("¿Desactivar " + ids.length + " registro(s) seleccionado(s)?")) return;
-    document.getElementById("bulkDeactivateIds").value = ids.join(",");
-    document.getElementById("bulkDeactivateForm").submit();
+    showConfirmModal('confirmModalDeactivate', () => {
+      document.getElementById("bulkDeactivateIds").value = ids.join(",");
+      document.getElementById("bulkDeactivateForm").submit();
+    });
   });
 
   // Bulk activate
   document.getElementById("bulkActivateBtn").addEventListener("click", function() {
     const ids = getCheckedIds();
     if (ids.length === 0) { alert("Selecciona al menos un registro."); return; }
-    if (!confirm("¿Activar " + ids.length + " registro(s) seleccionado(s)?")) return;
-    document.getElementById("bulkActivateIds").value = ids.join(",");
-    document.getElementById("bulkActivateForm").submit();
+    showConfirmModal('confirmModalActivate', () => {
+      document.getElementById("bulkActivateIds").value = ids.join(",");
+      document.getElementById("bulkActivateForm").submit();
+    });
   });
 });
 </script>
@@ -335,6 +393,49 @@ document.addEventListener("DOMContentLoaded", function() {
 {% endblock content %}
 
 {% block modals %}
+<!-- Confirmation Modal: Deactivate (RED) -->
+<div id="confirmModalDeactivate" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+      <button type="button" data-confirm-cancel class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+        <span class="sr-only">Cerrar</span>
+      </button>
+      <div class="p-4 md:p-5 text-center">
+        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        <h3 class="mb-6 text-body">¿Estas seguro que quieres desactivar este elemento?</h3>
+        <div class="flex items-center space-x-4 justify-center">
+          <button type="button" data-confirm-submit class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Confirmar
+          </button>
+          <button type="button" data-confirm-cancel class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">No, cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal: Activate (GREEN) -->
+<div id="confirmModalActivate" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+      <button type="button" data-confirm-cancel class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+        <span class="sr-only">Cerrar</span>
+      </button>
+      <div class="p-4 md:p-5 text-center">
+        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        <h3 class="mb-6 text-body">¿Estas seguro que quieres activar este elemento?</h3>
+        <div class="flex items-center space-x-4 justify-center">
+          <button type="button" data-confirm-submit class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Confirmar
+          </button>
+          <button type="button" data-confirm-cancel class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">No, cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Edit Modals (rendered outside z-20 stacking context) -->
 {% for wood_type in wood_types %}
 <div id="editModal-{{ wood_type.id_wood_type }}" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
