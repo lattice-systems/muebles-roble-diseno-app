@@ -44,7 +44,9 @@ def create_wood_type():
     form = WoodTypeForm()
 
     if form.validate_on_submit():
-        data = {"name": form.name.data, "description": form.description.data}
+        # Read the status from the select (not part of WTForms)
+        raw_status = request.form.get("status", "1")
+        data = {"name": form.name.data, "description": form.description.data, "status": bool(int(raw_status)) if raw_status.isdigit() else True}
         try:
             WoodTypeService.create(data)
             flash("Tipo de madera creado exitosamente", "success")
@@ -68,7 +70,12 @@ def edit_wood_type(id_wood_type: int):
     form = WoodTypeForm()
 
     if form.validate_on_submit():
-        data = {"name": form.name.data, "description": form.description.data}
+        raw_status = request.form.get("status", "1")
+        data = {
+            "name": form.name.data,
+            "description": form.description.data,
+            "status": bool(int(raw_status)) if raw_status.isdigit() else True
+        }
         try:
             WoodTypeService.update(id_wood_type, data)
             flash("Tipo de madera actualizado exitosamente", "success")
@@ -94,6 +101,56 @@ def delete_wood_type(id_wood_type: int):
     try:
         WoodTypeService.toggle_status(id_wood_type)
         flash("Estado del tipo de madera actualizado exitosamente", "success")
+    except Exception as e:
+        flash(str(e), "error")
+
+    return redirect(url_for("woods_types.list_wood_types"))
+
+
+@woods_types_bp.route("/bulk-deactivate", methods=["POST"])
+def bulk_deactivate():
+    """
+    Desactiva múltiples tipos de madera a la vez.
+
+    POST: Recibe IDs separados por coma y los desactiva.
+
+    Returns:
+        POST - Redirect: Redirige a la lista con mensaje flash
+    """
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron registros", "error")
+        return redirect(url_for("woods_types.list_wood_types"))
+
+    try:
+        ids = [int(id_str.strip()) for id_str in ids_str.split(",") if id_str.strip().isdigit()]
+        count = WoodTypeService.bulk_deactivate(ids)
+        flash(f"{count} tipo(s) de madera desactivado(s) exitosamente", "success")
+    except Exception as e:
+        flash(str(e), "error")
+
+    return redirect(url_for("woods_types.list_wood_types"))
+
+
+@woods_types_bp.route("/bulk-activate", methods=["POST"])
+def bulk_activate():
+    """
+    Activa múltiples tipos de madera a la vez.
+
+    POST: Recibe IDs separados por coma y los activa.
+
+    Returns:
+        POST - Redirect: Redirige a la lista con mensaje flash
+    """
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron registros", "error")
+        return redirect(url_for("woods_types.list_wood_types"))
+
+    try:
+        ids = [int(id_str.strip()) for id_str in ids_str.split(",") if id_str.strip().isdigit()]
+        count = WoodTypeService.bulk_activate(ids)
+        flash(f"{count} tipo(s) de madera activado(s) exitosamente", "success")
     except Exception as e:
         flash(str(e), "error")
 
