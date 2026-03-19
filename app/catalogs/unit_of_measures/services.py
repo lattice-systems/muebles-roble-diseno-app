@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.unit_of_measure import UnitOfMeasure
+from app.models.audit_log import AuditLog
 from app.exceptions import ConflictError, ValidationError, NotFoundError
 
 
@@ -15,7 +16,10 @@ class UnitOfMeasureService:
 
     @staticmethod
     def get_all(
-        search_term: str = "", status_filter: str = "all", page: int = 1, per_page: int = 10
+        search_term: str = "",
+        status_filter: str = "all",
+        page: int = 1,
+        per_page: int = 10,
     ):
         """
         Obtiene las unidades de medida con filtros de búsqueda y paginación.
@@ -27,14 +31,14 @@ class UnitOfMeasureService:
             query = query.filter(
                 db.or_(
                     UnitOfMeasure.name.ilike(search_pattern),
-                    UnitOfMeasure.abbreviation.ilike(search_pattern)
+                    UnitOfMeasure.abbreviation.ilike(search_pattern),
                 )
             )
 
         if status_filter == "active":
-            query = query.filter(UnitOfMeasure.status == True)
+            query = query.filter(UnitOfMeasure.status)
         elif status_filter == "inactive":
-            query = query.filter(UnitOfMeasure.status == False)
+            query = query.filter(not UnitOfMeasure.status)
 
         return query.order_by(UnitOfMeasure.id_unit_of_measure.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -57,28 +61,49 @@ class UnitOfMeasureService:
         """
         name = data.get("name", "").strip()
         abbreviation = data.get("abbreviation", "").strip()
+        unit_type = data.get("type", "").strip()
         active = data.get("active", True)
+
         if not name:
             raise ValidationError("El nombre de la unidad de medida es requerido")
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
+        if unit_type not in ["longitud", "peso", "volumen", "unidad"]:
+            raise ValidationError(
+                "El tipo de unidad debe ser longitud, peso, volumen o unidad"
+            )
+
+        # Validamos que no exista otra unidad con la misma abreviatura que esté activa
         existing = UnitOfMeasure.query.filter(
-            func.lower(UnitOfMeasure.name) == func.lower(name)
+            func.lower(UnitOfMeasure.abbreviation) == func.lower(abbreviation),
+            UnitOfMeasure.status,
         ).first()
         if existing:
             raise ConflictError(
-                f"Ya existe una unidad de medida con el nombre '{name}'"
+                f"Ya existe una unidad de medida activa con la abreviatura '{abbreviation}'"
             )
+
         unit_of_measure = UnitOfMeasure(
-            name=name, abbreviation=abbreviation, status=active
+            name=name, abbreviation=abbreviation, type=unit_type, status=active
         )
         db.session.add(unit_of_measure)
         try:
             db.session.commit()
+
+            # Registrar auditoría
+            audit = AuditLog(
+                table_name="units",
+                action="CREATE",
+                user_id=None,
+                new_data=unit_of_measure.to_dict(),
+            )
+            db.session.add(audit)
+            db.session.commit()
+
         except IntegrityError:
             db.session.rollback()
             raise ConflictError(
-                "Ocurrió un error al crear la unidad de medida. Intente nuevamente."
+                "Ocurrió un error al crear la unidad de medida. Asegúrese de que no viole restricciones de la base de datos."
             )
         return unit_of_measure.to_dict()
 
@@ -119,9 +144,11 @@ class UnitOfMeasureService:
             NotFoundError: Si no se encuentra la unidad de medida con el identificador dado
         """
         unit_of_measure = UnitOfMeasureService.get_by_id(id_unit_of_measure)
+        previous_data = unit_of_measure.to_dict()
 
         name = data.get("name", "").strip()
         abbreviation = data.get("abbreviation", "").strip()
+        unit_type = data.get("type", "").strip()
         active = data.get("active", unit_of_measure.status)
 
         if not name:
@@ -130,27 +157,45 @@ class UnitOfMeasureService:
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
 
+        if unit_type not in ["longitud", "peso", "volumen", "unidad"]:
+            raise ValidationError(
+                "El tipo de unidad debe ser longitud, peso, volumen o unidad"
+            )
+
         existing = UnitOfMeasure.query.filter(
-            func.lower(UnitOfMeasure.name) == func.lower(name),
-            UnitOfMeasure.id
-            != id_unit_of_measure,  # Excluir la unidad actual del chequeo
+            func.lower(UnitOfMeasure.abbreviation) == func.lower(abbreviation),
+            UnitOfMeasure.status,
+            UnitOfMeasure.id != id_unit_of_measure,
         ).first()
 
         if existing:
             raise ConflictError(
-                f"Ya existe una unidad de medida con el nombre '{name}'"
+                f"Ya existe una unidad de medida activa con la abreviatura '{abbreviation}'"
             )
 
         unit_of_measure.name = name
         unit_of_measure.abbreviation = abbreviation
+        unit_of_measure.type = unit_type
         unit_of_measure.status = active
 
         try:
             db.session.commit()
+
+            # Registrar auditoría
+            audit = AuditLog(
+                table_name="units",
+                action="UPDATE",
+                user_id=None,
+                previous_data=previous_data,
+                new_data=unit_of_measure.to_dict(),
+            )
+            db.session.add(audit)
+            db.session.commit()
+
         except IntegrityError:
             db.session.rollback()
             raise ConflictError(
-                "Ocurrió un error al actualizar la unidad de medida. Intente nuevamente."
+                "Ocurrió un error al actualizar la unidad de medida. Asegúrese de que no viole restricciones de la base de datos."
             )
 
         return unit_of_measure.to_dict()
@@ -167,7 +212,41 @@ class UnitOfMeasureService:
             NotFoundError: Si no se encuentra la unidad de medida con el identificador dado
         """
         unit_of_measure = UnitOfMeasureService.get_by_id(id_unit_of_measure)
+        previous_data = unit_of_measure.to_dict()
 
         unit_of_measure.status = not unit_of_measure.status
 
+        db.session.commit()
+
+        # Registrar auditoría
+        audit = AuditLog(
+            table_name="units",
+            action="TOGGLE_STATUS",
+            user_id=None,
+            previous_data=previous_data,
+            new_data=unit_of_measure.to_dict(),
+        )
+        db.session.add(audit)
+        db.session.commit()
+
+    @staticmethod
+    def bulk_toggle_status(ids: list[int], target_status: bool) -> None:
+        """
+        Cambia el estado de múltiples unidades de medida y registra la auditoría.
+        """
+        units = UnitOfMeasure.query.filter(
+            UnitOfMeasure.id_unit_of_measure.in_(ids)
+        ).all()
+        for unit in units:
+            previous_data = unit.to_dict()
+            unit.status = target_status
+            db.session.add(
+                AuditLog(
+                    table_name="units",
+                    action="BULK_UPDATE_STATUS",
+                    user_id=None,
+                    previous_data=previous_data,
+                    new_data=unit.to_dict(),
+                )
+            )
         db.session.commit()
