@@ -26,7 +26,7 @@
         </div>
         <div class="flex flex-row gap-3">
           <button id="addUserButton"
-                  class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
+                  class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
                   type="button">
             <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
                  height="24" fill="none" viewBox="0 0 24 24">
@@ -36,7 +36,7 @@
             Agregar
           </button>
           <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
+                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
                   type="button">
             <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
                  height="24" fill="none" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@
             </ul>
           </div>
           <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
-                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
+                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
                   type="button">
             Acciones
             <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
@@ -180,10 +180,55 @@
               Laptop PC
             </td>
             <td class="px-6 py-4">
-              $1999
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-sm font-medium rounded bg-success-soft">Activado</span>
             </td>
             <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
+              <div class="flex flex-row gap-3">
+                <button id="actionsUserDropdownButton" data-dropdown-toggle="actionsUserDropdown"
+                        class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+                        type="button">
+                  Acciones
+                  <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                       height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="m19 9-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <!-- Dropdown menu -->
+                <div id="actionsUserDropdown"
+                     class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
+                  <ul class="p-2 text-sm text-body font-medium" aria-labelledby="actionsUserDropdownButton">
+                    <li>
+                      <a href="#"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Color</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Category</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Price</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Sign
+                        out</a>
+                    </li>
+                  </ul>
+                </div>
+                <button id="deleteUserButton"
+                        class="shrink-0 inline-flex items-center justify-center text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+                        type="button">
+                  <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"></path>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
             </td>
           </tr>
           <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
