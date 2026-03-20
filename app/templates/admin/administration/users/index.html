@@ -1,326 +1,262 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-  Admin - Usuarios
+Admin - Usuarios
 {% endblock title %}
 {% block content %}
-  <div class="flex flex-col gap-4">
-    <div class="flex flex-col justify-center gap-1">
-      <h1 class="text-heading text-lg font-medium">Usuarios</h1>
-      <p class="text-body">Gestiona usuarios existentes o añade uno nuevo</p>
-    </div>
+<div class="flex flex-col gap-4">
+  <div class="flex flex-col justify-center gap-1">
+    <h1 class="text-heading text-lg font-medium">Usuarios</h1>
+    <p class="text-body">Gestiona usuarios existentes o añade uno nuevo</p>
+  </div>
 
-    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      <div class="p-4 flex items-center justify-between space-x-4">
+  {% include "admin/components/alerts.html" %}
+
+  <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+    <div class="p-4 flex items-center justify-between space-x-4">
+      <form class="w-full max-w-96" method="get" action="{{ url_for('users.index') }}">
         <label for="input-group-1" class="sr-only">Search</label>
+        <input type="hidden" name="status" value="{{ status_filter }}">
         <div class="relative">
           <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
             <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                 fill="none" viewBox="0 0 24 24">
+              fill="none" viewBox="0 0 24 24">
               <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                    d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
+                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
             </svg>
           </div>
-          <input type="text" id="input-group-1"
-                 class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-                 placeholder="Search">
+          <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
+            class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+            placeholder="Buscar por nombre o correo">
         </div>
-        <div class="flex flex-row gap-3">
-          <button id="addUserButton"
-                  class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
-                  type="button">
-            <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                 height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 12h14m-7 7V5"></path>
-            </svg>
-            Agregar
-          </button>
-          <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
-                  type="button">
-            <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                 height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                    d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"></path>
-            </svg>
-            Filtrar
-            <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                 height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m19 9-7 7-7-7"></path>
-            </svg>
-          </button>
-          <!-- Dropdown menu -->
-          <div id="filterDropdown"
-               class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
-            <ul class="p-2 text-sm text-body font-medium" aria-labelledby="filterDropdownButton">
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Color</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Category</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Price</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Sign
-                  out</a>
-              </li>
-            </ul>
-          </div>
-          <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
-                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-1.5"
-                  type="button">
-            Acciones
-            <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                 height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m19 9-7 7-7-7"></path>
-            </svg>
-          </button>
-          <!-- Dropdown menu -->
-          <div id="actionsDropdown"
-               class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
-            <ul class="p-2 text-sm text-body font-medium" aria-labelledby="actionsDropdownButton">
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Color</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Category</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Price</a>
-              </li>
-              <li>
-                <a href="#"
-                   class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Sign
-                  out</a>
-              </li>
-            </ul>
-          </div>
+      </form>
+      <div class="flex flex-row gap-3">
+        <button id="addUserButton"
+          class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+          type="button">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 12h14m-7 7V5"></path>
+          </svg>
+          Agregar
+        </button>
+        <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
+          class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+          type="button">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+              d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z">
+            </path>
+          </svg>
+          Filtrar
+          <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 9-7 7-7-7"></path>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div id="filterDropdown"
+          class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
+          <ul class="p-2 text-sm text-body font-medium" aria-labelledby="filterDropdownButton">
+            <li>
+              <a href="{{ url_for('users.index', q=search_term, status='all') }}"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Todos</a>
+            </li>
+            <li>
+              <a href="{{ url_for('users.index', q=search_term, status='active') }}"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activos</a>
+            </li>
+            <li>
+              <a href="{{ url_for('users.index', q=search_term, status='inactive') }}"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Inactivos</a>
+            </li>
+          </ul>
+        </div>
+        <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
+          class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+          type="button">
+          Acciones
+          <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 9-7 7-7-7"></path>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div id="actionsDropdown"
+          class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
+          <ul class="p-2 text-sm text-body font-medium" aria-labelledby="actionsDropdownButton">
+            <li>
+              <a href="#"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Exportar</a>
+            </li>
+          </ul>
         </div>
       </div>
-      <div
-        class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs">
-        <table class="w-full text-sm text-left rtl:text-right text-body">
-          <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
+    </div>
+    <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs">
+      <table class="w-full text-sm text-left rtl:text-right text-body">
+        <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
           <tr>
             <th scope="col" class="p-4">
               <div class="flex items-center">
                 <input id="table-checkbox-20" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
                 <label for="table-checkbox-20" class="sr-only">Table checkbox</label>
               </div>
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
-              Product name
+              Nombre
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
-              Color
+              Correo
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
-              Category
+              Rol
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
-              Price
+              Estado
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
-              Action
+              Acciones
             </th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
+          {% for user in users %}
           <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
             <td class="w-4 p-4">
               <div class="flex items-center">
-                <input id="table-checkbox-21" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-21" class="sr-only">Table checkbox</label>
+                <input id="table-checkbox-{{ user.id }}" type="checkbox" value="{{ user.id }}"
+                  class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                <label for="table-checkbox-{{ user.id }}" class="sr-only">Table checkbox</label>
               </div>
             </td>
             <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              Apple MacBook Pro 17"
+              {{ user.full_name }}
             </th>
             <td class="px-6 py-4">
-              Silver
+              {{ user.email }}
             </td>
             <td class="px-6 py-4">
-              Laptop
+              {{ user.role.name if user.role else "Sin rol" }}
             </td>
             <td class="px-6 py-4">
-              $2999
+              {% if user.status %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-sm font-medium rounded bg-success-soft">Activado</span>
+              {% else %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-sm font-medium rounded bg-danger-soft">Inactivo</span>
+              {% endif %}
             </td>
             <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
-          </tr>
-          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input id="table-checkbox-22" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-22" class="sr-only">Table checkbox</label>
+              <div class="flex flex-row gap-3">
+                <button id="actionsUserDropdownButton-{{ user.id }}"
+                  data-dropdown-toggle="actionsUserDropdown-{{ user.id }}"
+                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+                  type="button">
+                  Acciones
+                  <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                    height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m19 9-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <div id="actionsUserDropdown-{{ user.id }}"
+                  class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40">
+                  <ul class="p-2 text-sm text-body font-medium"
+                    aria-labelledby="actionsUserDropdownButton-{{ user.id }}">
+                    <li>
+                      <a href="#"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver
+                        detalle</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Actualizar</a>
+                    </li>
+                  </ul>
+                </div>
+
+                <form method="post" action="{{ url_for('users.toggle_status', id_user=user.id) }}" class="inline-flex">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                  <input type="hidden" name="q" value="{{ search_term }}">
+                  <input type="hidden" name="status" value="{{ status_filter }}">
+                  <input type="hidden" name="page" value="{{ pagination.page }}">
+                  <button
+                    class="shrink-0 inline-flex items-center justify-center text-white {% if user.status %}bg-danger hover:bg-danger-strong{% else %}bg-brand hover:bg-brand-strong{% endif %} box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
+                    type="submit">
+                    {% if user.status %}
+                    <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                      height="24" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    {% endif %}
+
+                    {% if user.status %}
+                    Desactivar
+                    {% else %}
+                    Activar
+                    {% endif %}
+                  </button>
+                </form>
               </div>
             </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              Microsoft Surface Pro
-            </th>
-            <td class="px-6 py-4">
-              White
-            </td>
-            <td class="px-6 py-4">
-              Laptop PC
-            </td>
-            <td class="px-6 py-4">
-              $1999
-            </td>
-            <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
           </tr>
-          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input id="table-checkbox-23" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-23" class="sr-only">Table checkbox</label>
-              </div>
-            </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              Magic Mouse 2
-            </th>
-            <td class="px-6 py-4">
-              Black
-            </td>
-            <td class="px-6 py-4">
-              Accessories
-            </td>
-            <td class="px-6 py-4">
-              $99
-            </td>
-            <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
+          {% else %}
+          <tr class="bg-neutral-primary-soft border-b border-default">
+            <td colspan="6" class="px-6 py-8 text-center text-body">No se encontraron usuarios</td>
           </tr>
-          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input id="table-checkbox-24" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-24" class="sr-only">Table checkbox</label>
-              </div>
-            </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              Apple Watch
-            </th>
-            <td class="px-6 py-4">
-              Silver
-            </td>
-            <td class="px-6 py-4">
-              Accessories
-            </td>
-            <td class="px-6 py-4">
-              $179
-            </td>
-            <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
-          </tr>
-          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input id="table-checkbox-25" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-25" class="sr-only">Table checkbox</label>
-              </div>
-            </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              iPad
-            </th>
-            <td class="px-6 py-4">
-              Gold
-            </td>
-            <td class="px-6 py-4">
-              Tablet
-            </td>
-            <td class="px-6 py-4">
-              $699
-            </td>
-            <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
-          </tr>
-          <tr class="bg-neutral-primary-soft hover:bg-neutral-secondary-medium border-b border-default">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input id="table-checkbox-26" type="checkbox" value=""
-                       class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-26" class="sr-only">Table checkbox</label>
-              </div>
-            </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              Apple iMac 27"
-            </th>
-            <td class="px-6 py-4">
-              Silver
-            </td>
-            <td class="px-6 py-4">
-              PC Desktop
-            </td>
-            <td class="px-6 py-4">
-              $3999
-            </td>
-            <td class="px-6 py-4">
-              <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-        <nav class="flex items-center flex-column flex-wrap md:flex-row justify-between p-4"
-             aria-label="Table navigation">
-          <span class="text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando <span
-            class="font-semibold text-heading">1-10</span> de <span
-            class="font-semibold text-heading">1000</span></span>
-          <ul class="flex -space-x-px text-sm">
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-sm px-3 h-9 focus:outline-none">Anterior</a>
-            </li>
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-sm w-9 h-9 focus:outline-none">1</a>
-            </li>
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-sm w-9 h-9 focus:outline-none">2</a>
-            </li>
-            <li>
-              <a href="#" aria-current="page"
-                 class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-sm w-9 h-9 focus:outline-none">3</a>
-            </li>
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-sm w-9 h-9 focus:outline-none">...</a>
-            </li>
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-sm w-9 h-9 focus:outline-none">5</a>
-            </li>
-            <li>
-              <a href="#"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-sm px-3 h-9 focus:outline-none">Siguiente</a>
-            </li>
-          </ul>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
+      {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) <
+        pagination.total else pagination.total %} <nav
+        class="flex items-center flex-column flex-wrap md:flex-row justify-between p-4" aria-label="Table navigation">
+        <span class="text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando <span
+            class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span> de <span
+            class="font-semibold text-heading">{{ pagination.total }}</span></span>
+        <ul class="flex -space-x-px text-sm">
+          <li>
+            <a href="{{ url_for('users.index', page=pagination.prev_num if pagination.has_prev else 1, q=search_term, status=status_filter) }}"
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-sm px-3 h-9 focus:outline-none">Anterior</a>
+          </li>
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li>
+            <a href="{{ url_for('users.index', page=p, q=search_term, status=status_filter) }}" {% if p==pagination.page
+              %} aria-current="page"
+              class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-sm w-9 h-9 focus:outline-none"
+              {% else %}
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-sm w-9 h-9 focus:outline-none"
+              {% endif %}>{{ p }}</a>
+          </li>
+          {% else %}
+          <li>
+            <span
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-sm w-9 h-9">…</span>
+          </li>
+          {% endif %}
+          {% endfor %}
+          <li>
+            <a href="{{ url_for('users.index', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term, status=status_filter) }}"
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-sm px-3 h-9 focus:outline-none">Siguiente</a>
+          </li>
+        </ul>
         </nav>
-      </div>
     </div>
   </div>
+</div>
 {% endblock content %}
