@@ -12,9 +12,9 @@ Admin - Usuarios
   {% include "admin/components/alerts.html" %}
 
   <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-    <div class="p-4 flex items-center justify-between space-x-4">
-      <div class="flex items-center gap-2">
-        <form class="max-w-96" method="get" action="{{ url_for('users.index') }}" id="searchForm">
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex w-full max-w-96 items-center gap-2">
+        <form class="w-full" method="get" action="{{ url_for('users.index') }}" id="searchForm">
           <label for="input-group-1" class="sr-only">Search</label>
           <input type="hidden" name="status" value="{{ status_filter }}">
           <div class="relative">
@@ -26,7 +26,7 @@ Admin - Usuarios
               </svg>
             </div>
             <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
-              class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+              class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
               placeholder="Buscar por nombre o correo"
               onkeypress="if(event.key === 'Enter') this.form.submit();">
           </div>
@@ -114,30 +114,30 @@ Admin - Usuarios
         </div>
       </div>
     </div>
-    <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs">
-      <table class="w-full text-sm text-left rtl:text-right text-body">
+    <div class="relative w-full overflow-x-auto bg-neutral-primary-soft shadow-xs">
+      <table class="w-full min-w-[920px] table-fixed text-sm text-left rtl:text-right text-body">
         <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
           <tr>
-            <th scope="col" class="p-4">
+            <th scope="col" class="w-12 p-4">
               <div class="flex items-center">
                 <input id="table-checkbox-all" type="checkbox" value=""
                   class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
                 <label for="table-checkbox-all" class="sr-only">Table checkbox</label>
               </div>
             </th>
-            <th scope="col" class="px-6 py-3 font-medium">
+            <th scope="col" class="w-56 px-6 py-3 font-medium">
               Nombre
             </th>
-            <th scope="col" class="px-6 py-3 font-medium">
+            <th scope="col" class="w-72 px-6 py-3 font-medium">
               Correo
             </th>
-            <th scope="col" class="px-6 py-3 font-medium">
+            <th scope="col" class="w-40 px-6 py-3 font-medium">
               Rol
             </th>
-            <th scope="col" class="px-6 py-3 font-medium">
+            <th scope="col" class="w-36 px-6 py-3 font-medium">
               Estado
             </th>
-            <th scope="col" class="px-6 py-3 font-medium">
+            <th scope="col" class="w-72 px-6 py-3 font-medium whitespace-nowrap">
               Acciones
             </th>
           </tr>
@@ -152,14 +152,14 @@ Admin - Usuarios
                 <label for="table-checkbox-{{ user.id }}" class="sr-only">Table checkbox</label>
               </div>
             </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-              {{ user.full_name }}
+            <th scope="row" class="px-6 py-4 font-medium text-heading">
+              <span class="block truncate" title="{{ user.full_name }}">{{ user.full_name }}</span>
             </th>
             <td class="px-6 py-4">
-              {{ user.email }}
+              <span class="block truncate" title="{{ user.email }}">{{ user.email }}</span>
             </td>
             <td class="px-6 py-4">
-              {{ user.role.name if user.role else "Sin rol" }}
+              <span class="block truncate" title="{{ user.role.name if user.role else 'Sin rol' }}">{{ user.role.name if user.role else "Sin rol" }}</span>
             </td>
             <td class="px-6 py-4">
               {% if user.status %}
@@ -170,7 +170,7 @@ Admin - Usuarios
                 class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-sm font-medium rounded bg-danger-soft">Desactivado</span>
               {% endif %}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex flex-row gap-3">
                 <button id="actionsUserDropdownButton-{{ user.id }}"
                   data-dropdown-toggle="actionsUserDropdown-{{ user.id }}"
@@ -337,7 +337,6 @@ Admin - Usuarios
   </div>
 </div>
 {% endfor %}
-
 <div id="bulk-no-selection-modal" tabindex="-1"
   class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
   <div class="relative p-4 w-full max-w-md max-h-full">

@@ -18,9 +18,9 @@
   <body>
     <div class="flex flex-row gap-4 p-4 w-full h-screen relative bg-neutral-tertiary">
       <div class="inset-s-0 h-full w-fit ">{% include "components/admin/sidebar.html" %}</div>
-      <div class="w-full z-20 h-full flex flex-col gap-4">
+      <div class="w-full min-w-0 z-20 h-full flex flex-col gap-4">
         {% include "components/admin/navbar.html" %}
-        <main class="flex-1 overflow-y-auto bg-neutral-primary p-4 border border-default rounded-base">
+        <main class="flex-1 min-w-0 overflow-y-auto bg-neutral-primary p-4 border border-default rounded-base">
           {% block content %}
           {% endblock content %}
         </main>
