@@ -13,22 +13,32 @@ Admin - Usuarios
 
   <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
     <div class="p-4 flex items-center justify-between space-x-4">
-      <form class="w-full max-w-96" method="get" action="{{ url_for('users.index') }}">
-        <label for="input-group-1" class="sr-only">Search</label>
-        <input type="hidden" name="status" value="{{ status_filter }}">
-        <div class="relative">
-          <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-              fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
-            </svg>
+      <div class="flex items-center gap-2">
+        <form class="max-w-96" method="get" action="{{ url_for('users.index') }}" id="searchForm">
+          <label for="input-group-1" class="sr-only">Search</label>
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <div class="relative">
+            <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+              <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
+              </svg>
+            </div>
+            <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
+              class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+              placeholder="Buscar por nombre o correo"
+              onkeypress="if(event.key === 'Enter') this.form.submit();">
           </div>
-          <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
-            class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-            placeholder="Buscar por nombre o correo">
-        </div>
-      </form>
+        </form>
+        {% if search_term %}
+        <button type="button" onclick="document.getElementById('input-group-1').value = ''; document.getElementById('searchForm').submit();"
+          class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none"
+          title="Limpiar búsqueda">
+          Limpiar
+        </button>
+        {% endif %}
+      </div>
       <div class="flex flex-row gap-3">
         <a id="addUserButton" href="{{ url_for('users.create_user') }}"
           class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
