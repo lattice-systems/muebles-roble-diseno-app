@@ -78,10 +78,10 @@
   </div>
   <div class="py-5 overflow-y-auto flex-1">
     <ul class="space-y-2 font-medium">
-      {{ sidebar_link("Dashboard", "#", icon_dashboard) }}
+      {{ sidebar_link("Dashboard", "#", icon_dashboard, request.endpoint == 'index_admin') }}
       {{ sidebar_dropdown("Adminsitración",
             [
-            {"label": "Usuarios", "href": "{{ url_for('users.index') }}", "icon": icon_users},
+        {"label": "Usuarios", "href": url_for('users.index'), "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
             {"label": "Catalogos", "href": "#", "icon": icon_catalog},
             ],
             icon_admin,
@@ -168,3 +168,35 @@
     </div>
   </div>
 </aside>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdownButtons = document.querySelectorAll("button[data-collapse-toggle]");
+
+    const syncChevron = (button) => {
+      const targetId = button.getAttribute("data-collapse-toggle");
+      if (!targetId) {
+        return;
+      }
+
+      const dropdown = document.getElementById(targetId);
+      const chevron = button.querySelector("[data-dropdown-chevron='true']");
+      if (!dropdown || !chevron) {
+        return;
+      }
+
+      const isOpen = !dropdown.classList.contains("hidden");
+      chevron.classList.toggle("rotate-180", isOpen);
+    };
+
+    dropdownButtons.forEach((button) => {
+      syncChevron(button);
+      button.addEventListener("click", function () {
+        // Flowbite actualiza la visibilidad durante el click; sincronizamos al siguiente tick.
+        setTimeout(function () {
+          syncChevron(button);
+        }, 0);
+      });
+    });
+  });
+</script>
