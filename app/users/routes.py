@@ -1,10 +1,26 @@
-from flask import flash, redirect, render_template, request, url_for
+import csv
+from datetime import datetime
+from io import StringIO
+
+from flask import flash, make_response, redirect, render_template, request, url_for
 from flask_security import current_user, login_required, auth_required, url_for_security
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.users import users_bp
 from app.users.forms import UserForm, UserEditForm
 from app.users.services import UserService
+
+
+def _parse_selected_ids(raw_ids: str) -> list[int]:
+    ids: list[int] = []
+    for raw in (raw_ids or "").split(","):
+        value = raw.strip()
+        if not value or not value.isdigit():
+            continue
+        user_id = int(value)
+        if user_id > 0 and user_id not in ids:
+            ids.append(user_id)
+    return ids
 
 
 @users_bp.route("/profile", methods=["GET"])
@@ -180,3 +196,100 @@ def detail_user(id_user: int):
         return redirect(url_for("users.index"))
 
     return render_template("admin/administration/users/details.html", user=user)
+
+
+@auth_required()
+@users_bp.route("/bulk-action", methods=["POST"])
+def bulk_action_users():
+    search_term = request.form.get("q", "").strip()
+    status_filter = request.form.get("status", "all")
+    page_raw = request.form.get("page", "1")
+    page = int(page_raw) if page_raw.isdigit() else 1
+
+    action = (request.form.get("action") or "").strip().lower()
+    selected_ids = _parse_selected_ids(request.form.get("selected_ids", ""))
+
+    if not selected_ids:
+        flash("Selecciona al menos un usuario", "error")
+        return redirect(
+            url_for(
+                "users.index",
+                page=page,
+                q=search_term,
+                status=status_filter,
+            )
+        )
+
+    if action == "export":
+        users = UserService.get_by_ids(selected_ids)
+        if not users:
+            flash("No se encontraron usuarios para exportar", "error")
+            return redirect(
+                url_for(
+                    "users.index",
+                    page=page,
+                    q=search_term,
+                    status=status_filter,
+                )
+            )
+
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["ID", "Nombre", "Correo", "Rol", "Estado", "Fecha de creacion"])
+        for user in users:
+            writer.writerow(
+                [
+                    user.id,
+                    user.full_name,
+                    user.email,
+                    user.role.name if user.role else "Sin rol",
+                    "Activo" if user.status else "Inactivo",
+                    user.created_at.strftime("%Y-%m-%d %H:%M:%S") if user.created_at else "",
+                ]
+            )
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        response = make_response(output.getvalue())
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        response.headers["Content-Disposition"] = (
+            f"attachment; filename=usuarios_seleccionados_{timestamp}.csv"
+        )
+        return response
+
+    if action in {"activate", "deactivate"}:
+        target_status = action == "activate"
+        result = UserService.bulk_set_status(
+            selected_ids,
+            target_status=target_status,
+            current_user_id=getattr(current_user, "id", None),
+        )
+
+        updated = result["updated"]
+        skipped_self = result["skipped_self"]
+        not_found = result["not_found"]
+
+        action_text = "activados" if target_status else "desactivados"
+        flash(f"{updated} usuario(s) {action_text}.", "success")
+        if skipped_self:
+            flash("No puedes desactivar tu propio usuario.", "error")
+        if not_found:
+            flash(f"{not_found} usuario(s) no encontrado(s).", "error")
+
+        return redirect(
+            url_for(
+                "users.index",
+                page=page,
+                q=search_term,
+                status=status_filter,
+            )
+        )
+
+    flash("Accion masiva invalida", "error")
+    return redirect(
+        url_for(
+            "users.index",
+            page=page,
+            q=search_term,
+            status=status_filter,
+        )
+    )

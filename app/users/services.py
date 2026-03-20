@@ -15,6 +15,19 @@ class UserService:
 	"""Servicio para operaciones de negocio relacionadas con usuarios."""
 
 	@staticmethod
+	def get_by_ids(user_ids: list[int]) -> list[User]:
+		"""Obtiene usuarios por una lista de IDs."""
+		if not user_ids:
+			return []
+
+		return (
+			User.query.options(joinedload(User.role))
+			.filter(User.id.in_(user_ids))
+			.order_by(User.id.asc())
+			.all()
+		)
+
+	@staticmethod
 	def get_all(
 		search_term: str | None = None,
 		status_filter: str | None = None,
@@ -207,3 +220,42 @@ class UserService:
 			raise ConflictError(f"Ya existe un usuario con el correo '{email}'")
 
 		return user
+
+	@staticmethod
+	def bulk_set_status(
+		user_ids: list[int],
+		target_status: bool,
+		current_user_id: int | None = None,
+	) -> dict[str, int]:
+		"""Actualiza estado de usuarios en lote y retorna el resumen de la operación."""
+		if not user_ids:
+			return {"updated": 0, "skipped_self": 0, "not_found": 0}
+
+		unique_ids = list(dict.fromkeys(user_ids))
+		users = User.query.filter(User.id.in_(unique_ids)).all()
+		found_ids = {user.id for user in users}
+
+		updated = 0
+		skipped_self = 0
+		for user in users:
+			if (
+				not target_status
+				and current_user_id is not None
+				and user.id == current_user_id
+			):
+				skipped_self += 1
+				continue
+
+			if user.status != target_status:
+				user.status = target_status
+				updated += 1
+
+		if updated > 0:
+			db.session.commit()
+
+		not_found = len(unique_ids) - len(found_ids)
+		return {
+			"updated": updated,
+			"skipped_self": skipped_self,
+			"not_found": not_found,
+		}
