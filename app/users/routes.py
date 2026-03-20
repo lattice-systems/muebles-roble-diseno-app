@@ -1,8 +1,9 @@
 from flask import flash, redirect, render_template, request, url_for
 from flask_security import current_user
 
+from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.users import users_bp
-from app.exceptions import NotFoundError
+from app.users.forms import UserForm
 from app.users.services import UserService
 
 
@@ -26,6 +27,39 @@ def index():
         search_term=search_term,
         status_filter=status_filter,
     )
+
+
+@users_bp.route("/create", methods=["GET", "POST"])
+def create_user():
+    form = UserForm()
+    form.role_id.choices = UserService.get_role_choices()
+
+    if request.method == "GET" and form.role_id.choices:
+        form.role_id.data = form.role_id.choices[0][0]
+
+    if form.validate_on_submit():
+        data = {
+            "full_name": form.full_name.data,
+            "email": form.email.data,
+            "password": form.password.data,
+            "role_id": form.role_id.data,
+            "status": form.status.data,
+        }
+
+        try:
+            UserService.create(data)
+            flash("Usuario creado exitosamente", "success")
+            return redirect(url_for("users.index"))
+        except (ValidationError, ConflictError) as e:
+            flash(e.message, "error")
+
+    elif request.method == "POST":
+        flash("Por favor corrige los errores del formulario", "error")
+
+    if not form.role_id.choices:
+        flash("No hay roles activos disponibles para asignar", "error")
+
+    return render_template("admin/administration/users/create.html", form=form)
 
 
 @users_bp.route("/<int:id_user>/toggle-status", methods=["POST"])
