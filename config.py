@@ -30,7 +30,7 @@ class Config:
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SECURITY_POST_LOGIN_VIEW = "/admin"
     SECURITY_TWO_FACTOR = True
-    SECURITY_TWO_FACTOR_REQUIRED = True
+    SECURITY_TWO_FACTOR_REQUIRED = False
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ["authenticator"]
     SECURITY_TWO_FACTOR_RESCUE_EMAIL = False
     SECURITY_MULTI_FACTOR_RECOVERY_CODES = False
@@ -63,6 +63,10 @@ class Config:
     )
     SECURITY_MSG_TWO_FACTOR_SETUP_EXPIRED = (
         "La configuracion 2FA expiro. Inicia el proceso de nuevo.",
+        "error",
+    )
+    SECURITY_MSG_TWO_FACTOR_METHOD_NOT_AVAILABLE = (
+        "El metodo seleccionado no es valido para tu cuenta.",
         "error",
     )
 
