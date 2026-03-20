@@ -45,6 +45,10 @@ def create_app():
 
     from .catalogs.colors import colors_bp
 
+    from .users import users_bp
+
+    app.register_blueprint(users_bp, url_prefix="/admin/users")
+
     app.register_blueprint(colors_bp, url_prefix="/colors")
 
     from .catalogs.roles import roles_bp
