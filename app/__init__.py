@@ -45,6 +45,10 @@ def create_app():
 
     from .catalogs.colors import colors_bp
 
+    from .users import users_bp
+
+    app.register_blueprint(users_bp, url_prefix="/admin/users")
+
     app.register_blueprint(colors_bp, url_prefix="/colors")
 
     from .catalogs.roles import roles_bp
@@ -58,6 +62,10 @@ def create_app():
     from .catalogs.unit_of_measures import unit_of_measures_bp
 
     app.register_blueprint(unit_of_measures_bp, url_prefix="/unit-of-measures")
+
+    from .catalogs.payment_method import payment_method_bp
+
+    app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
 
     @app.route("/admin")
     @auth_required()

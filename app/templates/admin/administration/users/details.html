@@ -1,0 +1,71 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+Admin - Detalle de usuario
+{% endblock title %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto flex flex-col gap-4">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-heading text-lg font-medium">Detalle de usuario</h1>
+    <p class="text-body">Consulta la información del usuario seleccionado</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">ID</span>
+        <p class="text-heading font-medium">{{ user.id }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">Nombre completo</span>
+        <p class="text-heading font-medium">{{ user.full_name }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">Correo electrónico</span>
+        <p class="text-heading font-medium">{{ user.email }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">Rol</span>
+        <p class="text-heading font-medium">{{ user.role.name if user.role else "Sin rol" }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">Estado</span>
+        <div>
+          {% if user.status %}
+          <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-sm font-medium rounded bg-success-soft">Activado</span>
+          {% else %}
+          <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-sm font-medium rounded bg-danger-soft">Desactivado</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-body">Fecha de creación</span>
+        <p class="text-heading font-medium">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else "-" }}</p>
+      </div>
+
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <span class="text-sm text-body">2FA</span>
+        <p class="text-heading font-medium">{{ user.tf_primary_method if user.tf_primary_method else "No configurado" }}</p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-6">
+      <a href="{{ url_for('users.index') }}"
+        class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+        Volver
+      </a>
+      <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
+        class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+        Editar
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock content %}

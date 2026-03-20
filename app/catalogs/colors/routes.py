@@ -29,7 +29,7 @@ def list_colors():
     form = ColorForm()
 
     return render_template(
-        "colors/list.html",
+        "admin/colors/index.html",
         colors=pagination.items,
         pagination=pagination,
         form=form,
@@ -70,7 +70,7 @@ def create_color():
         page=page,
     )
     return render_template(
-        "colors/list.html",
+        "admin/colors/index.html",
         colors=pagination.items,
         pagination=pagination,
         form=form,
@@ -112,7 +112,7 @@ def edit_color(id_color: int):
         page=page,
     )
     return render_template(
-        "colors/list.html",
+        "admin/colors/index.html",
         colors=pagination.items,
         pagination=pagination,
         form=form,

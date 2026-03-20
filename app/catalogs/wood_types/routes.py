@@ -27,7 +27,7 @@ def list_wood_types():
     form = WoodTypeForm()
 
     return render_template(
-        "wood_types/list.html",
+        "admin/wood_types/index.html",
         wood_types=pagination.items,
         pagination=pagination,
         form=form,
@@ -64,7 +64,7 @@ def create_wood_type():
 
     pagination = WoodTypeService.get_all()
     return render_template(
-        "wood_types/list.html",
+        "admin/wood_types/index.html",
         wood_types=pagination.items,
         pagination=pagination,
         form=form,
@@ -100,7 +100,7 @@ def edit_wood_type(id_wood_type: int):
     pagination = WoodTypeService.get_all()
     blank_form = WoodTypeForm()
     return render_template(
-        "wood_types/list.html",
+        "admin/wood_types/index.html",
         wood_types=pagination.items,
         pagination=pagination,
         form=blank_form,
