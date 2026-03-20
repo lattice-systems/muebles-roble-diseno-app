@@ -3,7 +3,7 @@ from flask_security import current_user
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.users import users_bp
-from app.users.forms import UserForm
+from app.users.forms import UserForm, UserEditForm
 from app.users.services import UserService
 
 
@@ -100,3 +100,45 @@ def toggle_status(id_user: int):
             status=status_filter,
         )
     )
+
+
+@users_bp.route("/<int:id_user>/edit", methods=["GET", "POST"])
+def edit_user(id_user: int):
+    try:
+        user = UserService.get_by_id(id_user)
+    except NotFoundError as e:
+        flash(e.message, "error")
+        return redirect(url_for("users.index"))
+
+    form = UserEditForm()
+    form.role_id.choices = UserService.get_role_choices()
+
+    if request.method == "GET":
+        # Pre-llenar formulario con datos actuales
+        form.full_name.data = user.full_name
+        form.email.data = user.email
+        form.role_id.data = user.role_id
+        form.status.data = user.status
+    elif form.validate_on_submit():
+        data = {
+            "full_name": form.full_name.data,
+            "email": form.email.data,
+            "password": form.password.data,
+            "role_id": form.role_id.data,
+            "status": form.status.data,
+        }
+
+        try:
+            UserService.update(id_user, data)
+            flash("Usuario actualizado exitosamente", "success")
+            return redirect(url_for("users.index"))
+        except (ValidationError, ConflictError) as e:
+            flash(e.message, "error")
+
+    elif request.method == "POST":
+        flash("Por favor corrige los errores del formulario", "error")
+
+    if not form.role_id.choices:
+        flash("No hay roles activos disponibles para asignar", "error")
+
+    return render_template("admin/administration/users/edit.html", form=form, user=user)

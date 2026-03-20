@@ -1,0 +1,245 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+Admin - Editar usuario
+{% endblock title %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto flex flex-col gap-4">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-heading text-lg font-medium">Editar usuario</h1>
+    <p class="text-body">Modifica la información del usuario</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-6">
+    <form id="editUserForm" method="post" action="{{ url_for('users.edit_user', id_user=user.id) }}" class="flex flex-col gap-4">
+      {{ form.hidden_tag() }}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.full_name.id }}" class="text-sm font-medium text-heading">{{ form.full_name.label.text }}</label>
+          {{ form.full_name(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. Juan Perez") }}
+          {% for error in form.full_name.errors %}
+          <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.email.id }}" class="text-sm font-medium text-heading">{{ form.email.label.text }}</label>
+          {{ form.email(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. usuario@empresa.com") }}
+          {% for error in form.email.errors %}
+          <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.password.id }}" class="text-sm font-medium text-heading">{{ form.password.label.text }}</label>
+          {{ form.password(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Dejar en blanco para mantener la actual", autocomplete="new-password") }}
+
+          <div id="passwordRulesContainer" class="mt-2 rounded-base border border-default bg-neutral-secondary-medium p-3 hidden">
+            <p class="text-xs font-medium text-heading mb-2">Requisitos de seguridad</p>
+            <ul class="grid grid-cols-1 gap-1.5 text-xs" id="passwordRules">
+              <li id="rule-length" class="text-fg-danger-strong flex items-center gap-2">
+                <span id="rule-length-icon" class="inline-flex items-center text-fg-danger-strong" aria-hidden="true">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+                </span><span>Minimo 8 caracteres</span>
+              </li>
+              <li id="rule-uppercase" class="text-fg-danger-strong flex items-center gap-2">
+                <span id="rule-uppercase-icon" class="inline-flex items-center text-fg-danger-strong" aria-hidden="true">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+                </span><span>Al menos una letra mayuscula</span>
+              </li>
+              <li id="rule-lowercase" class="text-fg-danger-strong flex items-center gap-2">
+                <span id="rule-lowercase-icon" class="inline-flex items-center text-fg-danger-strong" aria-hidden="true">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+                </span><span>Al menos una letra minuscula</span>
+              </li>
+              <li id="rule-number" class="text-fg-danger-strong flex items-center gap-2">
+                <span id="rule-number-icon" class="inline-flex items-center text-fg-danger-strong" aria-hidden="true">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+                </span><span>Al menos un numero</span>
+              </li>
+              <li id="rule-special" class="text-fg-danger-strong flex items-center gap-2">
+                <span id="rule-special-icon" class="inline-flex items-center text-fg-danger-strong" aria-hidden="true">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+                </span><span>Al menos un caracter especial</span>
+              </li>
+            </ul>
+          </div>
+
+          {% if form.password.errors %}
+          <p class="text-sm text-fg-danger-strong">{{ form.password.errors[0] }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.role_id.id }}" class="text-sm font-medium text-heading">{{ form.role_id.label.text }}</label>
+          {{ form.role_id(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+          {% for error in form.role_id.errors %}
+          <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <label class="inline-flex items-center gap-2 text-sm text-heading">
+        {{ form.status(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+        {{ form.status.label.text }}
+      </label>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="{{ url_for('users.index') }}"
+          class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+          Volver
+        </a>
+        <button id="openConfirmEditUserModalBtn" type="button"
+          class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+          Guardar cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}
+
+{% block modals %}
+<div id="confirmEditUserModal" tabindex="-1"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+      <button type="button"
+        class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+        data-modal-hide="confirmEditUserModal">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+        </svg>
+        <span class="sr-only">Cerrar modal</span>
+      </button>
+      <div class="p-4 md:p-5 text-center">
+        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h3 class="mb-6 text-body">Estás seguro de que deseas guardar los cambios?</h3>
+        <div class="flex items-center space-x-4 justify-center">
+          <button id="confirmEditUserSubmitBtn" type="button"
+            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Si, guardar
+          </button>
+          <button data-modal-hide="confirmEditUserModal" type="button"
+            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            No, cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("editUserForm");
+    const modalElement = document.getElementById("confirmEditUserModal");
+    const openModalBtn = document.getElementById("openConfirmEditUserModalBtn");
+    const confirmSubmitBtn = document.getElementById("confirmEditUserSubmitBtn");
+    const passwordInput = document.getElementById("{{ form.password.id }}");
+    const passwordRulesContainer = document.getElementById("passwordRulesContainer");
+
+    if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn || !passwordInput) {
+      return;
+    }
+
+    const modal = new Modal(modalElement);
+
+    const rules = {
+      length: {
+        element: document.getElementById("rule-length"),
+        icon: document.getElementById("rule-length-icon"),
+        test: (value) => value.length >= 8,
+      },
+      uppercase: {
+        element: document.getElementById("rule-uppercase"),
+        icon: document.getElementById("rule-uppercase-icon"),
+        test: (value) => /[A-Z]/.test(value),
+      },
+      lowercase: {
+        element: document.getElementById("rule-lowercase"),
+        icon: document.getElementById("rule-lowercase-icon"),
+        test: (value) => /[a-z]/.test(value),
+      },
+      number: {
+        element: document.getElementById("rule-number"),
+        icon: document.getElementById("rule-number-icon"),
+        test: (value) => /\d/.test(value),
+      },
+      special: {
+        element: document.getElementById("rule-special"),
+        icon: document.getElementById("rule-special-icon"),
+        test: (value) => /[^A-Za-z0-9]/.test(value),
+      },
+    };
+
+    const crossIcon = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" /></svg>';
+    const checkIcon = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" /></svg>';
+
+    const applyState = (rule, passed) => {
+      const element = rule.element;
+      if (!element) {
+        return;
+      }
+      element.classList.remove("text-fg-danger-strong", "text-fg-success-strong");
+      element.classList.add(passed ? "text-fg-success-strong" : "text-fg-danger-strong");
+
+      if (rule.icon) {
+        rule.icon.classList.remove("text-fg-danger-strong", "text-fg-success-strong");
+        rule.icon.classList.add(passed ? "text-fg-success-strong" : "text-fg-danger-strong");
+        rule.icon.innerHTML = passed ? checkIcon : crossIcon;
+      }
+    };
+
+    const evaluate = () => {
+      const value = passwordInput.value || "";
+      const hasValue = value.length > 0;
+
+      if (passwordRulesContainer) {
+        passwordRulesContainer.classList.toggle("hidden", !hasValue);
+      }
+
+      Object.values(rules).forEach((rule) => {
+        applyState(rule, rule.test(value));
+      });
+    };
+
+    passwordInput.addEventListener("input", evaluate);
+    evaluate();
+
+    openModalBtn.addEventListener("click", function () {
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      modal.show();
+    });
+
+    confirmSubmitBtn.addEventListener("click", function () {
+      if (!form.checkValidity()) {
+        modal.hide();
+        form.reportValidity();
+        return;
+      }
+      form.requestSubmit();
+    });
+  });
+</script>
+{% endblock modals %}

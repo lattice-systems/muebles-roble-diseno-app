@@ -138,3 +138,72 @@ class UserService:
 		user.status = not user.status
 		db.session.commit()
 		return user.status
+
+	@staticmethod
+	def update(id_user: int, data: dict) -> User:
+		"""Actualiza la información de un usuario existente."""
+		user = UserService.get_by_id(id_user)
+
+		full_name = (data.get("full_name") or "").strip()
+		email = (data.get("email") or "").strip().lower()
+		password = (data.get("password") or "").strip()
+		role_id = data.get("role_id")
+		status = data.get("status", True)
+
+		if not full_name:
+			raise ValidationError("El nombre completo es requerido")
+		if len(full_name) > 150:
+			raise ValidationError("El nombre no puede exceder 150 caracteres")
+		if not email:
+			raise ValidationError("El correo electrónico es requerido")
+		if len(email) > 120:
+			raise ValidationError("El correo no puede exceder 120 caracteres")
+
+		# Validar email único solo si cambió
+		if email != user.email.lower():
+			existing = User.query.filter(User.email.ilike(email)).first()
+			if existing:
+				raise ConflictError(f"Ya existe un usuario con el correo '{email}'")
+
+		# Validar contraseña si se proporciona
+		if password:
+			if len(password) < 8:
+				raise ValidationError("La contraseña debe tener al menos 8 caracteres")
+			if not re.search(r"[A-Z]", password):
+				raise ValidationError("La contraseña debe incluir al menos una mayúscula")
+			if not re.search(r"[a-z]", password):
+				raise ValidationError("La contraseña debe incluir al menos una minúscula")
+			if not re.search(r"\d", password):
+				raise ValidationError("La contraseña debe incluir al menos un número")
+			if not re.search(r"[^A-Za-z0-9]", password):
+				raise ValidationError(
+					"La contraseña debe incluir al menos un carácter especial"
+				)
+
+		if role_id is None:
+			raise ValidationError("Debe seleccionar un rol")
+
+		role = db.session.get(Role, role_id)
+		if not role:
+			raise ValidationError("El rol seleccionado no existe")
+		if not role.status:
+			raise ValidationError("El rol seleccionado está desactivado")
+
+		if isinstance(status, str):
+			status = status.lower() in {"1", "true", "on", "yes"}
+
+		# Actualizar campos
+		user.full_name = full_name
+		user.email = email
+		if password:
+			user.password_hash = hash_password(password)
+		user.role_id = role_id
+		user.status = bool(status)
+
+		try:
+			db.session.commit()
+		except IntegrityError:
+			db.session.rollback()
+			raise ConflictError(f"Ya existe un usuario con el correo '{email}'")
+
+		return user
