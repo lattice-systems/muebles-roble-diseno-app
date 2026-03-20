@@ -180,6 +180,10 @@ Admin - Usuarios
                   <ul class="p-2 text-sm text-body font-medium"
                     aria-labelledby="actionsUserDropdownButton-{{ user.id }}">
                     <li>
+                      <a href="{{ url_for('users.detail_user', id_user=user.id) }}"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
+                    </li>
+                    <li>
                       <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
                     </li>

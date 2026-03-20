@@ -168,3 +168,15 @@ def edit_user(id_user: int):
         flash("No hay roles activos disponibles para asignar", "error")
 
     return render_template("admin/administration/users/edit.html", form=form, user=user)
+
+
+@auth_required()
+@users_bp.route("/<int:id_user>/details", methods=["GET"])
+def detail_user(id_user: int):
+    try:
+        user = UserService.get_by_id(id_user)
+    except NotFoundError as e:
+        flash(e.message, "error")
+        return redirect(url_for("users.index"))
+
+    return render_template("admin/administration/users/details.html", user=user)
