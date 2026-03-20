@@ -25,7 +25,7 @@ def list_unit_of_measures():
     form = UnitOfMeasureForm()
 
     return render_template(
-        "unit_of_measures/list.html",
+        "admin/unit_of_measures/index.html",
         units_of_measures=pagination.items,
         pagination=pagination,
         form=form,
@@ -61,7 +61,7 @@ def create_unit_of_measure():
         search_term=search_term, status_filter=status_filter, page=page
     )
     return render_template(
-        "unit_of_measures/list.html",
+        "admin/unit_of_measures/index.html",
         units_of_measures=pagination.items,
         pagination=pagination,
         form=form,
@@ -99,7 +99,7 @@ def edit_unit_of_measure(id_unit_of_measure):
     )
     blank_form = UnitOfMeasureForm()
     return render_template(
-        "unit_of_measures/list.html",
+        "admin/unit_of_measures/index.html",
         units_of_measures=pagination.items,
         pagination=pagination,
         form=blank_form,

@@ -19,7 +19,9 @@ def list_furniture_type():
         HTML: Página con la lista de tipo de mueble
     """
     furniture_type = FurnitureTypeService.get_all()
-    return render_template("furniture_type/list.html", furniture_type=furniture_type)
+    return render_template(
+        "admin/furniture_types/index.html", furniture_type=furniture_type
+    )
 
 
 @furniture_type_bp.route("/create", methods=["GET", "POST"])
@@ -45,4 +47,4 @@ def create_furniture_type():
         except ConflictError as e:
             flash(e.message, "error")
 
-    return render_template("furniture_type/create.html", form=form)
+    return render_template("admin/furniture_types/index.html", form=form)
