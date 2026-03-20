@@ -59,6 +59,10 @@ def create_app():
 
     app.register_blueprint(unit_of_measures_bp, url_prefix="/unit-of-measures")
 
+    from .catalogs.payment_method import payment_method_bp
+
+    app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
