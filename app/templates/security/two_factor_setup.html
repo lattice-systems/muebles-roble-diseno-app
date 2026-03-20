@@ -1,0 +1,87 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+Configurar Autenticación de Dos Factores
+{% endblock title %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto flex flex-col gap-4">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-heading text-lg font-medium">Configurar Autenticación de Dos Factores</h1>
+    <p class="text-body">Protege tu cuenta usando una aplicación de autenticador</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-6">
+    <form action="{{ url_for_security('two_factor_setup') }}" method="post" class="flex flex-col gap-6">
+      {{ two_factor_setup_form.hidden_tag() }}
+
+      <div class="flex flex-col gap-2">
+        <label for="{{ two_factor_setup_form.setup.id }}" class="text-sm font-medium text-heading">Método</label>
+        {{ two_factor_setup_form.setup(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+        {% for error in two_factor_setup_form.setup.errors %}
+        <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      {% if "sms" in choices %}
+      <div class="flex flex-col gap-2">
+        <label for="{{ two_factor_setup_form.phone.id }}" class="text-sm font-medium text-heading">Teléfono</label>
+        {{ two_factor_setup_form.phone(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", placeholder="+503 7000-0000") }}
+        {% for error in two_factor_setup_form.phone.errors %}
+        <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="flex gap-3 justify-end">
+        <a href="{{ url_for('users.profile') }}" class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none">
+          Cancelar
+        </a>
+        {{ two_factor_setup_form.submit(class_="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none") }}
+      </div>
+    </form>
+
+    {% if chosen_method == "authenticator" %}
+    <hr class="border-default my-6">
+
+    <div class="flex flex-col gap-4 items-center">
+      <p class="text-sm text-body">Escanea este código QR en tu aplicación autenticadora:</p>
+      <div class="p-4 bg-white rounded-base border border-default">
+        <img alt="Código QR de autenticación" id="qrcode" src="{{ authr_qrcode }}" class="w-52 h-52" />
+      </div>
+      <div class="text-center">
+        <p class="text-sm text-body">O ingresa la clave manualmente:</p>
+        <p class="font-mono text-heading font-medium break-all">{{ authr_key }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if chosen_method %}
+    <hr class="border-default my-6">
+
+    {% if changing %}
+      {% set verify_action = url_for_security('two_factor_setup_validate', token=state_token) %}
+    {% else %}
+      {% set verify_action = url_for_security('two_factor_token_validation') %}
+    {% endif %}
+
+    <form action="{{ verify_action }}" method="post" class="flex flex-col gap-4">
+      {{ two_factor_verify_code_form.hidden_tag() }}
+
+      <div class="flex flex-col gap-2">
+        <label for="{{ two_factor_verify_code_form.code.id }}" class="text-sm font-medium text-heading">Código de verificación</label>
+        {{ two_factor_verify_code_form.code(class_="block w-40 px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-center text-lg font-mono rounded-base focus:ring-brand focus:border-brand shadow-xs", placeholder="000000", maxlength="6", inputmode="numeric") }}
+        {% for error in two_factor_verify_code_form.code.errors %}
+        <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="flex justify-end">
+        {{ two_factor_verify_code_form.submit(class_="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none") }}
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,51 @@
+{% extends "layouts/admin.html" %}
+{% from "security/_macros.html" import prop_next %}
+{% block title %}
+Seleccionar Método de Autenticación
+{% endblock title %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto flex flex-col gap-4">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-heading text-lg font-medium">Seleccionar Método de Autenticación</h1>
+    <p class="text-body">Elige cómo quieres proteger tu cuenta</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-6">
+    <form action="{{ url_for_security('tf_select') }}{{ prop_next() }}" method="post" class="flex flex-col gap-4">
+      {{ two_factor_select_form.hidden_tag() }}
+
+      <div class="flex flex-col gap-2">
+        <label for="{{ two_factor_select_form.which.id }}" class="text-sm font-medium text-heading">Método</label>
+        {{ two_factor_select_form.which(class_="block w-full px-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+        {% for error in two_factor_select_form.which.errors %}
+        <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <!-- Información de seguridad -->
+      <div class="mt-6 p-4 bg-neutral-secondary-medium border border-default rounded-base">
+        <div class="flex gap-3">
+          <svg class="w-5 h-5 text-brand shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zM8 9a1 1 0 100-2 1 1 0 000 2zm5-1a1 1 0 11-2 0 1 1 0 012 0zM14 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-heading">La autenticación de dos factores añade una capa extra de seguridad</p>
+            <p class="text-xs text-body mt-1">Necesitarás tu teléfono además de tu contraseña para acceder a tu cuenta</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-3 justify-end pt-4">
+        <a href="{{ url_for('users.profile') }}" class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none">
+          Cancelar
+        </a>
+        {{ two_factor_select_form.submit(class_="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

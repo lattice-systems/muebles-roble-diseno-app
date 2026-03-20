@@ -1,5 +1,5 @@
 from flask import flash, redirect, render_template, request, url_for
-from flask_security import current_user
+from flask_security import current_user, login_required, auth_required, url_for_security
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.users import users_bp
@@ -7,7 +7,30 @@ from app.users.forms import UserForm, UserEditForm
 from app.users.services import UserService
 
 
+@users_bp.route("/profile", methods=["GET"])
+@login_required
+def profile():
+	"""Muestra el perfil del usuario actual."""
+	user = current_user
+	has_2fa = bool(user.tf_primary_method)
+	
+	return render_template(
+		"admin/administration/users/profile.html",
+		user=user,
+		has_2fa=has_2fa,
+	)
+
+
+@users_bp.route("/profile/setup-2fa", methods=["GET"])
+@login_required
+def setup_2fa():
+    """Inicia el proceso de configuración de 2FA."""
+    # Redirige a la ruta de Flask-Security para setup de 2FA
+    return redirect(url_for_security("two_factor_setup"))
+
+
 @users_bp.route("/", methods=["GET"])
+@auth_required()
 def index():
     search_term = request.args.get("q", "").strip()
     status_filter = request.args.get("status", "all")
@@ -29,6 +52,7 @@ def index():
     )
 
 
+@auth_required()
 @users_bp.route("/create", methods=["GET", "POST"])
 def create_user():
     form = UserForm()
@@ -62,6 +86,7 @@ def create_user():
     return render_template("admin/administration/users/create.html", form=form)
 
 
+@auth_required()
 @users_bp.route("/<int:id_user>/toggle-status", methods=["POST"])
 def toggle_status(id_user: int):
     search_term = request.form.get("q", "").strip()
@@ -102,6 +127,7 @@ def toggle_status(id_user: int):
     )
 
 
+@auth_required()
 @users_bp.route("/<int:id_user>/edit", methods=["GET", "POST"])
 def edit_user(id_user: int):
     try:

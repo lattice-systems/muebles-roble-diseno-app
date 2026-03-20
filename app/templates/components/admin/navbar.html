@@ -47,14 +47,14 @@
            data-dropdown-toggle="userDropdown"
            data-dropdown-placement="bottom-start"
            class="w-10 h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
-        <span class="font-medium text-body">JD</span>
+        <span class="font-medium text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1][0:1].upper() if ' ' in current_user.full_name else '' }}</span>
       </div>
       <!-- Dropdown menu -->
       <div id="userDropdown"
            class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
         <div class="px-4 py-3 border-b border-default-medium text-sm text-heading">
-          <div class="font-medium">John Doe</div>
-          <div class="truncate">johndoe@flowbite.com</div>
+          <div class="font-medium">{{ current_user.full_name }}</div>
+          <div class="truncate">{{ current_user.email }}</div>
         </div>
         <ul class="p-2 text-sm text-body font-medium"
             aria-labelledby="avatarButton">
@@ -63,7 +63,7 @@
                class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
           </li>
           <li>
-            <a href="#"
+            <a href="{{ url_for('users.profile') }}"
                class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
           </li>
           <li>
