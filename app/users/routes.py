@@ -1,4 +1,5 @@
 from flask import flash, redirect, render_template, request, url_for
+from flask_security import current_user
 
 from app.users import users_bp
 from app.exceptions import NotFoundError
@@ -35,8 +36,25 @@ def toggle_status(id_user: int):
     page = int(page_raw) if page_raw.isdigit() else 1
 
     try:
-        UserService.toggle_status(id_user)
-        flash("Estado del usuario actualizado exitosamente", "success")
+        user = UserService.get_by_id(id_user)
+        if user.status and user.id == getattr(current_user, "id", None):
+            flash("No puedes desactivar tu propio usuario", "error")
+            return redirect(
+                url_for(
+                    "users.index",
+                    page=page,
+                    q=search_term,
+                    status=status_filter,
+                )
+            )
+
+        new_status = UserService.toggle_status(id_user)
+        flash(
+            "Usuario activado exitosamente"
+            if new_status
+            else "Usuario desactivado exitosamente",
+            "success",
+        )
     except NotFoundError as e:
         flash(e.message, "error")
 

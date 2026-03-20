@@ -50,8 +50,9 @@ class UserService:
 		return user
 
 	@staticmethod
-	def toggle_status(id_user: int) -> None:
-		"""Alterna el estado (activo/inactivo) de un usuario."""
+	def toggle_status(id_user: int) -> bool:
+		"""Alterna el estado (activo/inactivo) de un usuario y retorna el estado final."""
 		user = UserService.get_by_id(id_user)
 		user.status = not user.status
 		db.session.commit()
+		return user.status
