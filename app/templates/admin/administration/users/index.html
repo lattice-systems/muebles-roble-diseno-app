@@ -13,22 +13,32 @@ Admin - Usuarios
 
   <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
     <div class="p-4 flex items-center justify-between space-x-4">
-      <form class="w-full max-w-96" method="get" action="{{ url_for('users.index') }}">
-        <label for="input-group-1" class="sr-only">Search</label>
-        <input type="hidden" name="status" value="{{ status_filter }}">
-        <div class="relative">
-          <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-              fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
-            </svg>
+      <div class="flex items-center gap-2">
+        <form class="max-w-96" method="get" action="{{ url_for('users.index') }}" id="searchForm">
+          <label for="input-group-1" class="sr-only">Search</label>
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <div class="relative">
+            <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+              <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
+              </svg>
+            </div>
+            <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
+              class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+              placeholder="Buscar por nombre o correo"
+              onkeypress="if(event.key === 'Enter') this.form.submit();">
           </div>
-          <input type="text" id="input-group-1" name="q" value="{{ search_term }}"
-            class="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-            placeholder="Buscar por nombre o correo">
-        </div>
-      </form>
+        </form>
+        {% if search_term %}
+        <button type="button" onclick="document.getElementById('input-group-1').value = ''; document.getElementById('searchForm').submit();"
+          class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none"
+          title="Limpiar búsqueda">
+          Limpiar
+        </button>
+        {% endif %}
+      </div>
       <div class="flex flex-row gap-3">
         <a id="addUserButton" href="{{ url_for('users.create_user') }}"
           class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none gap-0.5"
@@ -89,8 +99,16 @@ Admin - Usuarios
           class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
           <ul class="p-2 text-sm text-body font-medium" aria-labelledby="actionsDropdownButton">
             <li>
-              <a href="#"
-                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Exportar</a>
+              <button type="button" id="bulkExportBtn"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Exportar seleccionados</button>
+            </li>
+            <li>
+              <button type="button" id="bulkActivateBtn"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activar seleccionados</button>
+            </li>
+            <li>
+              <button type="button" id="bulkDeactivateBtn"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Desactivar seleccionados</button>
             </li>
           </ul>
         </div>
@@ -102,9 +120,9 @@ Admin - Usuarios
           <tr>
             <th scope="col" class="p-4">
               <div class="flex items-center">
-                <input id="table-checkbox-20" type="checkbox" value=""
+                <input id="table-checkbox-all" type="checkbox" value=""
                   class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-                <label for="table-checkbox-20" class="sr-only">Table checkbox</label>
+                <label for="table-checkbox-all" class="sr-only">Table checkbox</label>
               </div>
             </th>
             <th scope="col" class="px-6 py-3 font-medium">
@@ -130,7 +148,7 @@ Admin - Usuarios
             <td class="w-4 p-4">
               <div class="flex items-center">
                 <input id="table-checkbox-{{ user.id }}" type="checkbox" value="{{ user.id }}"
-                  class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  class="user-row-checkbox w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
                 <label for="table-checkbox-{{ user.id }}" class="sr-only">Table checkbox</label>
               </div>
             </td>
@@ -170,13 +188,12 @@ Admin - Usuarios
                   <ul class="p-2 text-sm text-body font-medium"
                     aria-labelledby="actionsUserDropdownButton-{{ user.id }}">
                     <li>
-                      <a href="#"
-                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver
-                        detalle</a>
+                      <a href="{{ url_for('users.detail_user', id_user=user.id) }}"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
                     </li>
                     <li>
-                      <a href="#"
-                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Actualizar</a>
+                      <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
                     </li>
                   </ul>
                 </div>
@@ -257,6 +274,15 @@ Admin - Usuarios
 {% endblock content %}
 
 {% block modals %}
+<form id="bulkUsersActionForm" method="post" action="{{ url_for('users.bulk_action_users') }}" class="hidden">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+  <input type="hidden" name="q" value="{{ search_term }}">
+  <input type="hidden" name="status" value="{{ status_filter }}">
+  <input type="hidden" name="page" value="{{ pagination.page }}">
+  <input type="hidden" name="action" id="bulk-action-input" value="">
+  <input type="hidden" name="selected_ids" id="bulk-selected-ids-input" value="">
+</form>
+
 {% for user in users %}
 <div id="toggle-user-status-modal-{{ user.id }}" tabindex="-1"
   class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -311,4 +337,223 @@ Admin - Usuarios
   </div>
 </div>
 {% endfor %}
+
+<div id="bulk-no-selection-modal" tabindex="-1"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+      <button type="button"
+        class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+        data-modal-hide="bulk-no-selection-modal">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+          viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18 17.94 6M18 18 6.06 6" />
+        </svg>
+        <span class="sr-only">Cerrar modal</span>
+      </button>
+      <div class="p-4 md:p-5 text-center">
+        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+          height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h3 class="mb-6 text-body">Selecciona al menos un usuario para ejecutar esta acción.</h3>
+        <button data-modal-hide="bulk-no-selection-modal" type="button"
+          class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="bulk-confirm-action-modal" tabindex="-1"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+      <button type="button"
+        class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+        data-modal-hide="bulk-confirm-action-modal">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+          viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18 17.94 6M18 18 6.06 6" />
+        </svg>
+        <span class="sr-only">Cerrar modal</span>
+      </button>
+      <div class="p-4 md:p-5 text-center">
+        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+          height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h3 id="bulk-confirm-action-message" class="mb-6 text-body">¿Deseas continuar con esta acción?</h3>
+        <div class="flex items-center space-x-4 justify-center">
+          <button id="bulk-confirm-action-submit" type="button"
+            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Sí, continuar
+          </button>
+          <button data-modal-hide="bulk-confirm-action-modal" type="button"
+            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            No, cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const checkAll = document.getElementById("table-checkbox-all");
+    const rowCheckboxes = Array.from(document.querySelectorAll(".user-row-checkbox"));
+    const bulkForm = document.getElementById("bulkUsersActionForm");
+    const bulkActionInput = document.getElementById("bulk-action-input");
+    const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
+    const bulkExportBtn = document.getElementById("bulkExportBtn");
+    const bulkActivateBtn = document.getElementById("bulkActivateBtn");
+    const bulkDeactivateBtn = document.getElementById("bulkDeactivateBtn");
+    const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
+    const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
+    const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
+    const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
+    let pendingAction = "";
+
+    const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
+    const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
+
+    if (!checkAll || !bulkForm || !bulkActionInput || !bulkSelectedIdsInput) {
+      return;
+    }
+
+    const syncMasterCheckbox = () => {
+      const total = rowCheckboxes.length;
+      const selected = rowCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+      checkAll.checked = total > 0 && selected === total;
+      checkAll.indeterminate = selected > 0 && selected < total;
+    };
+
+    checkAll.addEventListener("change", function () {
+      rowCheckboxes.forEach((checkbox) => {
+        checkbox.checked = checkAll.checked;
+      });
+      syncMasterCheckbox();
+    });
+
+    rowCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", syncMasterCheckbox);
+    });
+
+    syncMasterCheckbox();
+
+    const getActionMeta = (action) => {
+      if (action === "export") {
+        return {
+          message: "¿Deseas exportar los usuarios seleccionados?",
+          buttonText: "Sí, exportar",
+          buttonClass: "bg-brand hover:bg-brand-strong focus:ring-brand-medium",
+        };
+      }
+
+      if (action === "activate") {
+        return {
+          message: "¿Deseas activar los usuarios seleccionados?",
+          buttonText: "Sí, activar",
+          buttonClass: "bg-success hover:bg-success-strong focus:ring-success-medium",
+        };
+      }
+
+      return {
+        message: "¿Deseas desactivar los usuarios seleccionados?",
+        buttonText: "Sí, desactivar",
+        buttonClass: "bg-danger hover:bg-danger-strong focus:ring-danger-medium",
+      };
+    };
+
+    const applyConfirmButtonStyle = (buttonClass) => {
+      if (!confirmSubmitBtn) {
+        return;
+      }
+
+      confirmSubmitBtn.classList.remove(
+        "bg-brand",
+        "hover:bg-brand-strong",
+        "focus:ring-brand-medium",
+        "bg-success",
+        "hover:bg-success-strong",
+        "focus:ring-success-medium",
+        "bg-danger",
+        "hover:bg-danger-strong",
+        "focus:ring-danger-medium"
+      );
+
+      buttonClass.split(" ").forEach((klass) => {
+        confirmSubmitBtn.classList.add(klass);
+      });
+    };
+
+    const submitBulkAction = (action) => {
+      const selectedIds = rowCheckboxes
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value);
+
+      if (selectedIds.length === 0) {
+        if (noSelectionModal) {
+          noSelectionModal.show();
+        }
+        return;
+      }
+
+      pendingAction = action;
+      bulkSelectedIdsInput.value = selectedIds.join(",");
+
+      const actionMeta = getActionMeta(action);
+      if (confirmMessageElement) {
+        confirmMessageElement.textContent = actionMeta.message;
+      }
+      if (confirmSubmitBtn) {
+        confirmSubmitBtn.textContent = actionMeta.buttonText;
+      }
+      applyConfirmButtonStyle(actionMeta.buttonClass);
+
+      if (confirmModal) {
+        confirmModal.show();
+      }
+    };
+
+    if (confirmSubmitBtn) {
+      confirmSubmitBtn.addEventListener("click", function () {
+        if (!pendingAction) {
+          return;
+        }
+
+        bulkActionInput.value = pendingAction;
+        if (confirmModal) {
+          confirmModal.hide();
+        }
+        bulkForm.submit();
+      });
+    }
+
+    if (bulkExportBtn) {
+      bulkExportBtn.addEventListener("click", function () {
+        submitBulkAction("export");
+      });
+    }
+
+    if (bulkActivateBtn) {
+      bulkActivateBtn.addEventListener("click", function () {
+        submitBulkAction("activate");
+      });
+    }
+
+    if (bulkDeactivateBtn) {
+      bulkDeactivateBtn.addEventListener("click", function () {
+        submitBulkAction("deactivate");
+      });
+    }
+  });
+</script>
 {% endblock modals %}

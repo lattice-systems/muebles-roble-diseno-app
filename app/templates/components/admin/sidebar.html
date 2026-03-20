@@ -78,10 +78,10 @@
   </div>
   <div class="py-5 overflow-y-auto flex-1">
     <ul class="space-y-2 font-medium">
-      {{ sidebar_link("Dashboard", "#", icon_dashboard) }}
+      {{ sidebar_link("Dashboard", "#", icon_dashboard, request.endpoint == 'index_admin') }}
       {{ sidebar_dropdown("Adminsitración",
             [
-            {"label": "Usuarios", "href": "#", "icon": icon_users},
+        {"label": "Usuarios", "href": url_for('users.index'), "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
             {"label": "Catalogos", "href": "#", "icon": icon_catalog},
             ],
             icon_admin,
@@ -127,19 +127,19 @@
          data-dropdown-placement="bottom-start">
       <div
         class="w-10 h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
-        <span class="font-medium text-body">JD</span>
+        <span class="font-medium text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1][0:1].upper() if ' ' in current_user.full_name else '' }}</span>
       </div>
       <div class="font-medium text-heading">
-        <div>John Doe</div>
-        <div class="text-sm font-normal text-body">johndoe@flowbite.com</div>
+        <div>{{ current_user.full_name }}</div>
+        <div class="text-sm font-normal text-body">{{ current_user.email }}</div>
       </div>
     </div>
     <!-- Dropdown menu -->
     <div id="sidebarUserDropdown"
          class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
       <div class="px-4 py-3 border-b border-default-medium text-sm text-heading">
-        <div class="font-medium">John Doe</div>
-        <div class="truncate">johndoe@flowbite.com</div>
+        <div class="font-medium">{{ current_user.full_name }}</div>
+        <div class="truncate">{{ current_user.email }}</div>
       </div>
       <ul class="p-2 text-sm text-body font-medium"
           aria-labelledby="sidebarAvatarButton">
@@ -148,7 +148,7 @@
              class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
         </li>
         <li>
-          <a href="#"
+          <a href="{{ url_for('users.profile') }}"
              class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
         </li>
         <li>
@@ -168,3 +168,35 @@
     </div>
   </div>
 </aside>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdownButtons = document.querySelectorAll("button[data-collapse-toggle]");
+
+    const syncChevron = (button) => {
+      const targetId = button.getAttribute("data-collapse-toggle");
+      if (!targetId) {
+        return;
+      }
+
+      const dropdown = document.getElementById(targetId);
+      const chevron = button.querySelector("[data-dropdown-chevron='true']");
+      if (!dropdown || !chevron) {
+        return;
+      }
+
+      const isOpen = !dropdown.classList.contains("hidden");
+      chevron.classList.toggle("rotate-180", isOpen);
+    };
+
+    dropdownButtons.forEach((button) => {
+      syncChevron(button);
+      button.addEventListener("click", function () {
+        // Flowbite actualiza la visibilidad durante el click; sincronizamos al siguiente tick.
+        setTimeout(function () {
+          syncChevron(button);
+        }, 0);
+      });
+    });
+  });
+</script>
