@@ -3,7 +3,7 @@ from flask_security import SQLAlchemyUserDatastore, auth_required
 
 from config import Config
 from .exceptions import register_error_handlers
-from .extensions import csrf, db, migrate, security
+from .extensions import csrf, db, mail, migrate, security
 
 
 def create_app():
@@ -26,6 +26,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    mail.init_app(app)
 
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401

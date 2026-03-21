@@ -64,10 +64,13 @@
                  id="help-setup"
                  name="{{ two_factor_rescue_form.help_setup.name }}"
                  value="help">
-          <p class="text-body text-sm">Se notificará al equipo administrador para ayudarte a recuperar el acceso.</p>
+          <p class="text-body text-sm">
+            Se notificará al equipo administrador{% if rescue_mail %} en <span class="font-medium text-heading">{{ rescue_mail }}</span>{% endif %} para ayudarte a recuperar el acceso.
+          </p>
           {% if problem == "help" %}
-            <p class="text-sm text-body-subtle wrap-break-word">Se envió una solicitud de recuperacion al equipo
-              administrador.</p>
+            <p class="text-sm text-body-subtle wrap-break-word">
+              Se envió una solicitud de recuperacion. Un administrador revisará tu caso manualmente.
+            </p>
           {% endif %}
           <button type="submit"
                   class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
