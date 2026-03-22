@@ -64,8 +64,7 @@
 {% set icon_reports = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m8-2h3m-3 3h3m-4 3v6m4-3H8M19 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1ZM8 12v6h8v-6H8Z" />
 ' %}
-<aside
-  class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col">
+<aside class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col">
   <div class="justify-center border-b border-default p-2 pb-3 2xl:p-2.5 2xl:pb-4 flex items-center w-full">
     <a href="https://flowbite.com/"
        class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -81,19 +80,19 @@
       {{ sidebar_link("Dashboard", "#", icon_dashboard, request.endpoint == 'index_admin') }}
       {{ sidebar_dropdown("Adminsitración",
             [
-        {"label": "Usuarios", "href": url_for('users.index'), "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
-            {"label": "Catalogos", "href": "#", "icon": icon_catalog},
-            ],
-            icon_admin,
-            "dropdown-admin") }}
+            {"label": "Usuarios", "href": url_for('users.index') , "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
+      {"label": "Catalogos", "href": "#", "icon": icon_catalog},
+      ],
+      icon_admin,
+      "dropdown-admin") }}
       {{ sidebar_dropdown("Abastecimiento",
             [
-            {"label": "Proveedores", "href": "#", "icon": icon_supplier},
-            {"label": "Compras", "href": "#", "icon": icon_purchases},
-            {"label": "Materia prima", "href": "#", "icon": icon_materials}
-            ],
-            icon_supplies,
-            "dropdown-supplies") }}
+            {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
+      {"label": "Compras", "href": "#", "icon": icon_purchases},
+      {"label": "Materia prima", "href": "#", "icon": icon_materials}
+      ],
+      icon_supplies,
+      "dropdown-supplies") }}
       {{ sidebar_dropdown("Producción",
             [
             {"label": "Recetas (BOM)", "href": "#", "icon": icon_recipe},
@@ -125,9 +124,8 @@
          type="button"
          data-dropdown-toggle="sidebarUserDropdown"
          data-dropdown-placement="bottom-start">
-      <div
-        class="w-9 h-9 2xl:w-10 2xl:h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
-        <span class="font-medium text-sm 2xl:text-base text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1][0:1].upper() if ' ' in current_user.full_name else '' }}</span>
+      <div class="w-9 h-9 2xl:w-10 2xl:h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
+        <span class="font-medium text-sm 2xl:text-base text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1] [0:1].upper() if ' ' in current_user.full_name else '' }}</span>
       </div>
       <div class="font-medium text-heading min-w-0">
         <div class="text-sm 2xl:text-base truncate">{{ current_user.full_name }}</div>
@@ -168,35 +166,34 @@
     </div>
   </div>
 </aside>
-
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const dropdownButtons = document.querySelectorAll("button[data-collapse-toggle]");
+    document.addEventListener("DOMContentLoaded", function() {
+        const dropdownButtons = document.querySelectorAll("button[data-collapse-toggle]");
 
-    const syncChevron = (button) => {
-      const targetId = button.getAttribute("data-collapse-toggle");
-      if (!targetId) {
-        return;
-      }
+        const syncChevron = (button) => {
+            const targetId = button.getAttribute("data-collapse-toggle");
+            if (!targetId) {
+                return;
+            }
 
-      const dropdown = document.getElementById(targetId);
-      const chevron = button.querySelector("[data-dropdown-chevron='true']");
-      if (!dropdown || !chevron) {
-        return;
-      }
+            const dropdown = document.getElementById(targetId);
+            const chevron = button.querySelector("[data-dropdown-chevron='true']");
+            if (!dropdown || !chevron) {
+                return;
+            }
 
-      const isOpen = !dropdown.classList.contains("hidden");
-      chevron.classList.toggle("rotate-180", isOpen);
-    };
+            const isOpen = !dropdown.classList.contains("hidden");
+            chevron.classList.toggle("rotate-180", isOpen);
+        };
 
-    dropdownButtons.forEach((button) => {
-      syncChevron(button);
-      button.addEventListener("click", function () {
-        // Flowbite actualiza la visibilidad durante el click; sincronizamos al siguiente tick.
-        setTimeout(function () {
-          syncChevron(button);
-        }, 0);
-      });
+        dropdownButtons.forEach((button) => {
+            syncChevron(button);
+            button.addEventListener("click", function() {
+                // Flowbite actualiza la visibilidad durante el click; sincronizamos al siguiente tick.
+                setTimeout(function() {
+                    syncChevron(button);
+                }, 0);
+            });
+        });
     });
-  });
 </script>
