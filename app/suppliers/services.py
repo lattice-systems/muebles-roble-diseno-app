@@ -88,6 +88,11 @@ class SupplierService:
             raise ValidationError("El nombre del proveedor es requerido")
         if len(name) > 150:
             raise ValidationError("El nombre no puede exceder 150 caracteres")
+        if phone:
+            if not phone.isdigit() or len(phone) != 10:
+                raise ValidationError(
+                    "El teléfono debe tener exactamente 10 dígitos numéricos"
+                )
 
         existing_name = Supplier.query.filter(Supplier.name.ilike(name)).first()
         if existing_name:
@@ -139,6 +144,11 @@ class SupplierService:
             raise ValidationError("El nombre del proveedor es requerido")
         if len(name) > 150:
             raise ValidationError("El nombre no puede exceder 150 caracteres")
+        if phone:
+            if not phone.isdigit() or len(phone) != 10:
+                raise ValidationError(
+                    "El teléfono debe tener exactamente 10 dígitos numéricos"
+                )
 
         if name.lower() != supplier.name.lower():
             existing_name = Supplier.query.filter(Supplier.name.ilike(name)).first()

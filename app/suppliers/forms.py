@@ -28,10 +28,12 @@ class SupplierForm(FlaskForm):
         "Teléfono",
         validators=[
             Optional(),
-            Length(max=30, message="El teléfono no puede exceder 30 caracteres"),
+            Length(
+                min=10, max=10, message="El teléfono debe tener exactamente 10 dígitos"
+            ),
             Regexp(
-                r"^[\d\s\-\+\(\)]+$",
-                message="El formato del teléfono no es válido",
+                r"^\d{10}$",
+                message="El teléfono debe contener únicamente números",
             ),
         ],
     )
