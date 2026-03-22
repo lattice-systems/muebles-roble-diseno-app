@@ -10,11 +10,11 @@ class RawMaterial(db.Model):
     name = db.Column(db.String(150), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
 
-    #category_id = db.Column(                   --Se comenta porque aun no se ha implementado la tabla de categorías
-    #    db.Integer,
-    #    db.ForeignKey("material_categories.id"),
-    #    nullable=False
-    #)
+    category_id = db.Column(                   
+        db.Integer,
+        db.ForeignKey("material_categories.id"),
+        nullable=False
+    )
 
     unit_id = db.Column(
         db.Integer,
@@ -32,7 +32,7 @@ class RawMaterial(db.Model):
     )
 
     unit = db.relationship("UnitOfMeasure", back_populates="raw_materials")
-    #category = db.relationship("MaterialCategory", back_populates="raw_materials")
+    category = db.relationship("MaterialCategory", back_populates="raw_materials")
     supplier = db.relationship("Supplier", back_populates="raw_materials")
     movements = db.relationship(
         "RawMaterialMovement",
@@ -56,7 +56,7 @@ class RawMaterial(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            #"category_id": self.category_id,
+            "category_id": self.category_id,
             "unit_id": self.unit_id,
             "waste_percentage": float(self.waste_percentage)
             if self.waste_percentage is not None else None,
