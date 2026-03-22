@@ -82,7 +82,7 @@ Perfil - {{ user.full_name }}
               {% endif %}
             </div>
             {% if has_2fa %}
-            <p class="text-xs text-body">Método: <span class="font-medium text-heading">{{ user.tf_primary_method }}</span></p>
+            <p class="text-xs text-body">Método: <span class="font-medium text-heading">{% if user.tf_primary_method == "authenticator" %}Aplicación autenticadora{% else %}{{ user.tf_primary_method }}{% endif %}</span></p>
             {% if user.tf_phone_number %}
             <p class="text-xs text-body">Teléfono: <span class="font-medium text-heading">{{ user.tf_phone_number }}</span></p>
             {% endif %}

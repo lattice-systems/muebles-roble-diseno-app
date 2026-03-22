@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Solicitud de recuperacion 2FA</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+    <h2 style="margin-bottom: 0.5rem;">Solicitud de recuperacion de acceso 2FA</h2>
+    <p style="margin-top: 0;">Se recibio una solicitud de recuperacion para un usuario.</p>
+
+    <table style="border-collapse: collapse; margin: 1rem 0;">
+      <tr>
+        <td style="padding: 0.25rem 0.5rem 0.25rem 0; font-weight: 600;">Usuario:</td>
+        <td style="padding: 0.25rem 0;">{{ user.full_name if user and user.full_name else "N/A" }}</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.25rem 0.5rem 0.25rem 0; font-weight: 600;">Correo:</td>
+        <td style="padding: 0.25rem 0;">{{ user.email if user and user.email else "N/A" }}</td>
+      </tr>
+    </table>
+
+    <p style="margin-bottom: 0.25rem; font-weight: 600;">Accion sugerida:</p>
+    <ul style="margin-top: 0.25rem;">
+      <li>Validar la identidad del usuario por un canal interno.</li>
+      <li>Si procede, resetear su configuracion de autenticacion de dos factores.</li>
+    </ul>
+
+    <p style="font-size: 0.875rem; color: #6b7280;">Este mensaje fue generado automaticamente por el sistema.</p>
+  </body>
+  </html>

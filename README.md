@@ -100,6 +100,13 @@ Crear un archivo `.env` en la raíz del proyecto:
 - No eliminar el archivo `.env-template`, solo copiar su estructura para crear `.env`.
 - No subir el archivo `.env` al repositorio, ya que contiene información sensible.
 
+Variables clave para 2FA con recuperación por correo (Brevo):
+
+- `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USE_SSL`
+- `MAIL_USERNAME`, `MAIL_PASSWORD`
+- `MAIL_DEFAULT_SENDER`, `SECURITY_EMAIL_SENDER`
+- `SECURITY_TWO_FACTOR_RESCUE_MAIL`
+
 ---
 
 ## ▶️ Ejecutar el Proyecto
