@@ -27,6 +27,7 @@ class RawMaterialService:
         description = data.get("description")
         category_id = data.get("category_id")
         unit_id = data.get("unit_id")
+        stock = data.get("stock", 0)
         estimated_cost = data.get("estimated_cost")
         waste_percentage = data.get("waste_percentage", 0)
         status = data.get("status", "active")
@@ -37,6 +38,9 @@ class RawMaterialService:
 
         if status not in ("active", "inactive"):
             raise ValidationError("El estado no es válido.")
+
+        if stock is None or stock < 0:
+            raise ValidationError("El stock no puede ser negativo.")
 
         if waste_percentage is None or waste_percentage < 0 or waste_percentage > 100:
             raise ValidationError("El porcentaje de merma debe estar entre 0 y 100.")
@@ -64,9 +68,9 @@ class RawMaterialService:
             description=description,
             category_id=category_id,
             unit_id=unit_id,
+            stock=stock,
             estimated_cost=estimated_cost,
             waste_percentage=waste_percentage,
-            stock=0,
             status=status,
             supplier_id=supplier_id,
         )
@@ -87,6 +91,7 @@ class RawMaterialService:
         description = data.get("description")
         category_id = data.get("category_id")
         unit_id = data.get("unit_id")
+        stock = data.get("stock")
         estimated_cost = data.get("estimated_cost")
         waste_percentage = data.get("waste_percentage", 0)
         status = data.get("status", "active")
@@ -97,6 +102,9 @@ class RawMaterialService:
 
         if status not in ("active", "inactive"):
             raise ValidationError("El estado no es válido.")
+
+        if stock is None or stock < 0:
+            raise ValidationError("El stock no puede ser negativo.")
 
         if waste_percentage is None or waste_percentage < 0 or waste_percentage > 100:
             raise ValidationError("El porcentaje de merma debe estar entre 0 y 100.")
@@ -127,6 +135,7 @@ class RawMaterialService:
         raw_material.description = description
         raw_material.category_id = category_id
         raw_material.unit_id = unit_id
+        raw_material.stock = stock
         raw_material.estimated_cost = estimated_cost
         raw_material.waste_percentage = waste_percentage
         raw_material.status = status
@@ -138,6 +147,20 @@ class RawMaterialService:
         except IntegrityError:
             db.session.rollback()
             raise ConflictError("No fue posible actualizar la materia prima.")
+
+    @staticmethod
+    def toggle_status(raw_material_id: int) -> RawMaterial:
+        raw_material = RawMaterialService.get_by_id(raw_material_id)
+        raw_material.status = (
+            "inactive" if raw_material.status == "active" else "active"
+        )
+
+        try:
+            db.session.commit()
+            return raw_material
+        except IntegrityError:
+            db.session.rollback()
+            raise ValidationError("No fue posible actualizar el estado.")
 
     @staticmethod
     def adjust_stock(raw_material_id: int, data: dict) -> RawMaterial:
