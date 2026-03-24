@@ -7,28 +7,47 @@
   Ingresa el código de tu aplicacion autenticadora
 {% endblock step_description %}
 {% block content %}
-  <div class="w-full min-w-0 max-h-[58vh] items-center overflow-y-auto flex flex-col gap-4">
-    {% include "security/_messages.html" %}
-    <p class="text-sm text-body-subtle">
-      Metodo activo:
-      <span class="font-semibold text-heading">{{ chosen_method }}</span>
-    </p>
+  <div class="w-full max-w-sm min-w-0 flex flex-col items-stretch justify-start gap-4">
+    {% include "admin/components/alerts.html" %}
+    <div class="w-full flex items-center flex-col gap-2">
+      <p class="text-sm text-body-subtle shrink-0 font-medium">Apps compatibles</p>
+      <div class="flex items-center gap-2 min-w-0">
+        <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-default bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium hover:text-heading">
+          <img src="{{ url_for('static', filename='src/images/icon-auth-google.png') }}"
+               alt="Google Authenticator"
+               class="w-6 h-6">
+          <span class="text-sm text-body">Google</span>
+        </a>
+        <a href="https://support.microsoft.com/account-billing/download-and-install-the-microsoft-authenticator-app-351498fc-850a-45da-b7b6-27e523b8702a"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-default bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium hover:text-heading">
+          <img src="{{ url_for('static', filename='src/images/icon-auth-microsoft.png') }}"
+               alt="Microsoft Authenticator"
+               class="w-6 h-6">
+          <span class="text-sm text-body">Microsoft</span>
+        </a>
+      </div>
+    </div>
     <form action="{{ url_for_security("two_factor_token_validation") }}{{ prop_next() }}"
           method="post"
           name="two_factor_verify_code_form"
           id="two_factor_verify_code_form"
           class="flex flex-col gap-4 w-full">
       {{ two_factor_verify_code_form.hidden_tag() }}
-      <div>
+      <div class="w-full">
         <label for="{{ two_factor_verify_code_form.code.id }}"
-               class="block mb-2.5 text-sm font-medium text-heading">Codigo de verificacion</label>
+               class="text-center w-full block mb-2.5 text-sm font-medium text-heading">Codigo de verificacion</label>
         {% set current_code = (two_factor_verify_code_form.code.data or "")|string %}
         <input type="hidden"
                id="{{ two_factor_verify_code_form.code.id }}"
                name="{{ two_factor_verify_code_form.code.name }}"
                value="{{ current_code }}"
                autocomplete="one-time-code">
-        <div class="flex items-center justify-center gap-2" data-otp-group>
+        <div class="w-full flex items-center justify-center gap-2" data-otp-group>
           {% for i in range(0, 6) %}
             {% if i == 3 %}<span class="text-body-subtle px-1">-</span>{% endif %}
             <input type="text"
@@ -46,13 +65,13 @@
         {% endfor %}
       </div>
       <button type="submit"
-              class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              class="w-full text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs px-4 py-2.5 focus:outline-none">
         Verificar codigo
       </button>
     </form>
     {% if two_factor_rescue_form %}
-      <div class="w-full overflow-hidden rounded-base border border-default-medium p-4 flex flex-col">
-        <p class="block mb-2.5 text-sm font-medium text-heading">
+      <div class="w-full overflow-hidden rounded-base border border-default-medium p-3 flex flex-col gap-2">
+        <p class="block text-sm font-medium text-heading">
           ¿No tienes acceso al autenticador?
         </p>
         <form action="{{ url_for_security("two_factor_rescue") }}{{ prop_next() }}"
@@ -64,13 +83,16 @@
                  id="help-setup"
                  name="{{ two_factor_rescue_form.help_setup.name }}"
                  value="help">
-          <p class="text-body text-sm">Se notificará al equipo administrador para ayudarte a recuperar el acceso.</p>
+          <p class="text-body text-xs">
+            Se notificará al administrador{% if rescue_mail %} en <span class="font-medium text-heading">{{ rescue_mail }}</span>{% endif %} para ayudarte a recuperar el acceso.
+          </p>
           {% if problem == "help" %}
-            <p class="text-sm text-body-subtle wrap-break-word">Se envió una solicitud de recuperacion al equipo
-              administrador.</p>
+            <p class="text-xs text-body-subtle wrap-break-word">
+              Se envió una solicitud de recuperacion. Un administrador revisará tu caso manualmente.
+            </p>
           {% endif %}
           <button type="submit"
-                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+                  class="w-full text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs px-4 py-2.5 focus:outline-none">
             Enviar recuperacion
           </button>
         </form>

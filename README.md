@@ -100,6 +100,13 @@ Crear un archivo `.env` en la raíz del proyecto:
 - No eliminar el archivo `.env-template`, solo copiar su estructura para crear `.env`.
 - No subir el archivo `.env` al repositorio, ya que contiene información sensible.
 
+Variables clave para 2FA con recuperación por correo (Brevo):
+
+- `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USE_SSL`
+- `MAIL_USERNAME`, `MAIL_PASSWORD`
+- `MAIL_DEFAULT_SENDER`, `SECURITY_EMAIL_SENDER`
+- `SECURITY_TWO_FACTOR_RESCUE_MAIL`
+
 ---
 
 ## ▶️ Ejecutar el Proyecto
@@ -170,8 +177,28 @@ El proyecto utiliza **GitHub Actions** para ejecutar estos checks automáticamen
 
 - ✅ Push a `main` o `dev`
 - ✅ Pull Requests a `main` o `dev`
+- ✅ Push de tags semánticos `vX.Y.Z` (ejemplo: `v1.2.0`)
 
 El workflow se define en `.github/workflows/ci.yml`.
+
+Adicionalmente, al hacer push de un tag `vX.Y.Z`, se crea un **GitHub Release** automáticamente mediante `.github/workflows/release.yml`.
+
+### 🏷️ Versionado con Tags en CI
+
+Para versionar cambios del proyecto en CI, usa tags semánticos con prefijo `v`:
+
+```bash
+# Crear tag anotado
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+# Publicar un tag específico
+git push origin v1.0.0
+
+# (Opcional) Publicar todos los tags locales
+git push origin --tags
+```
+
+Cuando el workflow corre por tag, los artefactos se publican con ese identificador de versión (por ejemplo `quality-reports-v1.0.0`).
 
 ### 🔐 Pre-commit Hooks
 
