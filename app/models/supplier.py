@@ -13,6 +13,12 @@ class Supplier(db.Model):
     address = db.Column(db.Text, nullable=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
 
+    raw_materials = db.relationship(
+    "RawMaterial",
+    back_populates="supplier",
+    lazy=True
+)
+
     purchase_orders = db.relationship(
         "PurchaseOrder", back_populates="supplier", lazy=True
     )

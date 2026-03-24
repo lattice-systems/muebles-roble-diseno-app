@@ -1,0 +1,164 @@
+{% extends "layouts/admin.html" %}
+
+{% block title %}Materias primas{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-2.5 2xl:gap-4">
+
+  <!-- Header -->
+  <div class="flex flex-col justify-center gap-1">
+    <h1 class="text-heading text-base 2xl:text-lg font-medium">Materias primas</h1>
+    <p class="text-body">Consulta y administra el catálogo de materias primas</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <!-- Contenedor -->
+  <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+
+    <!-- Toolbar -->
+    <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">
+
+      <!-- Buscador -->
+      <div class="flex w-full max-w-96 items-center gap-2">
+        <form class="w-full" method="get" action="{{ url_for('raw_materials.list_raw_materials') }}" id="searchForm">
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <div class="relative">
+            <input type="text" name="q" value="{{ search_term }}"
+              class="block w-full ps-3 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs rounded-base"
+              placeholder="Buscar materia prima"
+              onkeypress="if(event.key === 'Enter') this.form.submit();">
+          </div>
+        </form>
+
+        {% if search_term %}
+        <button type="button"
+          onclick="document.getElementById('searchForm').reset(); document.getElementById('searchForm').submit();"
+          class="text-body bg-neutral-secondary-medium border border-default-medium rounded-base px-2 py-1">
+          Limpiar
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex gap-2">
+
+        <a href="{{ url_for('raw_materials.create_raw_material') }}"
+          class="inline-flex items-center text-white bg-brand px-3 py-2 rounded-base">
+          Nueva materia prima
+        </a>
+
+        <!-- Filtro -->
+        <div>
+          <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='all') }}">Todos</a>
+          <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='active') }}">Activos</a>
+          <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='inactive') }}">Inactivos</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-body">
+        <thead class="bg-neutral-secondary-medium border-b border-default-medium">
+          <tr>
+            <th class="px-4 py-3">Nombre</th>
+            <th class="px-4 py-3">Categoría</th>
+            <th class="px-4 py-3">Unidad</th>
+            <th class="px-4 py-3">Stock</th>
+            <th class="px-4 py-3">Merma</th>
+            <th class="px-4 py-3">Costo</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3">Proveedor</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for raw_material in raw_materials %}
+          <tr class="border-b border-default hover:bg-neutral-secondary-medium">
+
+            <td class="px-4 py-3 font-medium text-heading">
+              {{ raw_material.name }}
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.category.name if raw_material.category else "-" }}
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.unit.name if raw_material.unit else "-" }}
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.stock }}
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.waste_percentage }}%
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.estimated_cost or "-" }}
+            </td>
+
+            <td class="px-4 py-3">
+              {% if raw_material.status == 'active' %}
+              <span class="px-2 py-1 text-xs bg-success-soft text-success-strong rounded">Activo</span>
+              {% else %}
+              <span class="px-2 py-1 text-xs bg-neutral-secondary-medium text-body rounded">Inactivo</span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-3">
+              {{ raw_material.supplier.name if raw_material.supplier else "Sin proveedor" }}
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              <div class="flex justify-end gap-2">
+                <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}">Editar</a>
+                <a href="{{ url_for('raw_materials.adjust_stock', raw_material_id=raw_material.id) }}">Stock</a>
+                <a href="{{ url_for('raw_materials.update_waste', raw_material_id=raw_material.id) }}">Merma</a>
+              </div>
+            </td>
+
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="px-4 py-6 text-center">
+              No hay materias primas registradas.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if pagination %}
+    <div class="p-4 flex justify-between">
+
+      <span>
+        Mostrando {{ ((pagination.page-1)*pagination.per_page)+1 if pagination.total else 0 }}
+        -
+        {{ pagination.page*pagination.per_page if pagination.page*pagination.per_page < pagination.total else pagination.total }}
+        de {{ pagination.total }}
+      </span>
+
+      <div class="flex gap-2">
+        <a href="{{ url_for('raw_materials.list_raw_materials', page=pagination.prev_num, q=search_term, status=status_filter) }}">
+          Anterior
+        </a>
+
+        <a href="{{ url_for('raw_materials.list_raw_materials', page=pagination.next_num, q=search_term, status=status_filter) }}">
+          Siguiente
+        </a>
+      </div>
+
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

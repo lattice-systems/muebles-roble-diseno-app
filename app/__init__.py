@@ -67,6 +67,10 @@ def create_app():
 
     app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
 
+    from .suppliers.raw_materials import raw_materials_bp
+
+    app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
