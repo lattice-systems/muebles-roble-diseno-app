@@ -1,0 +1,80 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalle materia prima
+{% endblock title %}
+{% block content %}
+  <div class="max-w-4xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <!-- Header -->
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de materia prima</h1>
+      <p class="text-body">Consulta la información completa de la materia prima</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <!-- Card -->
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
+      <!-- Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nombre -->
+        <div>
+          <p class="text-xs text-body">Nombre</p>
+          <p class="text-heading font-medium">{{ raw_material.name }}</p>
+        </div>
+        <!-- Estado -->
+        <div>
+          <p class="text-xs text-body">Estado</p>
+          {% if raw_material.status == 'active' %}
+            <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-success-soft text-fg-success-strong">Activo</span>
+          {% else %}
+            <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-danger-soft text-fg-danger-strong">Inactivo</span>
+          {% endif %}
+        </div>
+        <!-- Categoría -->
+        <div>
+          <p class="text-xs text-body">Categoría</p>
+          <p class="text-heading">{{ raw_material.category.name if raw_material.category else "Sin categoría" }}</p>
+        </div>
+        <!-- Unidad -->
+        <div>
+          <p class="text-xs text-body">Unidad de medida</p>
+          <p class="text-heading">{{ raw_material.unit.name if raw_material.unit else "-" }}</p>
+        </div>
+        <!-- Stock -->
+        <div>
+          <p class="text-xs text-body">Stock</p>
+          <p class="text-heading font-medium">{{ raw_material.stock }}</p>
+        </div>
+        <!-- Costo -->
+        <div>
+          <p class="text-xs text-body">Costo estimado</p>
+          <p class="text-heading">{{ raw_material.estimated_cost if raw_material.estimated_cost else "-" }}</p>
+        </div>
+        <!-- Merma -->
+        <div>
+          <p class="text-xs text-body">Merma (%)</p>
+          <p class="text-heading">{{ raw_material.waste_percentage }}%</p>
+        </div>
+        <!-- Proveedor -->
+        <div>
+          <p class="text-xs text-body">Proveedor</p>
+          <p class="text-heading">{{ raw_material.supplier.name if raw_material.supplier else "Sin proveedor" }}</p>
+        </div>
+      </div>
+      <!-- Descripción -->
+      <div class="mt-4">
+        <p class="text-xs text-body">Descripción</p>
+        <p class="text-heading">{{ raw_material.description or "Sin descripción" }}</p>
+      </div>
+      <!-- Acciones -->
+      <div class="flex justify-end gap-2 mt-6">
+        <a href="{{ url_for('raw_materials.list_raw_materials') }}"
+           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading rounded-base text-xs px-3 py-2">
+          Volver
+        </a>
+        <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
+           class="inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong rounded-base text-xs px-3 py-2">
+          Editar
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

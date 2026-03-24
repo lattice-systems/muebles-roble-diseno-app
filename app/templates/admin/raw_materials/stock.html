@@ -1,0 +1,136 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Ajustar stock
+{% endblock title %}
+
+{% block content %}
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Ajustar stock</h1>
+      <p class="text-body">Registra un ajuste de stock para {{ raw_material.name }}</p>
+    </div>
+
+    {% include "admin/components/alerts.html" %}
+
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <form id="adjustStockForm"
+            method="post"
+            action="{{ url_for('raw_materials.adjust_stock', raw_material_id=raw_material.id) }}"
+            class="flex flex-col gap-2.5 2xl:gap-4">
+        {{ form.hidden_tag() }}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.movement_type.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.movement_type.label.text }}</label>
+            {{ form.movement_type(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.movement_type.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.quantity.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.quantity.label.text }}</label>
+            {{ form.quantity(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", placeholder="Ej. 10.500") }}
+            {% for error in form.quantity.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.reason.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.reason.label.text }}</label>
+          {{ form.reason(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. Ajuste por inventario") }}
+          {% for error in form.reason.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
+          <a href="{{ url_for('raw_materials.list_raw_materials') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver
+          </a>
+          <button id="openConfirmAdjustStockModalBtn"
+                  type="button"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Actualizar stock
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block modals %}
+  <div id="confirmAdjustStockModal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="confirmAdjustStockModal">
+          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estás seguro que deseas aplicar este ajuste de stock?</h3>
+
+          <div class="flex items-center space-x-4 justify-center">
+            <button id="confirmAdjustStockSubmitBtn"
+                    type="button"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Sí, actualizar
+            </button>
+            <button data-modal-hide="confirmAdjustStockModal"
+                    type="button"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const form = document.getElementById("adjustStockForm");
+          const modalElement = document.getElementById("confirmAdjustStockModal");
+          const openModalBtn = document.getElementById("openConfirmAdjustStockModalBtn");
+          const confirmSubmitBtn = document.getElementById("confirmAdjustStockSubmitBtn");
+
+          if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
+              return;
+          }
+
+          const modal = new Modal(modalElement);
+
+          openModalBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  form.reportValidity();
+                  return;
+              }
+              modal.show();
+          });
+
+          confirmSubmitBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  modal.hide();
+                  form.reportValidity();
+                  return;
+              }
+              form.requestSubmit();
+          });
+      });
+  </script>
+{% endblock modals %}

@@ -89,7 +89,7 @@
             [
             {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
       {"label": "Compras", "href": "#", "icon": icon_purchases},
-      {"label": "Materia prima", "href": "#", "icon": icon_materials}
+      {"label": "Materia prima", "href": url_for('raw_materials.list_raw_materials'), "icon": icon_materials}
       ],
       icon_supplies,
       "dropdown-supplies") }}
