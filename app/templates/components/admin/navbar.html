@@ -1,0 +1,86 @@
+<nav class="bg-neutral-primary sticky w-full top-3 2xl:top-4 z-20 inset -s-0 border border-default rounded-base h-fit">
+  <div class="flex flex-wrap items-center justify-between mx-auto p-3 2xl:p-4 gap-3 2xl:gap-4">
+    <div>
+      <form class="flex items-center w-full max-w-xs 2xl:max-w-sm mx-auto space-x-1.5 2xl:space-x-2">
+        <label for="simple-search" class="sr-only">Buscar</label>
+        <div class="relative w-full">
+          <input type="text"
+                 id="simple-search"
+                 class="px-2.5 2xl:px-3 py-2 2xl:py-2.5 bg-neutral-secondary-medium border border-default-medium rounded-base text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body"
+                 placeholder="Buscar"
+                 required/>
+        </div>
+        <button type="submit"
+                class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-9 h-9 2xl:w-10 2xl:h-10 focus:outline-none">
+          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
+            </path>
+          </svg>
+          <span class="sr-only">Icon description</span>
+        </button>
+      </form>
+    </div>
+    <div class="flex gap-3 2xl:gap-4">
+      <div class="relative flex justify-center items-center">
+        <svg class="w-5 h-5 2xl:w-6 2xl:h-6 text-body"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             fill="none"
+             viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z">
+          </path>
+        </svg>
+        <span class="top-2 left-3 absolute w-2.5 h-2.5 2xl:top-2.5 2xl:left-3.5 2xl:w-3 2xl:h-3 bg-warning border-2 border-buffer rounded-full"></span>
+      </div>
+      <div id="avatarButton"
+           type="button"
+           data-dropdown-toggle="userDropdown"
+           data-dropdown-placement="bottom-start"
+           class="w-9 h-9 2xl:w-10 2xl:h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
+        <span class="font-medium text-sm 2xl:text-base text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1][0:1].upper() if ' ' in current_user.full_name else '' }}</span>
+      </div>
+      <!-- Dropdown menu -->
+      <div id="userDropdown"
+           class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40 2xl:w-44">
+        <div class="px-3 2xl:px-4 py-2.5 2xl:py-3 border-b border-default-medium text-xs 2xl:text-sm text-heading">
+          <div class="font-medium">{{ current_user.full_name }}</div>
+          <div class="truncate">{{ current_user.email }}</div>
+        </div>
+        <ul class="p-1.5 2xl:p-2 text-xs 2xl:text-sm text-body font-medium"
+            aria-labelledby="avatarButton">
+          <li>
+            <a href="#"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
+          </li>
+          <li>
+            <a href="{{ url_for('users.profile') }}"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
+          </li>
+          <li>
+            <a href="#"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
+          </li>
+          <li>
+            <form action="{{ url_for('login.logout') }}" method="post" class="w-full">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="cursor-pointer block w-full p-1.5 2xl:p-2 text-left hover:bg-neutral-tertiary-medium text-fg-danger rounded-md">
+                Cerrar sesión
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -3,7 +3,7 @@ Formularios para el módulo de unidades de medida.
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField
+from wtforms import StringField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length
 
 
@@ -22,6 +22,16 @@ class UnitOfMeasureForm(FlaskForm):
         validators=[
             DataRequired(message="La abreviatura de la unidad de medida es requerida"),
             Length(max=10, message="La abreviatura no puede exceder 10 caracteres"),
-        ]
+        ],
+    )
+    type = SelectField(
+        "Tipo",
+        choices=[
+            ("longitud", "Longitud"),
+            ("peso", "Peso"),
+            ("volumen", "Volumen"),
+            ("unidad", "Unidad"),
+        ],
+        validators=[DataRequired(message="El tipo de unidad es requerido")],
     )
     active = BooleanField("Activo", default=True)

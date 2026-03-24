@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Gestión de la tienda de muebles" />
+    <meta name="author" content="Lattice Systems" />
+    <meta name="keywords"
+          content="muebles, gestión, colores, roles, tipos de madera, unidades de medida" />
+    <title>
+      {% block title %}
+        Furniture Store
+      {% endblock title %}
+    </title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='dist/output.css') }}">
+  </head>
+  <body>
+    <div class="flex flex-row gap-3 2xl:gap-4 p-3 2xl:p-4 w-full h-screen relative bg-neutral-tertiary">
+      <div class="inset-s-0 h-full w-fit shrink-0">{% include "components/admin/sidebar.html" %}</div>
+      <div class="w-full min-w-0 z-20 h-full flex flex-col gap-3 2xl:gap-4">
+        {% include "components/admin/navbar.html" %}
+        <main class="flex-1 min-w-0 overflow-y-auto bg-neutral-primary p-4 border border-default rounded-base">
+          {% block content %}
+          {% endblock content %}
+        </main>
+      </div>
+    </div>
+    {% block modals %}
+    {% endblock modals %}
+    <script src="{{ url_for('static', filename='js/flowbite.min.js') }}"></script>
+  </body>
+</html>

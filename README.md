@@ -100,6 +100,13 @@ Crear un archivo `.env` en la raíz del proyecto:
 - No eliminar el archivo `.env-template`, solo copiar su estructura para crear `.env`.
 - No subir el archivo `.env` al repositorio, ya que contiene información sensible.
 
+Variables clave para 2FA con recuperación por correo (Brevo):
+
+- `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USE_SSL`
+- `MAIL_USERNAME`, `MAIL_PASSWORD`
+- `MAIL_DEFAULT_SENDER`, `SECURITY_EMAIL_SENDER`
+- `SECURITY_TWO_FACTOR_RESCUE_MAIL`
+
 ---
 
 ## ▶️ Ejecutar el Proyecto
@@ -132,6 +139,80 @@ pytest
 
 ---
 
+## 🔍 Control de Calidad de Código
+
+Este proyecto incluye herramientas automáticas para mantener la calidad del código:
+
+### 📋 Herramientas Configuradas
+
+| Herramienta | Descripción                                  | Comando                    |
+|-------------|----------------------------------------------|----------------------------|
+| **Black**   | Formateador de código Python                 | `black .`                  |
+| **Ruff**    | Linter rápido para Python                    | `ruff check .`             |
+| **Mypy**    | Verificador de tipos estático                | `mypy app/`                |
+| **djLint**  | Formateador de templates HTML                | `djlint app/templates/`    |
+
+### 🚀 Ejecución Local de Checks
+
+Antes de hacer commit, ejecuta los siguientes comandos para asegurar la calidad:
+
+```bash
+# Formatear código con Black
+black .
+
+# Verificar linting con Ruff
+ruff check .
+
+# Verificar tipos con Mypy
+mypy app/ --config-file=mypy.ini
+
+# Lint y formatear templates HTML
+djlint app/templates/ --lint
+djlint app/templates/ --reformat
+```
+
+### 🤖 CI/CD Automático
+
+El proyecto utiliza **GitHub Actions** para ejecutar estos checks automáticamente en:
+
+- ✅ Push a `main` o `dev`
+- ✅ Pull Requests a `main` o `dev`
+- ✅ Push de tags semánticos `vX.Y.Z` (ejemplo: `v1.2.0`)
+
+El workflow se define en `.github/workflows/ci.yml`.
+
+Adicionalmente, al hacer push de un tag `vX.Y.Z`, se crea un **GitHub Release** automáticamente mediante `.github/workflows/release.yml`.
+
+### 🏷️ Versionado con Tags en CI
+
+Para versionar cambios del proyecto en CI, usa tags semánticos con prefijo `v`:
+
+```bash
+# Crear tag anotado
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+# Publicar un tag específico
+git push origin v1.0.0
+
+# (Opcional) Publicar todos los tags locales
+git push origin --tags
+```
+
+Cuando el workflow corre por tag, los artefactos se publican con ese identificador de versión (por ejemplo `quality-reports-v1.0.0`).
+
+### 🔐 Pre-commit Hooks
+
+Opcionalmente, puedes instalar pre-commit hooks para ejecutar estos checks antes de hacer commit:
+
+```bash
+# Instalar pre-commit hooks
+pre-commit install
+
+# (Los hooks se ejecutarán automáticamente al hacer git commit)
+```
+
+---
+
 ## 📂 Estructura del Proyecto
 
 ```
@@ -153,9 +234,49 @@ muebles-roble-diseno-app/
 │   │   └── color.py              # Modelo de Color
 │   │
 │   └── templates/                # Templates Jinja2
-│       ├── base.html             # Template base (layout)
-│       └── colors/
-│           └── create.html       # Formulario de creación
+│       ├── layouts/
+│       │   ├── store.html
+│       │   └── admin.html
+│       │
+│       ├── store/
+│       │   ├── home.html
+│       │   ├── product_detail.html
+│       │   └── cart.html
+│       │
+│       ├── admin/
+│       │   ├── dashboard.html
+│       │   └── catalogs/
+│       │       └── colors/
+│       │           ├── list.html
+│       │           ├── create.html
+│       │           └── edit.html
+│       │
+│       └── components/
+│           ├── forms/
+│           │   ├── input.html
+│           │   ├── select.html
+│           │   └── textarea.html
+│           │
+│           ├── tables/
+│           │   └── table.html
+│           │
+│           ├── ui/
+│           │   ├── button.html
+│           │   ├── badge.html
+│           │   ├── alert.html
+│           │   ├── modal.html
+│           │   └── card.html
+│           │
+│           ├── ecommerce/
+│           │   ├── product_card.html
+│           │   ├── price_tag.html
+│           │   ├── rating_stars.html
+│           │   └── add_to_cart_button.html
+│           │
+│           └── admin/
+│               ├── sidebar.html
+│               ├── navbar.html
+│               └── stats_card.html
 │
 ├── docs/                         # Documentación del proyecto
 │   ├── ARCHITECTURE.md           # Documentación de arquitectura
@@ -255,6 +376,7 @@ Navegador Web
 
 | Documento                                               | Descripción                                         |
 |---------------------------------------------------------|-----------------------------------------------------|
+| [🛠️ Herramientas de Desarrollo](docs/DEVELOPMENT_TOOLS.md) | Herramientas de calidad, CI/CD y pre-commit        |
 | [📐 Arquitectura](docs/ARCHITECTURE.md)                 | Documentación detallada de la arquitectura en capas |
 | [📋 Convenciones de Código](docs/CODING_CONVENTIONS.md) | Estándares y convenciones de desarrollo             |
 

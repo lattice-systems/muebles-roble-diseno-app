@@ -1,0 +1,129 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalle de costos
+{% endblock title %}
+
+{% block content %}
+  <div class="max-w-7xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de detalle de costos</h1>
+      <p class="text-body">Detalle de costos de producción de un producto</p>
+    </div>
+
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6 flex flex-col gap-6">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-heading text-lg 2xl:text-xl font-semibold">{{ detail.product.name }}</h2>
+        <span class="text-body text-sm">SKU: {{ detail.product.sku }}</span>
+        <span class="text-body text-sm">Versión de receta: {{ detail.summary.recipe_version }}</span>
+      </div>
+
+      <div class="rounded-base border border-default overflow-hidden">
+        <div class="px-4 py-3 border-b border-default-medium bg-neutral-secondary-medium">
+          <h3 class="text-heading font-medium">Materiales</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-body">
+            <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+              <tr>
+                <th class="px-4 py-3">Material</th>
+                <th class="px-4 py-3">Cantidad</th>
+                <th class="px-4 py-3">Costo Unitario</th>
+                <th class="px-4 py-3">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in detail.detail_items %}
+                <tr class="border-b border-default-medium">
+                  <td class="px-4 py-3 text-heading font-medium">{{ item.material_name }}</td>
+                  <td class="px-4 py-3">
+                    {{ "%.3f"|format(item.quantity_required|float) }}
+                    {{ item.unit_abbreviation or item.unit_name }}
+                  </td>
+                  <td class="px-4 py-3">${{ "%.2f"|format(item.unit_price|float) }}</td>
+                  <td class="px-4 py-3 text-heading font-medium">${{ "%.2f"|format(item.line_total|float) }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="4" class="px-4 py-6 text-center text-body">
+                    Este producto no tiene receta o no tiene materiales asociados.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 text-sm">
+        <p class="text-heading">Costo total: ${{ "%.2f"|format(detail.summary.total_cost|float) }}</p>
+        <p class="text-heading">Precio venta: ${{ "%.2f"|format(detail.summary.sale_price|float) }}</p>
+        <p class="text-heading">
+          Margen:
+          {% if detail.summary.margin_value is not none %}
+            ${{ "%.2f"|format(detail.summary.margin_value|float) }}
+          {% else %}
+            N/D
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+        <div class="relative">
+          <button type="button"
+                  onclick="toggleDetailDropdown()"
+                  class="w-full inline-flex items-center justify-center gap-2 text-white bg-brand hover:opacity-90 focus:ring-4 focus:ring-brand/30 shadow-xs font-medium rounded-base text-sm px-5 py-3 focus:outline-none">
+            Acciones
+            <svg class="w-3 h-3"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 10 6">
+              <path stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="m1 1 4 4 4-4"/>
+            </svg>
+          </button>
+
+          <div id="detail-actions-dropdown"
+               class="hidden absolute left-0 z-10 mt-2 w-full rounded-base border border-default-medium bg-white shadow-lg">
+            <div class="py-1">
+              <form method="post"
+                    action="{{ url_for('costs.export_cost_csv', product_id=detail.product.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        class="block w-full text-left px-4 py-2 text-sm text-body hover:bg-neutral-secondary-medium hover:text-heading">
+                  Exportar CSV
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <a href="{{ url_for('costs.index') }}"
+           class="w-full inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium rounded-base text-sm px-5 py-3 focus:outline-none">
+          Cancelar
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleDetailDropdown() {
+      document.getElementById('detail-actions-dropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+      const isButton = event.target.closest('button');
+      const isDropdown = event.target.closest('#detail-actions-dropdown');
+
+      if (!isButton && !isDropdown) {
+        const dropdown = document.getElementById('detail-actions-dropdown');
+        if (dropdown) {
+          dropdown.classList.add('hidden');
+        }
+      }
+    });
+  </script>
+{% endblock content %}

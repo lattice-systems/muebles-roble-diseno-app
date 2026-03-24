@@ -3,23 +3,50 @@ Servicios de lógica de negocio para tipos de madera.
 """
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 from app.extensions import db
 from app.exceptions import ConflictError, NotFoundError, ValidationError
-from app.models.role import Role
 from app.models.wood_type import WoodType
+
 
 class WoodTypeService:
     """Servicio para operaciones de negocio relacionadas con tipos de madera."""
 
     @staticmethod
-    def get_all() -> list[WoodType]:
+    def get_all(
+        search_term: str = None,
+        status_filter: str = "all",
+        page: int = 1,
+        per_page: int = 10,
+    ):
         """
-        Obtiene todos los tipos de madera activos.
+        Obtiene los tipos de madera paginados, con opciones de filtrado.
+
+        Args:
+            search_term (str, optional): Término de búsqueda para el nombre o descripción.
+            status_filter (str, optional): Estado para filtrar ('active', 'inactive', 'all').
+            page (int): Número de página (1-indexed).
+            per_page (int): Registros por página.
 
         Returns:
-            list[WoodType]: Lista de objetos WoodType activos
+            Pagination: Objeto de paginación de SQLAlchemy
         """
-        return WoodType.query.filter_by(active=True).all()
+        query = WoodType.query
+
+        if search_term:
+            search = f"%{search_term}%"
+            query = query.filter(
+                or_(WoodType.name.ilike(search), WoodType.description.ilike(search))
+            )
+
+        if status_filter == "active":
+            query = query.filter_by(status=True)
+        elif status_filter == "inactive":
+            query = query.filter_by(status=False)
+
+        return query.order_by(WoodType.id.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
 
     @staticmethod
     def create(data: dict) -> dict:
@@ -37,7 +64,7 @@ class WoodTypeService:
             ConflictError: Si ya existe un tipo de madera con el mismo nombre
         """
         name = data.get("name")
-        description = data.get("description")   
+        description = data.get("description")
 
         if not name or not name.strip():
             raise ValidationError("El nombre del tipo de madera es requerido")
@@ -48,7 +75,9 @@ class WoodTypeService:
         if existing:
             raise ConflictError(f"Ya existe un tipo de madera con el nombre '{name}'")
 
-        wood_type = WoodType(name=name, description=description)
+        wood_type = WoodType(
+            name=name, description=description, status=data.get("status", True)
+        )
         db.session.add(wood_type)
 
         try:
@@ -63,20 +92,22 @@ class WoodTypeService:
     def get_by_id(id_wood_type: int) -> WoodType:
         """
         Obtiene un tipo de madera por su ID.
-        
+
         Args:
             id_wood_type: Identificador del tipo de madera.
-            
+
         Returns:
             WoodType: Objeto del tipo de madera encontrado.
-            
+
         Raises:
             NotFoundError: Si el tipo de madera no existe.
         """
         wood_type = WoodType.query.get(id_wood_type)
         if not wood_type:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
-        return wood_type    
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
+        return wood_type
 
     @staticmethod
     def update(id_wood_type: int, data: dict) -> dict:
@@ -96,8 +127,10 @@ class WoodTypeService:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.active:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
+        if not wood_type:
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
 
         name = data.get("name")
         description = data.get("description")
@@ -107,12 +140,16 @@ class WoodTypeService:
 
         name = name.strip()
 
-        existing = WoodType.query.filter(WoodType.name == name, WoodType.id_wood_type != id_wood_type).first()
+        existing = WoodType.query.filter(
+            WoodType.name == name, WoodType.id != id_wood_type
+        ).first()
         if existing:
             raise ConflictError(f"Ya existe otro tipo de madera con el nombre '{name}'")
 
         wood_type.name = name
         wood_type.description = description
+        if "status" in data:
+            wood_type.status = data["status"]
 
         try:
             db.session.commit()
@@ -121,21 +158,63 @@ class WoodTypeService:
             raise ConflictError(f"Ya existe otro tipo de madera con el nombre '{name}'")
 
         return wood_type.to_dict()
-    
+
     @staticmethod
-    def delete(id_wood_type: int) -> None:
+    def toggle_status(id_wood_type: int) -> None:
         """
-        Elimina (desactiva) un tipo de madera por su ID.
+        Activa o inactiva un tipo de madera por su ID (toggle).
 
         Args:
-            id_wood_type: ID del tipo de madera a eliminar
+            id_wood_type: ID del tipo de madera a ser alternado
 
         Raises:
             NotFoundError: Si no se encuentra el tipo de madera por ID
         """
         wood_type = WoodType.query.get(id_wood_type)
-        if not wood_type or not wood_type.active:
-            raise NotFoundError(f"No se encontró el tipo de madera con ID {id_wood_type}")
+        if not wood_type:
+            raise NotFoundError(
+                f"No se encontró el tipo de madera con ID {id_wood_type}"
+            )
 
-        wood_type.active = False
+        wood_type.status = not wood_type.status
         db.session.commit()
+
+    @staticmethod
+    def bulk_deactivate(ids: list[int]) -> int:
+        """
+        Desactiva múltiples tipos de madera por sus IDs.
+
+        Args:
+            ids: Lista de IDs de tipos de madera a desactivar
+
+        Returns:
+            int: Cantidad de registros desactivados
+        """
+        if not ids:
+            return 0
+
+        count = WoodType.query.filter(
+            WoodType.id.in_(ids), WoodType.status == True  # noqa: E712
+        ).update({WoodType.status: False}, synchronize_session="fetch")
+        db.session.commit()
+        return count
+
+    @staticmethod
+    def bulk_activate(ids: list[int]) -> int:
+        """
+        Activa múltiples tipos de madera por sus IDs.
+
+        Args:
+            ids: Lista de IDs de tipos de madera a activar
+
+        Returns:
+            int: Cantidad de registros activados
+        """
+        if not ids:
+            return 0
+
+        count = WoodType.query.filter(
+            WoodType.id.in_(ids), WoodType.status == False  # noqa: E712
+        ).update({WoodType.status: True}, synchronize_session="fetch")
+        db.session.commit()
+        return count

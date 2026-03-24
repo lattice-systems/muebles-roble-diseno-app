@@ -1,0 +1,13 @@
+Hola equipo administrador,
+
+Se ha recibido una solicitud de recuperacion de acceso 2FA.
+
+Usuario: {{ user.full_name if user and user.full_name else "N/A" }}
+Correo: {{ user.email if user and user.email else "N/A" }}
+Fecha y hora: Revisar fecha del encabezado del correo recibido.
+
+Accion sugerida:
+- Verificar identidad del usuario por un canal interno.
+- Si procede, resetear su configuracion de autenticacion de dos factores.
+
+Este correo fue generado automaticamente por el sistema.

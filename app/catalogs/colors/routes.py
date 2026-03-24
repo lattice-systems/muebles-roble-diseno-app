@@ -5,6 +5,7 @@ Rutas/Endpoints para el módulo de colores.
 from flask import flash, redirect, render_template, request, url_for
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
+
 from . import colors_bp
 from .forms import ColorForm
 from .services import ColorService
@@ -13,94 +14,152 @@ from .services import ColorService
 @colors_bp.route("/", methods=["GET"])
 def list_colors():
     """
-    Muestra la lista de colores del catálogo.
-
-    Returns:
-        HTML: Página con la lista de colores
+    Muestra la lista de colores con búsqueda, filtro y paginación.
     """
-    colors = ColorService.get_all()
-    return render_template("colors/list.html", colors=colors)
+    search_term = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all")
+    page = request.args.get("page", 1, type=int)
+
+    pagination = ColorService.get_all(
+        search_term=search_term or None,
+        status_filter=status_filter,
+        page=page,
+    )
+
+    form = ColorForm()
+
+    return render_template(
+        "admin/colors/index.html",
+        colors=pagination.items,
+        pagination=pagination,
+        form=form,
+        search_term=search_term,
+        status_filter=status_filter,
+    )
 
 
-@colors_bp.route("/create", methods=["GET", "POST"])
+@colors_bp.route("/create", methods=["POST"])
 def create_color():
     """
-    Muestra el formulario y crea un nuevo color en el catálogo.
-
-    GET: Renderiza el formulario de creación.
-    POST: Valida el formulario, crea el color y redirige.
-
-    Returns:
-        GET - HTML: Página con el formulario de creación de color
-        POST - Redirect: Redirige al formulario con mensaje flash
+    Crea un nuevo color desde el modal.
+    POST: Valida, crea y redirige. En error, re-renderiza con modal abierto.
     """
     form = ColorForm()
 
     if form.validate_on_submit():
-        data = {"name": form.name.data}
+        data = {
+            "name": form.name.data,
+            "hex_code": form.hex_code.data,
+            "description": form.description.data,
+            "status": request.form.get("status", "1"),
+        }
         try:
             ColorService.create(data)
             flash("Color creado exitosamente", "success")
-            return redirect(url_for("colors.create_color"))
-        except ConflictError as e:
-            flash(e.message, "error")
-
-    return render_template("colors/create.html", form=form)
-
-
-@colors_bp.route("/<int:id_color>/edit", methods=["GET", "POST"])
-def edit_color(id_color: int):
-    """
-    Muestra el formulario pre-poblado y actualiza un color existente.
-
-    GET: Renderiza el formulario con los datos actuales del color.
-    POST: Valida el formulario, actualiza el color y redirige (Patrón PRG).
-
-    Returns:
-        GET - HTML: Página con el formulario de edición de color.
-        POST - Redirect: Redirige al formulario con mensaje flash
-    """
-    try:
-        color = ColorService.get_by_id(id_color)
-    except NotFoundError as e:
-        flash(e.message, "error")
-        return redirect(url_for("colors.list_colors"))
-
-    form = ColorForm()
-
-    if form.validate_on_submit():
-        data = {"name": form.name.data}
-        try:
-            ColorService.update(id_color, data)
-            flash("Color actualizado exitosamente", "success")
             return redirect(url_for("colors.list_colors"))
         except (ConflictError, ValidationError) as e:
             flash(e.message, "error")
 
-    elif request.method == "GET":
-        # Pre-poblar el formulario en peticiones GET
-        form.name.data = color.name
+    # Re-render list with modal open on validation error
+    search_term = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all")
+    page = request.args.get("page", 1, type=int)
+    pagination = ColorService.get_all(
+        search_term=search_term or None,
+        status_filter=status_filter,
+        page=page,
+    )
+    return render_template(
+        "admin/colors/index.html",
+        colors=pagination.items,
+        pagination=pagination,
+        form=form,
+        search_term=search_term,
+        status_filter=status_filter,
+        show_create_modal=True,
+    )
 
-    return render_template("colors/edit.html", form=form, color=color)
+
+@colors_bp.route("/<int:id_color>/edit", methods=["POST"])
+def edit_color(id_color: int):
+    """
+    Edita un color desde el modal.
+    POST: Valida, actualiza y redirige. En error, re-renderiza con modal abierto.
+    """
+    form = ColorForm()
+
+    if form.validate_on_submit():
+        data = {
+            "name": form.name.data,
+            "hex_code": form.hex_code.data,
+            "description": form.description.data,
+            "status": request.form.get("status", "1"),
+        }
+        try:
+            ColorService.update(id_color, data)
+            flash("Color actualizado exitosamente", "success")
+            return redirect(url_for("colors.list_colors"))
+        except (ConflictError, ValidationError, NotFoundError) as e:
+            flash(e.message, "error")
+
+    # Re-render list with edit modal open on validation error
+    search_term = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all")
+    page = request.args.get("page", 1, type=int)
+    pagination = ColorService.get_all(
+        search_term=search_term or None,
+        status_filter=status_filter,
+        page=page,
+    )
+    return render_template(
+        "admin/colors/index.html",
+        colors=pagination.items,
+        pagination=pagination,
+        form=form,
+        edit_form=form,
+        search_term=search_term,
+        status_filter=status_filter,
+        show_edit_modal=id_color,
+    )
 
 
 @colors_bp.route("/<int:id_color>/delete", methods=["POST"])
 def delete_color(id_color: int):
     """
-    Ejecuta la eliminación logica de un color.
-
-    POST: Marca el color como inactivo y redirige
-
-    Returns:
-        Redirect: Redirige a la lista de colors con mensaje flash
-
-    Raises:
-        NotFoundError: Si no se encuentra un color con el ID
+    Toggle de estado de un color (desactivar/activar).
     """
     try:
         ColorService.delete(id_color)
-        flash("Color eliminado exitosamente", "success")
+        flash("Estado del color actualizado exitosamente", "success")
     except NotFoundError as e:
         flash(e.message, "error")
 
+    return redirect(url_for("colors.list_colors"))
+
+
+@colors_bp.route("/bulk-deactivate", methods=["POST"])
+def bulk_deactivate():
+    """Desactivar múltiples colores seleccionados."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron colores", "error")
+        return redirect(url_for("colors.list_colors"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    count = ColorService.bulk_deactivate(ids)
+    flash(f"{count} color(es) desactivado(s) exitosamente", "success")
+    return redirect(url_for("colors.list_colors"))
+
+
+@colors_bp.route("/bulk-activate", methods=["POST"])
+def bulk_activate():
+    """Activar múltiples colores seleccionados."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron colores", "error")
+        return redirect(url_for("colors.list_colors"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    count = ColorService.bulk_activate(ids)
+    flash(f"{count} color(es) activado(s) exitosamente", "success")
     return redirect(url_for("colors.list_colors"))

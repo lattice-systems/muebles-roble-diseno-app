@@ -1,0 +1,224 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+Configurar Autenticación de Dos Factores
+{% endblock title %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto flex flex-col gap-4">
+  {% set selected_setup = two_factor_setup_form.setup.data or ("disable" if current_user.tf_primary_method else "authenticator") %}
+  {% set has_authenticator = current_user.tf_primary_method == "authenticator" %}
+
+  <div class="flex flex-col gap-1">
+    <h1 class="text-heading text-lg font-medium">Configurar Autenticación de Dos Factores</h1>
+    <p class="text-body">Gestiona la seguridad de tu cuenta con aplicación autenticadora.</p>
+  </div>
+
+  {% include "admin/components/alerts.html" %}
+
+  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-6 flex flex-col gap-6">
+    <div class="flex items-center justify-between gap-3 p-3 bg-neutral-secondary-medium border border-default-medium rounded-base">
+      <p class="text-sm text-body">Estado actual</p>
+      {% if has_authenticator %}
+      <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">
+        Activado
+      </span>
+      {% else %}
+      <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-warning text-xs font-medium rounded bg-warning-soft">
+        Desactivado
+      </span>
+      {% endif %}
+    </div>
+
+    <form action="{{ url_for_security('two_factor_setup') }}" method="post" class="flex flex-col gap-4">
+      {{ two_factor_setup_form.hidden_tag() }}
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-brand text-white text-xs font-medium">1</span>
+        <p class="text-sm font-medium text-heading">Selecciona una acción</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="flex items-start gap-3 p-4 rounded-base border cursor-pointer transition-colors {% if selected_setup == 'authenticator' %}border-brand bg-brand-weak{% else %}border-default-medium bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium{% endif %}">
+          <input
+            type="radio"
+            name="{{ two_factor_setup_form.setup.name }}"
+            id="setup-authenticator"
+            value="authenticator"
+            class="mt-1"
+            {% if selected_setup == "authenticator" %}checked{% endif %}
+          >
+          <span class="flex flex-col">
+            <span class="text-sm font-medium text-heading">Activar con aplicación autenticadora</span>
+            <span class="text-xs text-body">Compatible con Google Authenticator, Authy y apps TOTP.</span>
+          </span>
+        </label>
+
+        <label class="flex items-start gap-3 p-4 rounded-base border cursor-pointer transition-colors {% if selected_setup == 'disable' %}border-brand bg-brand-weak{% else %}border-default-medium bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium{% endif %}">
+          <input
+            type="radio"
+            name="{{ two_factor_setup_form.setup.name }}"
+            id="setup-disable"
+            value="disable"
+            class="mt-1"
+            {% if selected_setup == "disable" %}checked{% endif %}
+          >
+          <span class="flex flex-col">
+            <span class="text-sm font-medium text-heading">Desactivar autenticación de dos factores</span>
+            <span class="text-xs text-body">El acceso volverá a requerir solo correo y contraseña.</span>
+          </span>
+        </label>
+      </div>
+
+      {% for error in two_factor_setup_form.setup.errors %}
+      <p class="text-sm text-fg-danger-strong">{{ error }}</p>
+      {% endfor %}
+
+      <div class="flex gap-3 justify-end pt-1">
+        <a href="{{ url_for('users.profile') }}" class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none">
+          Cancelar
+        </a>
+        <button type="submit" class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none">
+          Continuar
+        </button>
+      </div>
+    </form>
+
+    {% if chosen_method == "authenticator" %}
+    <div class="border-t border-default pt-6 flex flex-col gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-brand text-white text-xs font-medium">2</span>
+        <p class="text-sm font-medium text-heading">Vincula tu autenticador</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 items-center">
+        <div class="p-4 bg-white rounded-base border border-default w-fit">
+          <img alt="Código QR de autenticación" id="qrcode" src="{{ authr_qrcode }}" class="w-52 h-52" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="text-sm text-body">Escanea el código QR en tu app autenticadora.</p>
+          <p class="text-xs text-body">Si no puedes escanear, ingresa esta clave manual:</p>
+          <p class="font-mono text-sm text-heading font-medium break-all p-3 bg-neutral-secondary-medium border border-default-medium rounded-base">{{ authr_key }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if chosen_method %}
+    <div class="border-t border-default pt-6 flex flex-col gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-brand text-white text-xs font-medium">3</span>
+        <p class="text-sm font-medium text-heading">Confirma con tu código de verificación</p>
+      </div>
+
+      {% if changing %}
+        {% set verify_action = url_for_security('two_factor_setup_validate', token=state_token) %}
+      {% else %}
+        {% set verify_action = url_for_security('two_factor_token_validation') %}
+      {% endif %}
+
+      <form action="{{ verify_action }}" method="post" id="two_factor_setup_verify_form" class="flex flex-col gap-4">
+        {{ two_factor_verify_code_form.hidden_tag() }}
+        {% set current_code = (two_factor_verify_code_form.code.data or "")|string %}
+        <input type="hidden"
+               id="{{ two_factor_verify_code_form.code.id }}"
+               name="{{ two_factor_verify_code_form.code.name }}"
+               value="{{ current_code }}"
+               autocomplete="one-time-code">
+
+        <div class="flex items-center justify-center gap-2" data-otp-group>
+          {% for i in range(0, 6) %}
+            {% if i == 3 %}<span class="text-body px-1">-</span>{% endif %}
+            <input type="text"
+                   maxlength="1"
+                   inputmode="numeric"
+                   pattern="[0-9]*"
+                   data-otp-slot
+                   data-otp-index="{{ i }}"
+                   value="{{ current_code[i] if current_code|length > i else '' }}"
+                   class="w-12 h-12 text-center text-lg font-semibold bg-neutral-secondary-medium border border-default-medium text-heading rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs">
+          {% endfor %}
+        </div>
+
+        {% for error in two_factor_verify_code_form.code.errors %}
+        <p class="text-sm text-fg-danger-strong text-center">{{ error }}</p>
+        {% endfor %}
+
+        <div class="flex justify-end">
+          <button type="submit" class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2 focus:outline-none">
+            Confirmar código
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if chosen_method %}
+<script>
+  (() => {
+    const form = document.getElementById('two_factor_setup_verify_form');
+    if (!form) return;
+
+    const hiddenCode = form.querySelector('input[name="{{ two_factor_verify_code_form.code.name }}"]');
+    const slots = Array.from(form.querySelectorAll('[data-otp-slot]'));
+    if (!hiddenCode || !slots.length) return;
+
+    const syncCode = () => {
+      hiddenCode.value = slots.map((slot) => (slot.value || '').replace(/\D/g, '')).join('');
+    };
+
+    const fillFromText = (text) => {
+      const digits = (text || '').replace(/\D/g, '').slice(0, slots.length).split('');
+      slots.forEach((slot, index) => {
+        slot.value = digits[index] || '';
+      });
+      syncCode();
+      const nextIndex = Math.min(digits.length, slots.length - 1);
+      slots[nextIndex].focus();
+      slots[nextIndex].select();
+    };
+
+    slots.forEach((slot, index) => {
+      slot.addEventListener('input', (event) => {
+        const value = (event.target.value || '').replace(/\D/g, '');
+        event.target.value = value ? value[value.length - 1] : '';
+        syncCode();
+        if (event.target.value && index < slots.length - 1) {
+          slots[index + 1].focus();
+          slots[index + 1].select();
+        }
+      });
+
+      slot.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && !event.target.value && index > 0) {
+          slots[index - 1].focus();
+          slots[index - 1].value = '';
+          syncCode();
+          event.preventDefault();
+        }
+        if (event.key === 'ArrowLeft' && index > 0) {
+          slots[index - 1].focus();
+          event.preventDefault();
+        }
+        if (event.key === 'ArrowRight' && index < slots.length - 1) {
+          slots[index + 1].focus();
+          event.preventDefault();
+        }
+      });
+
+      slot.addEventListener('focus', () => slot.select());
+    });
+
+    form.addEventListener('paste', (event) => {
+      const pasted = event.clipboardData?.getData('text') || '';
+      if (!pasted) return;
+      event.preventDefault();
+      fillFromText(pasted);
+    });
+
+    form.addEventListener('submit', syncCode);
+    syncCode();
+  })();
+</script>
+{% endif %}
+{% endblock content %}

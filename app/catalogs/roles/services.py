@@ -3,7 +3,6 @@ Servicios de lógica de negocio para roles.
 """
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import func
 
 from app.extensions import db
 from app.models.role import Role
@@ -21,8 +20,8 @@ class RoleService:
         Returns:
             list[Role]: Lista de objetos Role activos
         """
-        return Role.query.filter_by(active=True).all()
-    
+        return Role.query.filter_by(status=True).all()
+
     @staticmethod
     def create(data: dict) -> dict:
         """
@@ -59,18 +58,18 @@ class RoleService:
             raise ConflictError(f"Ya existe un rol con el nombre '{name}'")
 
         return role.to_dict()
-    
+
     @staticmethod
     def get_by_id(id_role: int) -> Role:
         """
         Obtiene un rol por su ID.
-        
+
         Args:
             id_role: Identificador del rol.
-            
+
         Returns:
             Role: Objeto del rol encontrado.
-            
+
         Raises:
             NotFoundError: Si el rol no existe.
         """
@@ -105,7 +104,7 @@ class RoleService:
         name = name.strip()
 
         # Verificar si existe OTRO rol diferente que ya tenga este nombre
-        existing = Role.query.filter(Role.name == name, Role.id_role != id_role).first()
+        existing = Role.query.filter(Role.name == name, Role.id != id_role).first()
         if existing:
             raise ConflictError(f"Ya existe un rol con el nombre '{name}'")
 
@@ -137,7 +136,6 @@ class RoleService:
         role = RoleService.get_by_id(id_role)
 
         # Aplicamos el Soft Delete
-        role.active = False
-        role.deleted_at = func.current_timestamp()
+        role.status = False
 
         db.session.commit()
