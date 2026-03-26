@@ -36,3 +36,15 @@ def categories():
         categories=all_categories,
         active_section="categories",
     )
+
+
+@ecommerce_bp.route("/contact")
+def contact():
+    """Página de contacto."""
+    return render_template("store/contact.html", active_section="contact")
+
+
+@ecommerce_bp.route("/nosotros")
+def nosotros():
+    """Página sobre nosotros."""
+    return render_template("store/nosotros.html", active_section="nosotros")
