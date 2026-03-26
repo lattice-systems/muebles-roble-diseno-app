@@ -12,6 +12,7 @@ from app.extensions import db
 from app.models.audit_log import AuditLog
 from app.models.customer import Customer
 from app.models.product import Product
+from app.models.product_inventory import ProductInventory
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
 
@@ -141,6 +142,12 @@ class SaleService:
             page=page, per_page=per_page, error_out=False
         )
 
+    @staticmethod
+    def get_product_stock(product_id: int) -> int:
+        """Obtiene el stock actual de un producto."""
+        inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+        return inventory.stock if inventory else 0
+
 
 class SaleItemService:
     """Servicio para gestionar los detalles de venta (carrito) del POS."""
@@ -170,11 +177,19 @@ class SaleItemService:
         if not product:
             raise NotFoundError("El producto no existe o está inactivo.")
 
+        available_stock = SaleService.get_product_stock(product.id)
         existing_item = SaleItem.query.filter_by(
             sale_id=sale.id, product_id=product.id
         ).first()
+
+        current_quantity = existing_item.quantity if existing_item else 0
+        new_quantity = current_quantity + quantity
+
+        if new_quantity > available_stock:
+            raise ValueError(f"Stock insuficiente. Disponible: {available_stock}")
+
         if existing_item:
-            existing_item.quantity += quantity
+            existing_item.quantity = new_quantity
         else:
             new_item = SaleItem(
                 sale_id=sale.id,
@@ -194,6 +209,10 @@ class SaleItemService:
         item = SaleItem.query.filter_by(id=item_id, sale_id=sale.id).first()
         if not item:
             raise NotFoundError("Detalle no encontrado en esta venta.")
+
+        available_stock = SaleService.get_product_stock(item.product_id)
+        if quantity > available_stock:
+            raise ValueError(f"Stock insuficiente. Disponible: {available_stock}")
 
         item.quantity = quantity
         db.session.commit()
