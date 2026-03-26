@@ -1,268 +1,377 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-POS – Venta Física | Furniture Store
+  POS – Venta Física | Furniture Store
 {% endblock title %}
-
 {% block content %}
-{# ══ Outer layout: full height, no scroll ══ #}
-<div class="flex gap-0 overflow-hidden w-full h-full" style="height: 100%; min-height: 500px;">
-
-  {# ── Panel izquierdo: catálogo (scrollable) ── #}
-  <div class="flex flex-col gap-4 flex-1 min-w-0 min-h-0 overflow-hidden pe-6 border-e border-default">
-
-    {# Título #}
-    <div class="shrink-0">
-      <h1 class="text-xl font-semibold text-heading">Venta física POS</h1>
-      <p class="mt-0.5 text-sm text-body">Venta de productos en tienda física</p>
-    </div>
-
-    {% include 'admin/components/alerts.html' %}
-
-    {# Buscador Flowbite — botón a la derecha del input #}
-    <form method="get" action="{{ url_for('sales.pos') }}" class="shrink-0 flex items-center gap-2 w-full" style="padding-right: 16px;">
-      <div class="relative flex-1">
-        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-              d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
-          </svg>
-        </div>
-        <input type="text" id="search" name="q" value="{{ search_term }}"
-          class="block w-full p-2.5 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-          placeholder="Buscar producto por nombre o SKU…" />
+  {# ══ Outer layout: full height, no scroll ══ #}
+  <div class="flex gap-0 overflow-hidden w-full h-full"
+       style="height: 100%;
+              min-height: 500px">
+    {# ── Panel izquierdo: catálogo (scrollable) ── #}
+    <div class="flex flex-col gap-4 flex-1 min-w-0 min-h-0 overflow-hidden pe-6 border-e border-default">
+      {# Título #}
+      <div class="shrink-0">
+        <h1 class="text-xl font-semibold text-heading">Venta física POS</h1>
+        <p class="mt-0.5 text-sm text-body">Venta de productos en tienda física</p>
       </div>
-      <button type="submit"
-        class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none shrink-0">
-        Buscar
-      </button>
-    </form>
-
-    {# Grid de productos (2 columnas fijas, scroll independiente) #}
-    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-      {% if products %}
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;">
-        {% for product in products %}
-        {# Flowbite product card exacto — altura uniforme con flex-col #}
-        <div
-          class="w-full bg-neutral-primary-soft p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
-          {# Imagen — siempre misma altura #}
-          <div
-            class="rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0"
-            style="height:120px;">
-            <img style="max-height:112px;max-width:100%;object-fit:contain;"
-              src="{{ url_for('static', filename='src/images/sofa.png') }}" alt="{{ product.name }}" />
-          </div>
-          {# Contenido — flex-col flex-1 para que el botón quede siempre abajo #}
-          <div class="flex flex-col flex-1">
-            {# Estrellas + SKU badge #}
-            <div class="flex items-center space-x-3 mb-3">
-              <div class="flex items-center space-x-1 rtl:space-x-reverse">
-                {% for _ in range(5) %}
-                <svg class="w-4 h-4 text-fg-yellow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                  height="24" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
-                </svg>
-                {% endfor %}
-              </div>
-              <span
-                class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-1.5 py-0.5 rounded-sm">{{
-                product.sku }}</span>
-            </div>
-            {# Nombre — 1 línea fija #}
-            <h5 class="text-sm text-heading font-semibold tracking-tight line-clamp-1 mb-1">{{ product.name }}</h5>
-            {# Descripción — 2 líneas fijas, ocupa espacio con flex-1 #}
-            <p class="text-xs text-body line-clamp-2 flex-1">{{ product.description or '—' }}</p>
-            {# Precio + botón — siempre clavado al fondo con mt-4 #}
-            <div class="flex items-center justify-between mt-4">
-              <span class="text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) }}</span>
-              <button type="button" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
-                data-product-price="{{ product.price }}" data-product-sku="{{ product.sku }}"
-                class="btn-add-product inline-flex items-center text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none">
-                <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                  fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
-                </svg>
-                Agregar
-              </button>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      {# Paginación #}
-      {% if pagination.pages > 1 %}
-      <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-          Mostrando
-          <span class="font-semibold text-gray-900 dark:text-white">{{ ((pagination.page-1)*pagination.per_page)+1 }}-{{ [pagination.page*pagination.per_page, pagination.total]|min }}</span>
-          de
-          <span class="font-semibold text-gray-900 dark:text-white">{{ pagination.total }}</span>
-        </span>
-        <ul class="inline-flex items-stretch -space-x-px">
-          <li>
-            <a href="{{ url_for('sales.pos', page=pagination.prev_num if pagination.has_prev else 1, q=search_term) }}" class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
-              <span class="sr-only">Anterior</span>
-              <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </a>
-          </li>
-          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
-          {% if p %}
-          <li>
-            <a href="{{ url_for('sales.pos', page=p, q=search_term) }}" class="flex items-center justify-center text-sm py-2 px-3 leading-tight border {{ 'z-10 text-primary-600 bg-primary-50 border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white' if p == pagination.page else 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' }}" {{ 'aria-current="page"' if p == pagination.page }}>{{ p }}</a>
-          </li>
-          {% else %}
-          <li>
-            <span class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">...</span>
-          </li>
-          {% endif %}
-          {% endfor %}
-          <li>
-            <a href="{{ url_for('sales.pos', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term) }}" class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
-              <span class="sr-only">Siguiente</span>
-              <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
-            </a>
-          </li>
-        </ul>
-      </nav>
-      {% endif %}
-
-      {% else %}
-      <div class="flex flex-col items-center justify-center py-24 text-body">
-        <svg class="w-10 h-10 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke="currentColor" stroke-linecap="round" stroke-width="1.5"
-            d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
-        </svg>
-        <p class="text-sm">No se encontraron productos{% if search_term %} para "{{ search_term }}"{% endif %}</p>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  {# ── Panel derecho: Carrito (tamaño fijo, no crece) ── #}
-  <div class="w-[390px] shrink-0 flex flex-col gap-4 ps-6 min-h-0" style="height: 100%;">
-    <div class="shrink-0">
-      <h2 class="text-lg font-semibold text-heading">Carrito</h2>
-      <div class="text-xs text-body">
-        {% if sale and sale.customer %}
-          Cliente: <span class="font-medium text-brand">{{ sale.customer.full_name }}</span>
-          <button type="button" onclick="document.getElementById('formRemoveCustomer').submit()" class="ml-2 text-fg-danger hover:underline">Quitar</button>
-          <form id="formRemoveCustomer" method="POST" action="{{ url_for('sales.open_sale') }}" class="hidden">
-            <input type="hidden" name="customer_id" value="">
-          </form>
-        {% else %}
-          Productos seleccionados
-        {% endif %}
-      </div>
-      {% if not sale or not sale.customer %}
-      <div class="mt-3 relative">
-        <label for="customerSearchInput" class="sr-only">Buscar cliente</label>
-        <div class="relative w-full">
+      {% include 'admin/components/alerts.html' %}
+      {# Buscador Flowbite — botón a la derecha del input #}
+      <form method="get"
+            action="{{ url_for('sales.pos') }}"
+            class="shrink-0 flex items-center gap-2 w-full"
+            style="padding-right: 16px">
+        <div class="relative flex-1">
           <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+            <svg class="w-4 h-4 text-body"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
             </svg>
           </div>
-          <input type="text" id="customerSearchInput" class="block w-full p-2 ps-9 bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" placeholder="Buscar cliente por nombre o email..." autocomplete="off">
+          <input type="text"
+                 id="search"
+                 name="q"
+                 value="{{ search_term }}"
+                 class="block w-full p-2.5 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                 placeholder="Buscar producto por nombre o SKU…" />
         </div>
-        <div id="customerDropdown" class="absolute z-50 w-full bg-white border border-default-medium shadow-md rounded mt-1 hidden max-h-48 overflow-y-auto">
-          <ul id="customerList" class="text-sm text-heading pb-1"></ul>
+        <button type="submit"
+                class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none shrink-0">
+          Buscar
+        </button>
+      </form>
+      {# Grid de productos (2 columnas fijas, scroll independiente) #}
+      <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        {% if products %}
+          <div style="display:grid;
+                      grid-template-columns:repeat(2,minmax(0,1fr));
+                      gap:0.75rem">
+            {% for product in products %}
+              {# Flowbite product card exacto — altura uniforme con flex-col #}
+              <div class="w-full bg-neutral-primary-soft p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
+                {# Imagen — siempre misma altura #}
+                <div class="rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0"
+                     style="height:120px">
+                  <img style="max-height:112px;
+                              max-width:100%;
+                              object-fit:contain"
+                       src="{{ url_for('static', filename='src/images/sofa.png') }}"
+                       alt="{{ product.name }}" />
+                </div>
+                {# Contenido — flex-col flex-1 para que el botón quede siempre abajo #}
+                <div class="flex flex-col flex-1">
+                  {# Estrellas + SKU badge #}
+                  <div class="flex items-center space-x-3 mb-3">
+                    <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                      {% for _ in range(5) %}
+                        <svg class="w-4 h-4 text-fg-yellow"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="24"
+                             height="24"
+                             fill="currentColor"
+                             viewBox="0 0 24 24">
+                          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
+                        </svg>
+                      {% endfor %}
+                    </div>
+                    <span class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-1.5 py-0.5 rounded-sm">{{
+                    product.sku }}</span>
+                  </div>
+                  {# Nombre — 1 línea fija #}
+                  <h5 class="text-sm text-heading font-semibold tracking-tight line-clamp-1 mb-1">{{ product.name }}</h5>
+                  {# Descripción — 2 líneas fijas, ocupa espacio con flex-1 #}
+                  <p class="text-xs text-body line-clamp-2 flex-1">{{ product.description or '—' }}</p>
+                  {# Precio + botón — siempre clavado al fondo con mt-4 #}
+                  <div class="flex items-center justify-between mt-4">
+                    <span class="text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) }}</span>
+                    <button type="button"
+                            data-product-id="{{ product.id }}"
+                            data-product-name="{{ product.name }}"
+                            data-product-price="{{ product.price }}"
+                            data-product-sku="{{ product.sku }}"
+                            class="btn-add-product inline-flex items-center text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none">
+                      <svg class="w-4 h-4 me-1.5"
+                           aria-hidden="true"
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="24"
+                           height="24"
+                           fill="none"
+                           viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
+                      </svg>
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          {# Paginación #}
+          {% if pagination.pages > 1 %}
+            <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4"
+                 aria-label="Table navigation">
+              <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                Mostrando
+                <span class="font-semibold text-gray-900 dark:text-white">{{ ((pagination.page-1)*pagination.per_page)+1 }}-{{ [pagination.page*pagination.per_page, pagination.total]|min }}</span>
+                de
+                <span class="font-semibold text-gray-900 dark:text-white">{{ pagination.total }}</span>
+              </span>
+              <ul class="inline-flex items-stretch -space-x-px">
+                <li>
+                  <a href="{{ url_for('sales.pos', page=pagination.prev_num if pagination.has_prev else 1, q=search_term) }}"
+                     class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
+                    <span class="sr-only">Anterior</span>
+                    <svg class="w-5 h-5"
+                         aria-hidden="true"
+                         fill="currentColor"
+                         viewbox="0 0 20 20"
+                         xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                </li>
+                {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
+                  {% if p %}
+                    <li>
+                      <a href="{{ url_for('sales.pos', page=p, q=search_term) }}"
+                         class="flex items-center justify-center text-sm py-2 px-3 leading-tight border {{ 'z-10 text-primary-600 bg-primary-50 border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white' if p == pagination.page else 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                         {{ 'aria-current="page"' if p == pagination.page }}>{{ p }}</a>
+                    </li>
+                  {% else %}
+                    <li>
+                      <span class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">...</span>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                <li>
+                  <a href="{{ url_for('sales.pos', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term) }}"
+                     class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
+                    <span class="sr-only">Siguiente</span>
+                    <svg class="w-5 h-5"
+                         aria-hidden="true"
+                         fill="currentColor"
+                         viewbox="0 0 20 20"
+                         xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          {% endif %}
+        {% else %}
+          <div class="flex flex-col items-center justify-center py-24 text-body">
+            <svg class="w-10 h-10 mb-3 opacity-30"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+            </svg>
+            <p class="text-sm">
+              No se encontraron productos
+              {% if search_term %}para "{{ search_term }}"{% endif %}
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {# ── Panel derecho: Carrito (tamaño fijo, no crece) ── #}
+    <div class="w-[390px] shrink-0 flex flex-col gap-4 ps-6 min-h-0"
+         style="height: 100%">
+      <div class="shrink-0">
+        <h2 class="text-lg font-semibold text-heading">Carrito</h2>
+        <div class="text-xs text-body">
+          {% if sale and sale.customer %}
+            Cliente: <span class="font-medium text-brand">{{ sale.customer.full_name }}</span>
+            <button type="button"
+                    onclick="document.getElementById('formRemoveCustomer').submit()"
+                    class="ml-2 text-fg-danger hover:underline">Quitar</button>
+            <form id="formRemoveCustomer"
+                  method="POST"
+                  action="{{ url_for('sales.open_sale') }}"
+                  class="hidden">
+              <input type="hidden" name="customer_id" value="">
+            </form>
+          {% else %}
+            Productos seleccionados
+          {% endif %}
         </div>
-        <form id="customerForm" method="POST" action="{{ url_for('sales.open_sale') }}" class="hidden">
-          <input type="hidden" name="customer_id" id="customer_id_input">
-        </form>
+        {% if not sale or not sale.customer %}
+          <div class="mt-3 relative">
+            <label for="customerSearchInput" class="sr-only">Buscar cliente</label>
+            <div class="relative w-full">
+              <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-body"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                </svg>
+              </div>
+              <input type="text"
+                     id="customerSearchInput"
+                     class="block w-full p-2 ps-9 bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                     placeholder="Buscar cliente por nombre o email..."
+                     autocomplete="off">
+            </div>
+            <div id="customerDropdown"
+                 class="absolute z-50 w-full bg-white border border-default-medium shadow-md rounded mt-1 hidden max-h-48 overflow-y-auto">
+              <ul id="customerList" class="text-sm text-heading pb-1">
+              </ul>
+            </div>
+            <form id="customerForm"
+                  method="POST"
+                  action="{{ url_for('sales.open_sale') }}"
+                  class="hidden">
+              <input type="hidden" name="customer_id" id="customer_id_input">
+            </form>
+          </div>
+        {% endif %}
       </div>
-      {% endif %}
-    </div>
-
-    {# Tabla Flowbite — flex:1 1 0 + min-height:0 es el fix correcto para flex-children que no colapsan #}
-    <div
-      class="overflow-hidden relative bg-neutral-primary-soft shadow-xs rounded-base border border-default flex flex-col"
-      style="flex:1 1 0;min-height:0;">
-      <div class="overflow-x-auto overflow-y-auto flex-1">
-        <table class="w-full text-sm text-left text-body">
-          <thead class="text-xs text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
-            <tr>
-              <th scope="col" class="px-3 py-2.5 font-medium w-12">
-                <span class="sr-only">Img</span>
-              </th>
-              <th scope="col" class="px-3 py-2.5 font-medium">Producto</th>
-              <th scope="col" class="px-3 py-2.5 font-medium text-center">Qty</th>
-              <th scope="col" class="px-3 py-2.5 font-medium">Precio</th>
-              <th scope="col" class="px-3 py-2.5 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody id="cartBody">
-            <tr id="emptyCartRow">
-              <td colspan="5" class="px-3 py-16 text-center text-body text-sm">
-                El carrito está vacío
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      {# Tabla Flowbite — flex:1 1 0 + min-height:0 es el fix correcto para flex-children que no colapsan #}
+      <div class="overflow-hidden relative bg-neutral-primary-soft shadow-xs rounded-base border border-default flex flex-col"
+           style="flex:1 1 0;
+                  min-height:0">
+        <div class="overflow-x-auto overflow-y-auto flex-1">
+          <table class="w-full text-sm text-left text-body">
+            <thead class="text-xs text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
+              <tr>
+                <th scope="col" class="px-3 py-2.5 font-medium w-12">
+                  <span class="sr-only">Img</span>
+                </th>
+                <th scope="col" class="px-3 py-2.5 font-medium">Producto</th>
+                <th scope="col" class="px-3 py-2.5 font-medium text-center">Qty</th>
+                <th scope="col" class="px-3 py-2.5 font-medium">Precio</th>
+                <th scope="col" class="px-3 py-2.5 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody id="cartBody">
+              <tr id="emptyCartRow">
+                <td colspan="5" class="px-3 py-16 text-center text-body text-sm">El carrito está vacío</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-
-    {# Totales + Acciones (siempre visible al fondo) #}
-    <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-4 space-y-2">
-      <div class="flex items-center justify-between text-sm text-body">
-        <span>Subtotal:</span>
-        <span id="subtotalDisplay" class="font-medium text-heading">$0.00</span>
-      </div>
-      <div class="flex items-center justify-between text-sm text-body">
-        <span>IVA (16%):</span>
-        <span id="ivaDisplay" class="font-medium text-heading">$0.00</span>
-      </div>
-      <div
-        class="flex items-center justify-between text-base font-bold text-heading border-t border-default-medium pt-2 mt-2">
-        <span>Total:</span>
-        <span id="totalDisplay">$0.00</span>
-      </div>
-      <div class="flex gap-2 pt-1">
-        <button type="button" id="btnConfirmar" disabled
-          class="flex-1 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
-          Confirmar
-        </button>
-        <button type="button" id="btnCancelar"
-          class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-          Cancelar
-        </button>
+      {# Totales + Acciones (siempre visible al fondo) #}
+      <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-4 space-y-2">
+        <div class="flex items-center justify-between text-sm text-body">
+          <span>Subtotal:</span>
+          <span id="subtotalDisplay" class="font-medium text-heading">$0.00</span>
+        </div>
+        <div class="flex items-center justify-between text-sm text-body">
+          <span>IVA (16%):</span>
+          <span id="ivaDisplay" class="font-medium text-heading">$0.00</span>
+        </div>
+        <div class="flex items-center justify-between text-base font-bold text-heading border-t border-default-medium pt-2 mt-2">
+          <span>Total:</span>
+          <span id="totalDisplay">$0.00</span>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button type="button"
+                  id="btnConfirmar"
+                  disabled
+                  class="flex-1 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+            Confirmar
+          </button>
+          <button type="button"
+                  id="btnCancelar"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            Cancelar
+          </button>
+        </div>
       </div>
     </div>
   </div>
+  <script>
+      (() => {
+          "use strict";
 
-</div>
+          const IVA = 0.16;
+          let cartItems = [];
+          let cartTotal = 0;
+          const csrfToken = "{{ csrf_token() if csrf_token else '' }}";
 
-<script>
-  (() => {
-    "use strict";
+          // ── Fetch Cart Data ─────────────────────────────
+          async function loadCart() {
+              try {
+                  const res = await fetch("{{ url_for('sales.get_cart') }}");
+                  const data = await res.json();
+                  cartItems = data.items || [];
+                  cartTotal = data.total || 0;
+                  renderCart();
+              } catch (err) {
+                  console.error("Error loading cart:", err);
+              }
+          }
 
-    const CART_KEY = "pos_cart";
-    const IVA = 0.16;
+          // ── Endpoints Builders ───────────────────────────────────
+          async function addToCart(productId, qty = 1) {
+              try {
+                  const res = await fetch("{{ url_for('sales.add_item') }}", {
+                      method: "POST",
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": csrfToken
+                      },
+                      body: JSON.stringify({
+                          product_id: parseInt(productId),
+                          quantity: qty
+                      })
+                  });
+                  if (res.ok) await loadCart();
+              } catch (err) {
+                  console.error(err);
+              }
+          }
 
-    // ── Persistencia en sessionStorage ─────────────────────────────
-    const cart = JSON.parse(sessionStorage.getItem(CART_KEY) || "{}");
+          async function updateCartItem(itemId, qty) {
+              if (qty < 1) {
+                  return removeCartItem(itemId);
+              }
+              try {
+                  const res = await fetch(`{{ url_for('sales.pos') }}/items/${itemId}`, {
+                      method: "PUT",
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": csrfToken
+                      },
+                      body: JSON.stringify({
+                          quantity: qty
+                      })
+                  });
+                  if (res.ok) await loadCart();
+              } catch (err) {
+                  console.error(err);
+              }
+          }
 
-    function saveCart() {
-      sessionStorage.setItem(CART_KEY, JSON.stringify(cart));
-    }
+          async function removeCartItem(itemId) {
+              try {
+                  const res = await fetch(`{{ url_for('sales.pos') }}/items/${itemId}`, {
+                      method: "DELETE",
+                      headers: {
+                          "X-CSRFToken": csrfToken
+                      }
+                  });
+                  if (res.ok) await loadCart();
+              } catch (err) {
+                  console.error(err);
+              }
+          }
 
-    // ── Construye fila de carrito ───────────────────────────────────
-    function buildCartRow(id, item) {
-      const tr = document.createElement("tr");
-      tr.className = "cart-row bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium";
-      tr.dataset.productId = id;
-      tr.innerHTML = `
+          // ── Construye fila de carrito ───────────────────────────────────
+          function buildCartRow(item) {
+              const tr = document.createElement("tr");
+              tr.className = "cart-row bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium";
+              tr.dataset.itemId = item.id;
+              tr.innerHTML = `
           <td class="p-3">
-            <img src="{{ url_for('static', filename='src/images/sofa.png') }}"
-                 class="w-10 h-10 object-cover rounded-sm" alt="${item.name}" />
+            <img src="{{ url_for('static', filename='src/images/sofa.png') }}" class="w-10 h-10 object-cover rounded-sm" alt="${item.name}" />
           </td>
           <td class="px-3 py-3">
             <p class="font-semibold text-heading text-xs leading-snug line-clamp-2">${item.name}</p>
@@ -270,154 +379,143 @@ POS – Venta Física | Furniture Store
           </td>
           <td class="px-3 py-3">
             <div class="flex items-center justify-center gap-1">
-              <button type="button" data-action="dec" data-id="${id}"
-                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
+              <button type="button" data-action="dec" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
                 <svg class="w-2.5 h-2.5 text-heading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
                 </svg>
               </button>
-              <span class="min-w-[20px] text-center text-xs font-medium text-heading">${item.qty}</span>
-              <button type="button" data-action="inc" data-id="${id}"
-                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
+              <span class="min-w-[20px] text-center text-xs font-medium text-heading">${item.quantity}</span>
+              <button type="button" data-action="inc" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
                 <svg class="w-2.5 h-2.5 text-heading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
                 </svg>
               </button>
             </div>
           </td>
           <td class="px-3 py-3 font-semibold text-heading text-xs whitespace-nowrap">
-            $${(item.price * item.qty).toLocaleString("es-MX")}
+            $${(item.subtotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
           </td>
           <td class="px-3 py-3">
-            <button type="button" data-action="del" data-id="${id}"
-              class="text-fg-danger hover:underline text-xs font-medium">
+            <button type="button" data-action="del" data-id="${item.id}" class="text-fg-danger hover:underline text-xs font-medium">
               Quitar
             </button>
           </td>`;
-      return tr;
-    }
+              return tr;
+          }
 
-    function renderCart() {
-      const tbody = document.getElementById("cartBody");
-      const emptyRow = document.getElementById("emptyCartRow");
-      const btnConfirmar = document.getElementById("btnConfirmar");
+          function renderCart() {
+              const tbody = document.getElementById("cartBody");
+              const emptyRow = document.getElementById("emptyCartRow");
+              const btnConfirmar = document.getElementById("btnConfirmar");
 
-      tbody.querySelectorAll("tr.cart-row").forEach(r => r.remove());
+              tbody.querySelectorAll("tr.cart-row").forEach(r => r.remove());
 
-      const keys = Object.keys(cart);
-      if (keys.length === 0) {
-        emptyRow.classList.remove("hidden");
-        btnConfirmar.disabled = true;
-      } else {
-        emptyRow.classList.add("hidden");
-        btnConfirmar.disabled = false;
-        keys.forEach(id => tbody.appendChild(buildCartRow(id, cart[id])));
-      }
-      updateTotals();
-    }
-
-    function updateTotals() {
-      const subtotal = Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
-      const iva = subtotal * IVA;
-      document.getElementById("subtotalDisplay").textContent = `$${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-      document.getElementById("ivaDisplay").textContent = `$${iva.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-      document.getElementById("totalDisplay").textContent = `$${(subtotal + iva).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-    }
-
-    // Agregar producto
-    document.querySelectorAll(".btn-add-product").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.productId;
-        if (cart[id]) {
-          cart[id].qty++;
-        } else {
-          cart[id] = {
-            name: btn.dataset.productName,
-            sku: btn.dataset.productSku,
-            price: parseFloat(btn.dataset.productPrice),
-            qty: 1,
-          };
-        }
-        saveCart();
-        renderCart();
-      });
-    });
-
-    // Delegación de eventos en el carrito
-    document.getElementById("cartBody").addEventListener("click", e => {
-      const btn = e.target.closest("[data-action]");
-      if (!btn) return;
-      const id = btn.dataset.id;
-      const action = btn.dataset.action;
-      if (!cart[id]) return;
-      if (action === "inc") { cart[id].qty++; }
-      else if (action === "dec") {
-        if (cart[id].qty > 1) cart[id].qty--;
-        else delete cart[id];
-      } else if (action === "del") {
-        delete cart[id];
-      }
-      saveCart();
-      renderCart();
-    });
-
-    // Cancelar
-    document.getElementById("btnCancelar").addEventListener("click", () => {
-      Object.keys(cart).forEach(k => delete cart[k]);
-      saveCart();
-      renderCart();
-    });
-
-    // Render inicial desde sessionStorage
-    renderCart();
-
-    // -- Autocompletar Clientes --
-    const customerInput = document.getElementById("customerSearchInput");
-    const customerDropdown = document.getElementById("customerDropdown");
-    const customerList = document.getElementById("customerList");
-    const customerForm = document.getElementById("customerForm");
-    const customerIdInput = document.getElementById("customer_id_input");
-    
-    if (customerInput) {
-      let debounceTimer;
-      customerInput.addEventListener("input", (e) => {
-        clearTimeout(debounceTimer);
-        const q = e.target.value.trim();
-        if (q.length < 2) {
-          customerDropdown.classList.add("hidden");
-          return;
-        }
-        debounceTimer = setTimeout(() => {
-          fetch(`{{ url_for('sales.search_customers') }}?q=${encodeURIComponent(q)}`)
-            .then(res => res.json())
-            .then(data => {
-              customerList.innerHTML = "";
-              if (data.length === 0) {
-                customerList.innerHTML = `<li class="px-4 py-2 text-body">No se encontraron clientes</li>`;
+              if (cartItems.length === 0) {
+                  emptyRow.classList.remove("hidden");
+                  btnConfirmar.disabled = true;
               } else {
-                data.forEach(c => {
-                  const li = document.createElement("li");
-                  li.className = "px-4 py-2 hover:bg-neutral-secondary-medium cursor-pointer border-b border-default last:border-0";
-                  li.innerHTML = `<div class="font-medium">${c.full_name}</div><div class="text-xs text-body">${c.email}</div>`;
-                  li.addEventListener("click", () => {
-                    customerIdInput.value = c.id;
-                    customerForm.submit();
-                  });
-                  customerList.appendChild(li);
-                });
+                  emptyRow.classList.add("hidden");
+                  btnConfirmar.disabled = false;
+                  cartItems.forEach(item => tbody.appendChild(buildCartRow(item)));
               }
-              customerDropdown.classList.remove("hidden");
-            });
-        }, 300);
-      });
+              updateTotals();
+          }
 
-      document.addEventListener("click", (e) => {
-        if (!customerInput.contains(e.target) && !customerDropdown.contains(e.target)) {
-          customerDropdown.classList.add("hidden");
-        }
-      });
-    }
+          function updateTotals() {
+              const subtotal = cartTotal;
+              const iva = subtotal * IVA;
+              document.getElementById("subtotalDisplay").textContent = `$${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+              document.getElementById("ivaDisplay").textContent = `$${iva.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+              document.getElementById("totalDisplay").textContent = `$${(subtotal + iva).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+          }
 
-  })();
-</script>
+          // Agregar producto
+          document.querySelectorAll(".btn-add-product").forEach(btn => {
+              btn.addEventListener("click", () => {
+                  const productId = btn.dataset.productId;
+                  addToCart(productId, 1);
+              });
+          });
+
+          // Delegación de eventos en el carrito
+          document.getElementById("cartBody").addEventListener("click", e => {
+              const btn = e.target.closest("[data-action]");
+              if (!btn) return;
+              const itemId = btn.dataset.id;
+              const action = btn.dataset.action;
+
+              if (action === "inc") {
+                  const qty = parseInt(btn.dataset.qty) + 1;
+                  updateCartItem(itemId, qty);
+              } else if (action === "dec") {
+                  const qty = parseInt(btn.dataset.qty) - 1;
+                  updateCartItem(itemId, qty);
+              } else if (action === "del") {
+                  removeCartItem(itemId);
+              }
+          });
+
+          // Cancelar
+          document.getElementById("btnCancelar").addEventListener("click", () => {
+              Promise.all(cartItems.map(item => fetch(`{{ url_for('sales.pos') }}/items/${item.id}`, {
+                      method: "DELETE",
+                      headers: {
+                          "X-CSRFToken": csrfToken
+                      }
+                  })))
+                  .then(() => loadCart());
+          });
+
+          // Render inicial
+          loadCart();
+
+          // -- Autocompletar Clientes --
+          const customerInput = document.getElementById("customerSearchInput");
+          const customerDropdown = document.getElementById("customerDropdown");
+          const customerList = document.getElementById("customerList");
+          const customerForm = document.getElementById("customerForm");
+          const customerIdInput = document.getElementById("customer_id_input");
+
+          if (customerInput) {
+              let debounceTimer;
+              customerInput.addEventListener("input", (e) => {
+                  clearTimeout(debounceTimer);
+                  const q = e.target.value.trim();
+                  if (q.length < 2) {
+                      customerDropdown.classList.add("hidden");
+                      return;
+                  }
+                  debounceTimer = setTimeout(() => {
+                      fetch(`{{ url_for('sales.search_customers') }}?q=${encodeURIComponent(q)}`)
+                          .then(res => res.json())
+                          .then(data => {
+                              customerList.innerHTML = "";
+                              if (data.length === 0) {
+                                  customerList.innerHTML = `<li class="px-4 py-2 text-body">No se encontraron clientes</li>`;
+                              } else {
+                                  data.forEach(c => {
+                                      const li = document.createElement("li");
+                                      li.className = "px-4 py-2 hover:bg-neutral-secondary-medium cursor-pointer border-b border-default last:border-0";
+                                      li.innerHTML = `<div class="font-medium">${c.full_name}</div><div class="text-xs text-body">${c.email}</div>`;
+                                      li.addEventListener("click", () => {
+                                          customerIdInput.value = c.id;
+                                          customerForm.submit();
+                                      });
+                                      customerList.appendChild(li);
+                                  });
+                              }
+                              customerDropdown.classList.remove("hidden");
+                          });
+                  }, 300);
+              });
+
+              document.addEventListener("click", (e) => {
+                  if (!customerInput.contains(e.target) && !customerDropdown.contains(e.target)) {
+                      customerDropdown.classList.add("hidden");
+                  }
+              });
+          }
+
+      })();
+  </script>
 {% endblock content %}
