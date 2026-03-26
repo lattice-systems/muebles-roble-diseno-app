@@ -6,7 +6,7 @@ from flask import flash, jsonify, redirect, render_template, request, session, u
 from flask_security import auth_required, current_user
 
 from . import sales_bp
-from .services import SaleService
+from .services import SaleService, SaleItemService
 from app.exceptions import NotFoundError
 
 
@@ -63,7 +63,9 @@ def open_sale():
         Redirect: Redirige a la vista principal del POS.
     """
     customer_id_raw = request.form.get("customer_id")
-    customer_id = int(customer_id_raw) if customer_id_raw and customer_id_raw.isdigit() else None
+    customer_id = (
+        int(customer_id_raw) if customer_id_raw and customer_id_raw.isdigit() else None
+    )
 
     # Cerrar venta activa anterior si la hay
     session.pop("active_sale_id", None)
@@ -96,3 +98,69 @@ def search_customers():
     q = request.args.get("q", "").strip()
     customers = SaleService.search_customers(q)
     return jsonify(customers)
+
+
+@sales_bp.route("/pos/cart", methods=["GET"])
+@auth_required()
+def get_cart():
+    sale_id = session.get("active_sale_id")
+    if not sale_id:
+        return jsonify({"items": [], "total": 0})
+    try:
+        sale = SaleService.get_active_sale(sale_id)
+        items = SaleItemService.get_cart_items(sale.id)
+        return jsonify(
+            {"items": items, "total": float(sale.total) if sale.total else 0}
+        )
+    except NotFoundError:
+        return jsonify({"items": [], "total": 0})
+
+
+@sales_bp.route("/pos/items", methods=["POST"])
+@auth_required()
+def add_item():
+    sale_id = session.get("active_sale_id")
+    if not sale_id:
+        return jsonify({"error": "No hay venta activa"}), 400
+    try:
+        data = request.get_json()
+        product_id = data.get("product_id")
+        if not product_id:
+            return jsonify({"error": "Falta el ID del producto"}), 400
+
+        quantity = data.get("quantity", 1)
+        SaleItemService.add_item_to_sale(sale_id, int(product_id), int(quantity))
+        return jsonify({"success": True})
+    except (NotFoundError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@sales_bp.route("/pos/items/<int:item_id>", methods=["PUT"])
+@auth_required()
+def update_item(item_id):
+    sale_id = session.get("active_sale_id")
+    if not sale_id:
+        return jsonify({"error": "No hay venta activa"}), 400
+    try:
+        data = request.get_json()
+        quantity = data.get("quantity")
+        if quantity is None:
+            return jsonify({"error": "Falta la cantidad"}), 400
+
+        SaleItemService.update_item_quantity(sale_id, item_id, int(quantity))
+        return jsonify({"success": True})
+    except (NotFoundError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@sales_bp.route("/pos/items/<int:item_id>", methods=["DELETE"])
+@auth_required()
+def remove_item(item_id):
+    sale_id = session.get("active_sale_id")
+    if not sale_id:
+        return jsonify({"error": "No hay venta activa"}), 400
+    try:
+        SaleItemService.remove_item_from_sale(sale_id, item_id)
+        return jsonify({"success": True})
+    except (NotFoundError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
