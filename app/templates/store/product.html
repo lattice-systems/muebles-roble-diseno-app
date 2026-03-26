@@ -93,7 +93,7 @@
           <h4 class="text-sm text-body mb-2 font-medium">Tamaño</h4>
           <div class="flex gap-4">
             {% for size in product.sizes or ['S', 'M', 'L'] %}
-              <button class="w-9 h-9 flex items-center justify-center rounded bg-[#F9F1E7] text-heading text-sm hover:bg-sky-900 hover:text-white transition-colors {% if loop.first %}bg-sky-900 text-white{% endif %}">
+              <button class="w-9 h-9 flex items-center justify-center rounded bg-slate-100 text-heading text-sm hover:bg-sky-900 hover:text-white transition-colors {% if loop.first %}bg-sky-900 text-white{% endif %}">
                 {{ size }}
               </button>
             {% endfor %}
@@ -104,7 +104,7 @@
           <div class="flex gap-4">
             <button class="w-8 h-8 rounded-full bg-indigo-500 shadow-sm border border-transparent"></button>
             <button class="w-8 h-8 rounded-full bg-black shadow-sm ring-2 ring-sky-900 ring-offset-2"></button>
-            <button class="w-8 h-8 rounded-full bg-[#B88E2F] shadow-sm border border-transparent"></button>
+            <button class="w-8 h-8 rounded-full bg-amber-600 shadow-sm border border-transparent"></button>
           </div>
         </div>
         <!-- Add to Cart actions -->
@@ -192,12 +192,12 @@
         </div>
         <!-- Additional Images in Description -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="bg-[#F9F1E7] rounded-lg overflow-hidden h-80">
+          <div class="bg-slate-100 rounded-lg overflow-hidden h-80">
             <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800"
                  class="w-full h-full object-cover opacity-90 mix-blend-multiply"
                  alt="Detalle Sofá" />
           </div>
-          <div class="bg-[#F9F1E7] rounded-lg overflow-hidden h-80">
+          <div class="bg-slate-100 rounded-lg overflow-hidden h-80">
             <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800"
                  class="w-full h-full object-cover opacity-90 mix-blend-multiply"
                  alt="Detalle Sofá 2" />

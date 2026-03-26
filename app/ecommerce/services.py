@@ -127,7 +127,7 @@ class EcommerceService:
                     "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=800",
                     "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800",
                 ],
-                "description": "Estableciendo un estándar como uno de los altavoces más potentes de su categoría, Syltherine ofrece un diseño compacto y robusto que brinda un audio bien equilibrado...",
+                "description": "El sofá Asgaard es una obra maestra del diseño escandinavo, ofreciendo comodidad excepcional y un estilo moderno que se adapta a cualquier sala de estar. Creado en madera de pino y lino de alta resistencia.",
                 "sizes": ["L", "XL", "XS"],
                 "colors": ["purple", "black", "yellow"],
                 "sku": "SY001",
