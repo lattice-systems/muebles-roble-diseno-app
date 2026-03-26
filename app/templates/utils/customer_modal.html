@@ -1,0 +1,54 @@
+<!-- Main modal -->
+<div id="customerModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
+                <h3 class="text-xl font-bold text-heading dark:text-white">
+                    Registrar Cliente
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors" data-modal-toggle="customerModal">
+                    <svg class="w-3 h-3 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 space-y-4">
+                <form id="customerRegistrationForm" action="#">
+                    <div class="grid gap-4 mb-4 sm:grid-cols-2">
+                        <div>
+                            <label for="new_customer_name" class="block mb-2 text-sm font-medium text-heading dark:text-white">Nombre Completo</label>
+                            <input type="text" name="name" id="new_customer_name" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Juan Pérez" required="">
+                        </div>
+                        <div>
+                            <label for="new_customer_email" class="block mb-2 text-sm font-medium text-heading dark:text-white">Correo Electrónico</label>
+                            <input type="email" name="email" id="new_customer_email" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="correo@ejemplo.com" required="">
+                        </div>
+                        <div>
+                            <label for="new_customer_phone" class="block mb-2 text-sm font-medium text-heading dark:text-white">Teléfono (Opcional)</label>
+                            <input type="text" name="phone" id="new_customer_phone" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. 1234567890">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="new_customer_address" class="block mb-2 text-sm font-medium text-heading dark:text-white">Dirección (Opcional)</label>
+                            <textarea id="new_customer_address" rows="3" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Dirección completa del cliente"></textarea>                    
+                        </div>
+                    </div>
+                    
+                    <div id="customerModalErrorBox" class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs" role="alert">
+                      <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                      <span class="sr-only">Error</span>
+                      <div class="ms-2 text-sm" id="customerModalErrorMessage"></div>
+                    </div>
+
+                    <button type="submit" id="btnRegistrarCliente" class="text-white inline-flex items-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-sm px-5 py-2.5 text-center transition-colors">
+                        <svg class="mr-1 -ml-1 w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                        Guardar Cliente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
