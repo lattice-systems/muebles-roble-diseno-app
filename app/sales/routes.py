@@ -164,3 +164,37 @@ def remove_item(item_id):
         return jsonify({"success": True})
     except (NotFoundError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
+
+
+@sales_bp.route("/pos/checkout", methods=["POST"])
+@auth_required()
+def checkout():
+    sale_id = session.get("active_sale_id")
+    if not sale_id:
+        return jsonify({"error": "No hay venta activa"}), 400
+    
+    try:
+        data = request.get_json()
+        amount_given = float(data.get("amount_given", 0))
+        payment_method_id = int(data.get("payment_method_id", 0))
+        
+        if payment_method_id <= 0:
+            return jsonify({"error": "Método de pago inválido"}), 400
+            
+        result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id)
+        
+        # Limpiar carrito
+        session.pop("active_sale_id", None)
+        
+        return jsonify(result)
+    except (NotFoundError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@sales_bp.route("/pos/payment-methods", methods=["GET"])
+@auth_required()
+def get_payment_methods():
+    methods = SaleService.get_payment_methods()
+    return jsonify([{"id": m.id, "name": m.name} for m in methods])
