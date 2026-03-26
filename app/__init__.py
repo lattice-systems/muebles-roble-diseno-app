@@ -91,4 +91,8 @@ def create_app():
 
     app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
 
+    from .sales import sales_bp
+
+    app.register_blueprint(sales_bp, url_prefix="/sales")
+
     return app
