@@ -164,3 +164,13 @@ def remove_item(item_id):
         return jsonify({"success": True})
     except (NotFoundError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
+
+
+@sales_bp.route("/pos/stock/<int:product_id>", methods=["GET"])
+@auth_required()
+def get_stock(product_id):
+    try:
+        stock = SaleService.get_product_stock(product_id)
+        return jsonify({"stock": stock})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
