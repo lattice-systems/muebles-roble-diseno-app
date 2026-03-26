@@ -8,7 +8,7 @@
        style="height: 100%;
               min-height: 500px">
     {# ── Panel izquierdo: catálogo (scrollable) ── #}
-    <div class="flex flex-col gap-4 flex-1 min-w-0 min-h-0 overflow-hidden pe-6 border-e border-default">
+    <div class="flex flex-col gap-4 min-w-0 min-h-0 overflow-hidden pe-6 border-e border-default" style="width:45%">
       {# Título #}
       <div class="shrink-0">
         <h1 class="text-xl font-semibold text-heading">Venta física POS</h1>
@@ -179,8 +179,8 @@
       </div>
     </div>
     {# ── Panel derecho: Carrito (tamaño fijo, no crece) ── #}
-    <div class="w-[390px] shrink-0 flex flex-col gap-4 ps-6 min-h-0"
-         style="height: 100%">
+    <div class="shrink-0 flex flex-col ps-6 min-h-0"
+         style="height: 100%; width:55%">
       <div class="shrink-0">
         <h2 class="text-lg font-semibold text-heading">Carrito</h2>
         <div class="text-xs text-body">
@@ -193,6 +193,7 @@
                   method="POST"
                   action="{{ url_for('sales.open_sale') }}"
                   class="hidden">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="customer_id" value="">
             </form>
           {% else %}
@@ -202,21 +203,26 @@
         {% if not sale or not sale.customer %}
           <div class="mt-3 relative">
             <label for="customerSearchInput" class="sr-only">Buscar cliente</label>
-            <div class="relative w-full">
-              <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-body"
-                     aria-hidden="true"
-                     xmlns="http://www.w3.org/2000/svg"
-                     fill="none"
-                     viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
-                </svg>
+            <div class="relative w-full flex items-center gap-2">
+              <div class="relative flex-1">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                  <svg class="w-4 h-4 text-body"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                  </svg>
+                </div>
+                <input type="text"
+                       id="customerSearchInput"
+                       class="block w-full p-2 ps-9 bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                       placeholder="Buscar cliente por nombre o email..."
+                       autocomplete="off">
               </div>
-              <input type="text"
-                     id="customerSearchInput"
-                     class="block w-full p-2 ps-9 bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-                     placeholder="Buscar cliente por nombre o email..."
-                     autocomplete="off">
+              <button type="button" data-modal-target="customerModal" data-modal-toggle="customerModal" class="shrink-0 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none" title="Nuevo Cliente">
+                  <svg class="w-5 h-5 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+              </button>
             </div>
             <div id="customerDropdown"
                  class="absolute z-50 w-full bg-white border border-default-medium shadow-md rounded mt-1 hidden max-h-48 overflow-y-auto">
@@ -227,14 +233,14 @@
                   method="POST"
                   action="{{ url_for('sales.open_sale') }}"
                   class="hidden">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="customer_id" id="customer_id_input">
             </form>
           </div>
         {% endif %}
       </div>
-      
-      <!-- Contenedor Inline de Alertas (Visualmente más ordenado arriba del carrito) -->
-      <div id="cartAlertsContainer" class="w-full">
+      <!-- Contenedor Inline de Alertas -->
+      <div id="cartAlertsContainer" class="w-full shrink-0">
         <!-- Componente Flowbite Warning Pre-montado Inline -->
         <div id="staticWarningToast" class="hidden flex sm:items-center p-4 mb-4 mt-2 text-sm text-fg-warning rounded-base bg-warning-soft" role="alert">
             <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
@@ -258,33 +264,33 @@
         </div>
       </div>
 
-      {# Tabla Flowbite — flex:1 1 0 + min-height:0 es el fix correcto para flex-children que no colapsan #}
-      <div class="overflow-hidden relative bg-neutral-primary-soft shadow-xs rounded-base border border-default flex flex-col"
+      {# Tabla Flowbite — siempre ocupa todo el espacio disponible #}
+      <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2"
            style="flex:1 1 0;
                   min-height:0">
-        <div class="overflow-x-auto overflow-y-auto flex-1">
-          <table class="w-full text-sm text-left text-body">
-            <thead class="text-xs text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
+        <div class="absolute inset-0 overflow-x-auto overflow-y-auto">
+          <table class="w-full text-sm text-left rtl:text-right text-body" style="min-height:100%">
+            <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
               <tr>
-                <th scope="col" class="px-3 py-2.5 font-medium w-12">
-                  <span class="sr-only">Img</span>
+                <th scope="col" class="px-4 py-3">
+                  <span class="sr-only">Image</span>
                 </th>
-                <th scope="col" class="px-3 py-2.5 font-medium">Producto</th>
-                <th scope="col" class="px-3 py-2.5 font-medium text-center">Qty</th>
-                <th scope="col" class="px-3 py-2.5 font-medium">Precio</th>
-                <th scope="col" class="px-3 py-2.5 font-medium"></th>
+                <th scope="col" class="px-6 py-3 font-medium">Producto</th>
+                <th scope="col" class="px-6 py-3 font-medium">Qty</th>
+                <th scope="col" class="px-6 py-3 font-medium">Precio</th>
+                <th scope="col" class="px-6 py-3 font-medium">Acción</th>
               </tr>
             </thead>
             <tbody id="cartBody">
               <tr id="emptyCartRow">
-                <td colspan="5" class="px-3 py-16 text-center text-body text-sm">El carrito está vacío</td>
+                <td colspan="5" class="px-6 py-16 text-center text-body text-sm">El carrito está vacío</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
       {# Totales + Acciones (siempre visible al fondo) #}
-      <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-4 space-y-2">
+      <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-4 space-y-2 mt-2">
         <div class="flex items-center justify-between text-sm text-body">
           <span>Subtotal:</span>
           <span id="subtotalDisplay" class="font-medium text-heading">$0.00</span>
@@ -313,6 +319,7 @@
 
 
 <!-- Checkout Modal -->
+{% include 'utils/customer_modal.html' %}
 <div id="checkoutModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
     <div class="relative p-4 w-full max-w-md max-h-full">
         <!-- Modal content -->
@@ -384,6 +391,9 @@
   <script>
       // Extrae el modal de las capas de layout CSS para evitar bugs de superposición de Tailwind/Flowbite (z-index limits / overflow hidden)
       document.body.appendChild(document.getElementById('checkoutModal'));
+      if (document.getElementById('customerModal')) {
+          document.body.appendChild(document.getElementById('customerModal'));
+      }
 
       (() => {
           "use strict";
@@ -467,35 +477,29 @@
               tr.className = "cart-row bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium";
               tr.dataset.itemId = item.id;
               tr.innerHTML = `
-          <td class="p-3">
-            <img src="{{ url_for('static', filename='src/images/sofa.png') }}" class="w-10 h-10 object-cover rounded-sm" alt="${item.name}" />
+          <td class="p-4">
+            <img src="{{ url_for('static', filename='src/images/sofa.png') }}" class="w-16 md:w-24 max-w-full max-h-full" alt="${item.name}" />
           </td>
-          <td class="px-3 py-3">
-            <p class="font-semibold text-heading text-xs leading-snug line-clamp-2">${item.name}</p>
-            <p class="text-body text-xs">${item.sku}</p>
+          <td class="px-6 py-4 font-semibold text-heading">
+            <p class="leading-snug line-clamp-2">${item.name}</p>
+            <p class="text-body text-xs font-normal">${item.sku}</p>
           </td>
-          <td class="px-3 py-3">
-            <div class="flex items-center justify-center gap-1">
-              <button type="button" data-action="dec" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
-                <svg class="w-2.5 h-2.5 text-heading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
-                </svg>
+          <td class="px-6 py-4">
+            <div class="relative flex items-center">
+              <button type="button" data-action="dec" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6">
+                <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/></svg>
               </button>
-              <span class="min-w-[20px] text-center text-xs font-medium text-heading">${item.quantity}</span>
-              <button type="button" data-action="inc" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full focus:outline-none h-5 w-5">
-                <svg class="w-2.5 h-2.5 text-heading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
-                </svg>
+              <span class="shrink-0 text-heading border-0 bg-transparent text-sm font-normal max-w-[2.5rem] text-center">${item.quantity}</span>
+              <button type="button" data-action="inc" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6">
+                <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
               </button>
             </div>
           </td>
-          <td class="px-3 py-3 font-semibold text-heading text-xs whitespace-nowrap">
-            $${(item.subtotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+          <td class="px-6 py-4 font-semibold text-heading whitespace-nowrap">
+            \$${(item.subtotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
           </td>
-          <td class="px-3 py-3">
-            <button type="button" data-action="del" data-id="${item.id}" class="text-fg-danger hover:underline text-xs font-medium">
-              Quitar
-            </button>
+          <td class="px-6 py-4">
+            <button type="button" data-action="del" data-id="${item.id}" class="font-medium text-fg-danger hover:underline">Quitar</button>
           </td>`;
               return tr;
           }
@@ -609,6 +613,60 @@
                       customerDropdown.classList.add("hidden");
                   }
               });
+
+              // -- Modal New Customer Logic --
+              const customerRegistrationForm = document.getElementById("customerRegistrationForm");
+              const customerModalErrorBox = document.getElementById("customerModalErrorBox");
+              const customerModalErrorMessage = document.getElementById("customerModalErrorMessage");
+              const btnRegistrarCliente = document.getElementById("btnRegistrarCliente");
+              
+              if (customerRegistrationForm) {
+                  customerRegistrationForm.addEventListener("submit", async (e) => {
+                      e.preventDefault();
+                      customerModalErrorBox.classList.add("hidden");
+                      btnRegistrarCliente.disabled = true;
+                      btnRegistrarCliente.textContent = "Guardando...";
+                      
+                      const formData = new FormData(customerRegistrationForm);
+                      const data = {
+                          full_name: formData.get("name"),
+                          email: formData.get("email"),
+                          phone: formData.get("phone"),
+                          address: formData.get("address")
+                      };
+                      
+                      try {
+                          const res = await fetch("{{ url_for('sales.create_customer') }}", {
+                              method: "POST",
+                              headers: {
+                                  "Content-Type": "application/json",
+                                  "X-CSRFToken": csrfToken
+                              },
+                              body: JSON.stringify(data)
+                          });
+                          const result = await res.json();
+                          if (res.ok && result.success) {
+                              // Ocultar modal manualmente 
+                              document.getElementById("customerModal").classList.add("hidden");
+                              
+                              // Seleccionar el cliente recién creado
+                              customerIdInput.value = result.customer.id;
+                              customerForm.submit();
+                          } else {
+                              customerModalErrorMessage.textContent = result.error || "Ocurrió un error al registrar el cliente.";
+                              customerModalErrorBox.classList.remove("hidden");
+                              btnRegistrarCliente.disabled = false;
+                              btnRegistrarCliente.innerHTML = `<svg class="mr-1 -ml-1 w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Guardar Cliente`;
+                          }
+                      } catch (err) {
+                          console.error(err);
+                          customerModalErrorMessage.textContent = "Error de red al intentar registrar el cliente.";
+                          customerModalErrorBox.classList.remove("hidden");
+                          btnRegistrarCliente.disabled = false;
+                          btnRegistrarCliente.innerHTML = `<svg class="mr-1 -ml-1 w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Guardar Cliente`;
+                      }
+                  });
+              }
           }
 
           // -- Modal Checkout Logic --
