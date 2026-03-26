@@ -76,7 +76,8 @@ def open_sale():
             customer_id=customer_id,
         )
         session["active_sale_id"] = sale.id
-        flash("Nueva venta abierta exitosamente", "success")
+        if not customer_id:
+            flash("Nueva venta abierta exitosamente", "success")
     except Exception as e:
         flash(str(e), "error")
 
@@ -98,6 +99,25 @@ def search_customers():
     q = request.args.get("q", "").strip()
     customers = SaleService.search_customers(q)
     return jsonify(customers)
+
+
+@sales_bp.route("/pos/customers", methods=["POST"])
+@auth_required()
+def create_customer():
+    """
+    Crea un nuevo cliente desde el POS.
+    """
+    try:
+        data = request.get_json()
+        if not data or not data.get("full_name") or not data.get("email"):
+            return jsonify({"error": "Nombre completo y correo son obligatorios."}), 400
+            
+        customer = SaleService.create_customer(data)
+        return jsonify({"success": True, "customer": customer.to_dict()})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "Error interno del servidor."}), 500
 
 
 @sales_bp.route("/pos/cart", methods=["GET"])
