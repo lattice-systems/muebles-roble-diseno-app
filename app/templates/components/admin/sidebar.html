@@ -102,7 +102,7 @@
             "dropdown-production") }}
       {{ sidebar_dropdown("Ventas",
             [
-            {"label": "Venta POS", "href": "#", "icon": icon_pos},
+            {"label": "POS", "href": url_for('sales.pos'), "icon": icon_pos, "active": request.endpoint and request.endpoint.startswith('sales.')},
             {"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub},
             ],
             icon_sales,
