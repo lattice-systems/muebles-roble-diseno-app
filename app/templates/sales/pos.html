@@ -232,6 +232,32 @@
           </div>
         {% endif %}
       </div>
+      
+      <!-- Contenedor Inline de Alertas (Visualmente más ordenado arriba del carrito) -->
+      <div id="cartAlertsContainer" class="w-full">
+        <!-- Componente Flowbite Warning Pre-montado Inline -->
+        <div id="staticWarningToast" class="hidden flex sm:items-center p-4 mb-4 mt-2 text-sm text-fg-warning rounded-base bg-warning-soft" role="alert">
+            <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            <span class="sr-only">Warning</span>
+            <div class="ms-2 text-sm whitespace-pre-wrap" id="staticWarningToastMessage"></div>
+            <button type="button" class="ms-auto -mx-1.5 -my-1.5 rounded focus:ring-2 focus:ring-warning-medium p-1.5 hover:bg-warning-medium inline-flex items-center justify-center h-8 w-8 shrink-0 shrink-0" onclick="document.getElementById('staticWarningToast').classList.add('hidden')" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+            </button>
+        </div>
+
+        <!-- Componente Flowbite Success Pre-montado Inline -->
+        <div id="staticSuccessToast" class="hidden flex sm:items-center p-4 mb-4 mt-2 text-sm text-fg-success-strong rounded-base bg-success-soft" role="alert">
+            <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            <span class="sr-only">Success</span>
+            <div class="ms-2 text-sm whitespace-pre-wrap" id="staticSuccessToastMessage"></div>
+            <button type="button" class="ms-auto -mx-1.5 -my-1.5 rounded focus:ring-2 focus:ring-success-medium p-1.5 hover:bg-success-medium inline-flex items-center justify-center h-8 w-8 shrink-0 shrink-0" onclick="document.getElementById('staticSuccessToast').classList.add('hidden')" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+            </button>
+        </div>
+      </div>
+
       {# Tabla Flowbite — flex:1 1 0 + min-height:0 es el fix correcto para flex-children que no colapsan #}
       <div class="overflow-hidden relative bg-neutral-primary-soft shadow-xs rounded-base border border-default flex flex-col"
            style="flex:1 1 0;
@@ -274,7 +300,6 @@
         <div class="flex gap-2 pt-1">
           <button type="button"
                   id="btnConfirmar"
-                  disabled
                   class="flex-1 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
             Confirmar
           </button>
@@ -285,9 +310,81 @@
           </button>
         </div>
       </div>
+
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-700 border border-default-medium">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
+                <h3 class="text-xl font-bold text-heading dark:text-white">
+                    Finalizar Cobro
+                </h3>
+                <button type="button" id="closeCheckoutModalTop" class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors">
+                    <svg class="w-3 h-3 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Cerrar modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 space-y-4">
+                <div class="p-4 bg-neutral-primary-soft rounded-base flex items-center justify-between border border-default shadow-xs">
+                    <span class="text-lg font-medium text-body">Total a Pagar:</span>
+                    <span class="text-2xl font-bold text-heading" id="modalTotalDisplay">$0.00</span>
+                </div>
+                
+                <div>
+                    <label for="paymentMethodSelect" class="block mb-2 text-sm font-medium text-heading">Método de Pago</label>
+                    <select id="paymentMethodSelect" class="bg-neutral-primary-soft border border-default-medium text-heading font-medium text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
+                        <option value="" disabled selected>Selecciona un método</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="amountGivenInput" class="block mb-2 text-sm font-medium text-heading">Monto Entregado</label>
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <span class="text-body font-medium sm:text-lg">$</span>
+                        </div>
+                        <input type="number" id="amountGivenInput" class="bg-white border border-default-medium text-heading text-lg font-bold rounded-base focus:ring-brand-medium focus:border-brand block w-full pl-8 p-3 shadow-xs" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-default-medium mt-4">
+                    <span class="text-sm font-medium text-body">Cambio a Devolver:</span>
+                    <span class="text-2xl font-bold text-emerald-600" id="modalChangeDisplay">$0.00</span>
+                </div>
+                
+                <div id="checkoutErrorBox" class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs" role="alert">
+                  <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                  <span class="sr-only">Info</span>
+                  <div class="ms-2 text-sm" id="checkoutErrorMessage">
+                    Monto insuficiente.
+                  </div>
+                  <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-danger-soft text-fg-danger-strong rounded focus:ring-2 focus:ring-danger-medium p-1.5 hover:bg-danger-medium inline-flex items-center justify-center h-8 w-8 shrink-0 shrink-0" onclick="document.getElementById('checkoutErrorBox').classList.add('hidden')" aria-label="Close">
+                    <span class="sr-only">Close</span>
+                      <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+                  </button>
+                </div>
+            </div>
+            
+            <!-- Modal footer -->
+            <div class="flex items-center p-4 md:p-5 border-t border-default bg-neutral-primary-soft rounded-b">
+                <button data-action="process-payment" type="button" id="btnProcesarPago" class="w-full text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-base px-5 py-3 text-center transition-colors">
+                    Confirmar Pago
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
   <script>
+      // Extrae el modal de las capas de layout CSS para evitar bugs de superposición de Tailwind/Flowbite (z-index limits / overflow hidden)
+      document.body.appendChild(document.getElementById('checkoutModal'));
+
       (() => {
           "use strict";
 
@@ -412,10 +509,8 @@
 
               if (cartItems.length === 0) {
                   emptyRow.classList.remove("hidden");
-                  btnConfirmar.disabled = true;
               } else {
                   emptyRow.classList.add("hidden");
-                  btnConfirmar.disabled = false;
                   cartItems.forEach(item => tbody.appendChild(buildCartRow(item)));
               }
               updateTotals();
@@ -514,6 +609,137 @@
                       customerDropdown.classList.add("hidden");
                   }
               });
+          }
+
+          // -- Modal Checkout Logic --
+          const paymentMethodSelect = document.getElementById("paymentMethodSelect");
+          const amountGivenInput = document.getElementById("amountGivenInput");
+          const btnProcesarPago = document.getElementById("btnProcesarPago");
+          const checkoutErrorBox = document.getElementById("checkoutErrorBox");
+          const checkoutErrorMessage = document.getElementById("checkoutErrorMessage");
+          
+          async function loadPaymentMethods() {
+              try {
+                  const res = await fetch("{{ url_for('sales.get_payment_methods') }}");
+                  const methods = await res.json();
+                  methods.forEach(m => {
+                      const opt = document.createElement("option");
+                      opt.value = m.id;
+                      opt.textContent = m.name;
+                      paymentMethodSelect.appendChild(opt);
+                  });
+              } catch (e) {
+                  console.error("Error loading payment methods", e);
+              }
+          }
+          loadPaymentMethods();
+
+          function calculateChange() {
+              const subtotal = cartTotal;
+              const iva = subtotal * IVA;
+              const trueTotal = subtotal + iva;
+              let given = parseFloat(amountGivenInput.value) || 0;
+              let change = given - trueTotal;
+              if (change < 0) change = 0;
+              document.getElementById("modalChangeDisplay").textContent = `$${change.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+              if (given >= trueTotal || !amountGivenInput.value) {
+                  checkoutErrorBox.classList.add('hidden');
+              }
+          }
+          amountGivenInput.addEventListener("input", calculateChange);
+
+          document.getElementById("btnConfirmar").addEventListener("click", () => {
+              if (cartItems.length === 0) {
+                  showGlobalAlert('warning', 'Añade al menos un producto al carrito para proceder con el cobro.');
+                  return;
+              }
+              const subtotal = cartTotal;
+              const iva = subtotal * IVA;
+              const trueTotal = subtotal + iva;
+              document.getElementById("modalTotalDisplay").textContent = `$${trueTotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+              calculateChange();
+              
+              const modal = document.getElementById("checkoutModal");
+              modal.classList.remove('hidden');
+              modal.classList.add('flex');
+          });
+
+          document.getElementById("closeCheckoutModalTop").addEventListener("click", () => {
+              const modal = document.getElementById("checkoutModal");
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+          });
+
+          btnProcesarPago.addEventListener("click", async () => {
+              const methodId = paymentMethodSelect.value;
+              const amountGiven = parseFloat(amountGivenInput.value);
+              const subtotal = cartTotal;
+              const iva = subtotal * IVA;
+              const trueTotal = subtotal + iva;
+              
+              if (!methodId) {
+                  checkoutErrorMessage.textContent = "Debes seleccionar un método de pago en la lista.";
+                  checkoutErrorBox.classList.remove("hidden");
+                  return;
+              }
+              if (!amountGiven || amountGiven < trueTotal) {
+                  checkoutErrorMessage.textContent = `Monto ingresado insuficiente para cubrir la venta. Faltan $${(trueTotal - (amountGiven || 0)).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+                  checkoutErrorBox.classList.remove("hidden");
+                  return;
+              }
+              
+              btnProcesarPago.disabled = true;
+              btnProcesarPago.textContent = "Autorizando cobro de servidor...";
+              
+              try {
+                  const res = await fetch("{{ url_for('sales.checkout') }}", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                      body: JSON.stringify({
+                          payment_method_id: methodId,
+                          amount_given: amountGiven
+                      })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                      document.getElementById("checkoutModal").classList.add("hidden");
+                      
+                      showGlobalAlert('success', `¡Cobro Registrado! \nPor favor, entrega este cambio exacto al cliente:\n\n$${data.change.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`);
+                      
+                      setTimeout(() => {
+                          window.location.reload();
+                      }, 7000);
+                  } else {
+                      checkoutErrorMessage.textContent = data.error || "Ocurrió un error en el pago.";
+                      checkoutErrorBox.classList.remove("hidden");
+                      btnProcesarPago.disabled = false;
+                      btnProcesarPago.textContent = "Confirmar Pago";
+                  }
+              } catch (err) {
+                  console.error(err);
+                  btnProcesarPago.disabled = false;
+                  btnProcesarPago.textContent = "Confirmar Pago";
+              }
+          });
+
+          window.activeToastTimer = null;
+
+          function showGlobalAlert(type, message) {
+              if (window.activeToastTimer) clearTimeout(window.activeToastTimer);
+              const successToast = document.getElementById("staticSuccessToast");
+              const warningToast = document.getElementById("staticWarningToast");
+              
+              if (type === 'success') {
+                  warningToast.classList.add('hidden');
+                  document.getElementById("staticSuccessToastMessage").textContent = message;
+                  successToast.classList.remove('hidden');
+                  window.activeToastTimer = setTimeout(() => { successToast.classList.add('hidden'); }, 6000);
+              } else if (type === 'warning') {
+                  successToast.classList.add('hidden');
+                  document.getElementById("staticWarningToastMessage").textContent = message;
+                  warningToast.classList.remove('hidden');
+                  window.activeToastTimer = setTimeout(() => { warningToast.classList.add('hidden'); }, 6000);
+              }
           }
 
       })();
