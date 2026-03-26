@@ -13,7 +13,9 @@
       <a href="{{ url_for('ecommerce.home') }}"
          class="text-heading hover:text-body transition-colors text-base {% if active_section == 'home' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Inicio</a>
       <a href="{{ url_for('ecommerce.categories') }}"
-         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'categories' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Tienda</a>
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'categories' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Categorías</a>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'products' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Productos</a>
       <a href="{{ url_for('ecommerce.about') }}"
          class="text-heading hover:text-body transition-colors text-base {% if active_section == 'about' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Nosotros</a>
       <a href="{{ url_for('ecommerce.contact') }}"
@@ -27,13 +29,17 @@
           <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
         </svg>
       </button>
-      <a href="{{ url_for('ecommerce.cart') }}"
-         class="text-heading hover:text-body transition-colors relative">
+      <button type="button"
+              data-drawer-target="cart-sidebar"
+              data-drawer-show="cart-sidebar"
+              data-drawer-placement="right"
+              aria-controls="cart-sidebar"
+              class="text-heading hover:text-body transition-colors relative cursor-pointer">
         <span class="sr-only">Carrito</span>
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
         </svg>
-      </a>
+      </button>
       <!-- Hamburger Menu Button -->
       <button id="mobile-menu-button"
               class="md:hidden text-heading focus:outline-none ml-2">
@@ -60,7 +66,9 @@
       <a href="{{ url_for('ecommerce.home') }}"
          class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'home' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Inicio</a>
       <a href="{{ url_for('ecommerce.categories') }}"
-         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'categories' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Tienda</a>
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'categories' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Categorías</a>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'products' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Productos</a>
       <a href="{{ url_for('ecommerce.about') }}"
          class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'about' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Nosotros</a>
       <a href="{{ url_for('ecommerce.contact') }}"

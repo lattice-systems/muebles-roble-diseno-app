@@ -1,0 +1,65 @@
+<!-- drawer component -->
+<div id="cart-sidebar"
+     class="fixed top-0 right-0 z-50 h-screen p-6 overflow-y-auto transition-transform translate-x-full bg-white w-96 shadow-xl"
+     tabindex="-1"
+     aria-labelledby="drawer-right-label">
+  <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+    <h5 id="drawer-right-label"
+        class="inline-flex items-center text-xl font-bold text-heading">Carrito de compras</h5>
+    <button type="button"
+            data-drawer-hide="cart-sidebar"
+            aria-controls="cart-sidebar"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 inset-e-2.5 inline-flex items-center justify-center">
+      <svg class="w-3 h-3"
+           aria-hidden="true"
+           xmlns="http://www.w3.org/2000/svg"
+           fill="none"
+           viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+      </svg>
+      <span class="sr-only">Cerrar carrito</span>
+    </button>
+  </div>
+  <!-- Cart Items List -->
+  <div class="flex-1 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-250px)]">
+    {% for item in cart.cart_items %}
+      <div class="flex items-center gap-4">
+        <div class="w-24 h-24 rounded-lg bg-[#F9F1E7] overflow-hidden shrink-0 flex items-center justify-center">
+          <img src="{{ item.product.image }}"
+               alt="{{ item.product.title }}"
+               class="w-full h-full object-cover mix-blend-multiply opacity-90">
+        </div>
+        <div class="flex-1">
+          <h6 class="text-heading font-medium text-base mb-1">{{ item.product.title }}</h6>
+          <div class="flex items-center text-sm">
+            <span class="text-heading font-medium">{{ item.quantity }}</span>
+            <span class="mx-2 text-body-subtle">X</span>
+            <span class="text-sky-900 font-medium">MX {{ "{:,.0f}".format(item.product.price) }}</span>
+          </div>
+        </div>
+        <button class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-colors shrink-0">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    {% endfor %}
+  </div>
+  <!-- Cart Footer -->
+  <div class="absolute bottom-0 left-0 w-full p-6 bg-white border-t border-gray-100">
+    <div class="flex justify-between items-center mb-6">
+      <span class="text-heading font-medium">Subtotal</span>
+      <span class="text-sky-900 font-bold text-lg">MX {{ "{:,.0f}".format(cart.subtotal) }}</span>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <a href="{{ url_for('ecommerce.cart') }}"
+         class="w-full text-center py-2 px-4 rounded-full border border-heading text-heading hover:bg-heading hover:text-white transition-colors text-sm font-medium">
+        Cart
+      </a>
+      <a href="{{ url_for('ecommerce.checkout') }}"
+         class="w-full text-center py-2 px-4 rounded-full border border-heading text-heading hover:bg-heading hover:text-white transition-colors text-sm font-medium">
+        Checkout
+      </a>
+    </div>
+  </div>
+</div>
