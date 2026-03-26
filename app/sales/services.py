@@ -112,6 +112,26 @@ class SaleService:
         return [c.to_dict() for c in customers]
 
     @staticmethod
+    def create_customer(data: dict) -> Customer:
+        """
+        Crea un nuevo cliente.
+        """
+        existing = Customer.query.filter_by(email=data.get('email')).first()
+        if existing:
+            raise ValueError("El correo electrónico ya está registrado.")
+        
+        customer = Customer(
+            full_name=data.get('full_name'),
+            email=data.get('email'),
+            phone=data.get('phone', ''),
+            address=data.get('address', ''),
+            status=True
+        )
+        db.session.add(customer)
+        db.session.commit()
+        return customer
+
+    @staticmethod
     def get_products(
         search_term: str = "",
         page: int = 1,
