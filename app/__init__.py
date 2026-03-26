@@ -55,7 +55,7 @@ def create_app():
     app.register_blueprint(suppliers_bp, url_prefix="/admin/suppliers")
 
     from .costs import costs_bp
-    
+
     app.register_blueprint(costs_bp, url_prefix="/costs")
 
     app.register_blueprint(colors_bp, url_prefix="/colors")
@@ -86,5 +86,9 @@ def create_app():
     from .catalogs.furniture_type import furniture_type_bp
 
     app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+
+    from .ecommerce import ecommerce_bp
+
+    app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
 
     return app
