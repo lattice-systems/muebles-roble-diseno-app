@@ -88,7 +88,7 @@
       {{ sidebar_dropdown("Abastecimiento",
             [
             {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
-      {"label": "Compras", "href": "#", "icon": icon_purchases},
+      {"label": "Compras", "href": url_for('purchases.index') , "icon": icon_purchases, "active": request.endpoint and request.endpoint.startswith('purchases.')},
       {"label": "Materia prima", "href": "#", "icon": icon_materials}
       ],
       icon_supplies,

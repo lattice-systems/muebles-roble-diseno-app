@@ -1,0 +1,213 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalles de la Orden de Compra
+{% endblock title %}
+{% block content %}
+  <div class="max-w-5xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalles Orden de Compra #{{ order.id }}</h1>
+      <p class="text-body">Visualiza la información de la orden, sus artículos, y actualiza el estado según su avance.</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <!-- Cabecera de la Orden -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5 2xl:gap-4 items-start border-b border-default pb-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm font-medium text-heading">Proveedor</span>
+          <span class="text-body text-xs 2xl:text-sm">{{ order.supplier.name if order.supplier else 'Desconocido' }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm font-medium text-heading">Fecha de la Orden</span>
+          <span class="text-body text-xs 2xl:text-sm">{{ order.order_date.isoformat() if order.order_date else '' }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm font-medium text-heading">Fecha de Registro</span>
+          <span class="text-body text-xs 2xl:text-sm">{{ order.created_at.strftime("%d/%m/%Y %H:%M") if order.created_at else '' }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm font-medium text-heading">Estado actual</span>
+          <div>
+            {% if order.status == 'pendiente' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Pendiente</span>
+            {% elif order.status == 'confirmada' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Confirmada</span>
+            {% elif order.status == 'recibida' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Recibida</span>
+            {% elif order.status == 'cancelada' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Cancelada</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-neutral-subtle text-body text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">{{ order.status }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- Detalle de Ítems -->
+      <div class="flex flex-col gap-2 pt-4">
+        <h2 class="text-sm 2xl:text-base font-semibold text-heading pb-2">Artículos Solicitados</h2>
+        <div class="relative w-full overflow-x-auto bg-neutral-primary-soft border border-default-medium rounded-base shadow-sm">
+          <table class="w-full text-left text-xs 2xl:text-sm text-body">
+            <thead class="text-xs 2xl:text-sm text-heading bg-neutral-secondary-medium border-b border-default-medium">
+              <tr>
+                <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/3">Materia Prima</th>
+                <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Cantidad (U.M.)</th>
+                <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6 text-right">Precio Unitario</th>
+                <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if order and order.items %}
+                {% for item in order.items %}
+                  <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                    <td class="px-3 py-2 2xl:px-4 font-medium text-heading">
+                      {{ item.raw_material.name if item.raw_material else 'Desc.' }}
+                    </td>
+                    <td class="px-3 py-2 2xl:px-4">
+                      {{ item.quantity }} {{ item.raw_material.unit.abbreviation if item.raw_material and item.raw_material.unit else '' }}
+                    </td>
+                    <td class="px-3 py-2 2xl:px-4 text-right">${{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="px-3 py-2 2xl:px-4 font-medium text-heading text-right whitespace-nowrap">
+                      ${{ "%.2f"|format(item.subtotal) }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+            <tfoot class="bg-neutral-secondary-medium border-t border-default-medium w-full">
+              <tr>
+                <th scope="row"
+                    colspan="3"
+                    class="px-3 py-3 2xl:px-4 2xl:py-4 text-right font-semibold text-heading text-sm">Total Orden:</th>
+                <th class="px-3 py-3 2xl:px-4 2xl:py-4 font-bold text-heading text-sm 2xl:text-base text-right">
+                  ${{ "%.2f"|format(order.total) }}
+                </th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="flex items-center justify-between gap-2.5 2xl:gap-3 mt-6 pt-4 border-t border-default-medium">
+        <div>
+          <a href="{{ url_for('purchases.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver
+          </a>
+        </div>
+        <div class="flex items-center gap-2">
+          {% if order.status in ['pendiente', 'confirmada'] %}
+            <button data-modal-target="status-cancelar-modal"
+                    data-modal-toggle="status-cancelar-modal"
+                    class="inline-flex items-center justify-center text-white bg-danger hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Cancelar Orden
+            </button>
+          {% endif %}
+          {% if order.status == 'pendiente' %}
+            <a href="{{ url_for('purchases.edit_order', id_order=order.id) }}"
+               class="inline-flex items-center justify-center text-body bg-neutral-tertiary-medium hover:text-heading hover:bg-neutral-tertiary-strong box-border border border-default-medium focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Editar
+            </a>
+            <button data-modal-target="status-confirmar-modal"
+                    data-modal-toggle="status-confirmar-modal"
+                    class="inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Cambiar a Confirmada
+            </button>
+          {% endif %}
+          {% if order.status == 'confirmada' %}
+            <button data-modal-target="status-recibir-modal"
+                    data-modal-toggle="status-recibir-modal"
+                    class="inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Recibir Materia Prima
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+{% block modals %}
+  <!-- Modal Confirmar -->
+  <div id="status-confirmar-modal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-6 text-center">
+        <h3 class="mb-4 text-heading font-medium">¿Marcar como confirmada?</h3>
+        <p class="mb-6 text-body text-sm">El proveedor ya aceptó la orden y se está preparando.</p>
+        <div class="flex items-center space-x-4 justify-center">
+          <form method="post"
+                action="{{ url_for('purchases.change_status_order', id_order=order.id) }}">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() if csrf_token else '' }}">
+            <input type="hidden" name="status" value="confirmada">
+            <button type="submit"
+                    class="text-white bg-brand hover:bg-brand-strong focus:ring-4 font-medium rounded-base text-sm px-4 py-2">
+              Sí, confirmar
+            </button>
+          </form>
+          <button data-modal-hide="status-confirmar-modal"
+                  class="text-body bg-neutral-secondary-medium hover:text-heading font-medium rounded-base text-sm px-4 py-2 mx-2 border border-default-medium">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Recibir (Impacta Stock) -->
+  <div id="status-recibir-modal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-6 text-center">
+        <h3 class="mb-4 text-heading font-medium">¿Marcar orden como RECIBIDA?</h3>
+        <p class="mb-6 text-body text-sm">
+          Esta acción <strong>sumará las cantidades al inventario</strong> de materia prima y no se puede deshacer de forma sencilla.
+        </p>
+        <div class="flex items-center space-x-4 justify-center">
+          <form method="post"
+                action="{{ url_for('purchases.change_status_order', id_order=order.id) }}">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() if csrf_token else '' }}">
+            <input type="hidden" name="status" value="recibida">
+            <button type="submit"
+                    class="text-white bg-brand hover:bg-brand-strong focus:ring-4 font-medium rounded-base text-sm px-4 py-2">
+              Sí, recibir en inventario
+            </button>
+          </form>
+          <button data-modal-hide="status-recibir-modal"
+                  class="text-body bg-neutral-secondary-medium hover:text-heading font-medium rounded-base text-sm px-4 py-2 mx-2 border border-default-medium">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Cancelar -->
+  <div id="status-cancelar-modal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-6 text-center">
+        <h3 class="mb-4 text-heading font-medium text-danger">¿Cancelar esta orden de compra?</h3>
+        <p class="mb-6 text-body text-sm">La orden pasará a estar cancelada y ya no podrá ser editada ni recibida.</p>
+        <div class="flex items-center space-x-4 justify-center">
+          <form method="post"
+                action="{{ url_for('purchases.change_status_order', id_order=order.id) }}">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() if csrf_token else '' }}">
+            <input type="hidden" name="status" value="cancelada">
+            <button type="submit"
+                    class="text-white bg-danger hover:bg-danger-strong focus:ring-4 font-medium rounded-base text-sm px-4 py-2">
+              Sí, cancelar
+            </button>
+          </form>
+          <button data-modal-hide="status-cancelar-modal"
+                  class="text-body bg-neutral-secondary-medium hover:text-heading font-medium rounded-base text-sm px-4 py-2 mx-2 border border-default-medium">
+            Regresar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock modals %}
