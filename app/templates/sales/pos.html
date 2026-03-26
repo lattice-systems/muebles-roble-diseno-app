@@ -403,6 +403,16 @@
           let cartTotal = 0;
           const csrfToken = "{{ csrf_token() if csrf_token else '' }}";
 
+          // ── Toast helpers ─────────────────────────────
+          function showWarningToast(msg) {
+              const toast = document.getElementById("staticWarningToast");
+              const msgEl = document.getElementById("staticWarningToastMessage");
+              if (!toast || !msgEl) return;
+              msgEl.textContent = msg;
+              toast.classList.remove("hidden");
+              setTimeout(() => toast.classList.add("hidden"), 5000);
+          }
+
           // ── Fetch Cart Data ─────────────────────────────
           async function loadCart() {
               try {
@@ -430,7 +440,12 @@
                           quantity: qty
                       })
                   });
-                  if (res.ok) await loadCart();
+                  if (res.ok) {
+                      await loadCart();
+                  } else {
+                      const errData = await res.json();
+                      showWarningToast(errData.error || "Error al agregar producto.");
+                  }
               } catch (err) {
                   console.error(err);
               }
@@ -451,7 +466,12 @@
                           quantity: qty
                       })
                   });
-                  if (res.ok) await loadCart();
+                  if (res.ok) {
+                      await loadCart();
+                  } else {
+                      const errData = await res.json();
+                      showWarningToast(errData.error || "Error al actualizar cantidad.");
+                  }
               } catch (err) {
                   console.error(err);
               }
