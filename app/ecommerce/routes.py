@@ -44,7 +44,7 @@ def contact():
     return render_template("store/contact.html", active_section="contact")
 
 
-@ecommerce_bp.route("/nosotros")
-def nosotros():
+@ecommerce_bp.route("/about")
+def about():
     """Página sobre nosotros."""
-    return render_template("store/nosotros.html", active_section="nosotros")
+    return render_template("store/about.html", active_section="about")
