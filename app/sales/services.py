@@ -14,6 +14,7 @@ from app.models.customer import Customer
 from app.models.payment import Payment
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
+from app.models.product_inventory import ProductInventory
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
 
@@ -238,11 +239,25 @@ class SaleItemService:
         if not product:
             raise NotFoundError("El producto no existe o está inactivo.")
 
+        # Verificar stock disponible
+        inventory = ProductInventory.query.filter_by(product_id=product.id).first()
+        available_stock = inventory.stock if inventory else 0
+
         existing_item = SaleItem.query.filter_by(
             sale_id=sale.id, product_id=product.id
         ).first()
+
+        current_qty = existing_item.quantity if existing_item else 0
+        new_qty = current_qty + quantity
+
+        if new_qty > available_stock:
+            raise ValueError(
+                f"Stock insuficiente para '{product.name}'. "
+                f"Disponible: {available_stock}, solicitado: {new_qty}."
+            )
+
         if existing_item:
-            existing_item.quantity += quantity
+            existing_item.quantity = new_qty
         else:
             new_item = SaleItem(
                 sale_id=sale.id,
@@ -262,6 +277,17 @@ class SaleItemService:
         item = SaleItem.query.filter_by(id=item_id, sale_id=sale.id).first()
         if not item:
             raise NotFoundError("Detalle no encontrado en esta venta.")
+
+        # Verificar stock disponible
+        inventory = ProductInventory.query.filter_by(product_id=item.product_id).first()
+        available_stock = inventory.stock if inventory else 0
+
+        if quantity > available_stock:
+            product = Product.query.get(item.product_id)
+            raise ValueError(
+                f"Stock insuficiente para '{product.name}'. "
+                f"Disponible: {available_stock}, solicitado: {quantity}."
+            )
 
         item.quantity = quantity
         db.session.commit()
