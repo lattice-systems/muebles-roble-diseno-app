@@ -76,8 +76,6 @@ def open_sale():
             customer_id=customer_id,
         )
         session["active_sale_id"] = sale.id
-        if not customer_id:
-            flash("Nueva venta abierta exitosamente", "success")
     except Exception as e:
         flash(str(e), "error")
 
@@ -116,7 +114,7 @@ def create_customer():
         return jsonify({"success": True, "customer": customer.to_dict()})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({"error": "Error interno del servidor."}), 500
 
 
