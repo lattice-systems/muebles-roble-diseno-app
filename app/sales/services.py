@@ -11,6 +11,8 @@ from app.exceptions import NotFoundError
 from app.extensions import db
 from app.models.audit_log import AuditLog
 from app.models.customer import Customer
+from app.models.payment import Payment
+from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
@@ -140,6 +142,52 @@ class SaleService:
         return query.order_by(Product.name.asc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
+
+    @staticmethod
+    def get_payment_methods():
+        return PaymentMethod.query.filter_by(status=True, available_pos=True).all()
+
+    @staticmethod
+    def checkout_sale(sale_id: int, amount_given: float, payment_method_id: int) -> dict:
+        sale = SaleService.get_active_sale(sale_id)
+        if not sale.items:
+            raise ValueError("El carrito está vacío no hay nada que cobrar.")
+
+        calculated_total = sum(item.price * item.quantity for item in sale.items)
+        if sale.total != calculated_total:
+            sale.total = calculated_total
+            db.session.commit()
+
+        if amount_given < float(sale.total):
+            raise ValueError(f"Monto insuficiente. Faltan ${(float(sale.total) - amount_given):,.2f}")
+
+        # Reducir stock (RF-VENT-03 / 05)
+        for item in sale.items:
+            inv = item.product.inventory_records[0] if item.product.inventory_records else None
+            # fallback local query if lazy
+            if not inv:
+                from app.models.product_inventory import ProductInventory
+                inv = ProductInventory.query.filter_by(product_id=item.product_id).first()
+            if inv:
+                inv.stock -= item.quantity
+                if inv.stock < 0:
+                    db.session.rollback()
+                    raise ValueError(f"Inventario negativo detectado para el artículo {item.product.name}")
+        
+        sale.payment_method_id = payment_method_id
+        sale.active = False
+        
+        payment = Payment(
+            payment_type="SALE",
+            id_sale=sale.id,
+            amount=amount_given
+        )
+        db.session.add(payment)
+        
+        change = float(amount_given - float(sale.total))
+        db.session.commit()
+        
+        return {"success": True, "change": change, "total": float(sale.total)}
 
 
 class SaleItemService:
