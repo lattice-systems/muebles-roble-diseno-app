@@ -13,6 +13,7 @@ from app.models.audit_log import AuditLog
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.sale import Sale
+from app.models.sale_item import SaleItem
 
 
 class SaleService:
@@ -76,9 +77,7 @@ class SaleService:
         """
         sale = Sale.query.filter_by(id=sale_id, active=True).first()
         if not sale:
-            raise NotFoundError(
-                f"No se encontró una venta activa con ID {sale_id}"
-            )
+            raise NotFoundError(f"No se encontró una venta activa con ID {sale_id}")
         return sale
 
     @staticmethod
@@ -141,3 +140,70 @@ class SaleService:
         return query.order_by(Product.name.asc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
+
+
+class SaleItemService:
+    """Servicio para gestionar los detalles de venta (carrito) del POS."""
+
+    @staticmethod
+    def get_cart_items(sale_id: int) -> list[dict]:
+        items = (
+            SaleItem.query.filter_by(sale_id=sale_id).order_by(SaleItem.id.asc()).all()
+        )
+        return [
+            {
+                "id": i.id,
+                "product_id": i.product_id,
+                "name": i.product.name,
+                "sku": i.product.sku,
+                "price": float(i.price),
+                "quantity": i.quantity,
+                "subtotal": float(i.price * i.quantity),
+            }
+            for i in items
+        ]
+
+    @staticmethod
+    def add_item_to_sale(sale_id: int, product_id: int, quantity: int = 1) -> None:
+        sale = SaleService.get_active_sale(sale_id)
+        product = Product.query.filter_by(id=product_id, status=True).first()
+        if not product:
+            raise NotFoundError("El producto no existe o está inactivo.")
+
+        existing_item = SaleItem.query.filter_by(
+            sale_id=sale.id, product_id=product.id
+        ).first()
+        if existing_item:
+            existing_item.quantity += quantity
+        else:
+            new_item = SaleItem(
+                sale_id=sale.id,
+                product_id=product.id,
+                quantity=quantity,
+                price=product.price,
+            )
+            db.session.add(new_item)
+        db.session.commit()
+
+    @staticmethod
+    def update_item_quantity(sale_id: int, item_id: int, quantity: int) -> None:
+        sale = SaleService.get_active_sale(sale_id)
+        if quantity < 1:
+            raise ValueError("La cantidad debe ser mayor a 0.")
+
+        item = SaleItem.query.filter_by(id=item_id, sale_id=sale.id).first()
+        if not item:
+            raise NotFoundError("Detalle no encontrado en esta venta.")
+
+        item.quantity = quantity
+        db.session.commit()
+
+    @staticmethod
+    def remove_item_from_sale(sale_id: int, item_id: int) -> None:
+        sale = SaleService.get_active_sale(sale_id)
+        item = SaleItem.query.filter_by(id=item_id, sale_id=sale.id).first()
+        if not item:
+            raise NotFoundError("Detalle no encontrado en esta venta.")
+
+        db.session.delete(item)
+        db.session.commit()
