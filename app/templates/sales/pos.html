@@ -232,6 +232,20 @@
           </div>
         {% endif %}
       </div>
+      
+      <!-- Flowbite Alert inline (replaces toast to avoid z-index collision) -->
+      <div id="stockAlert" class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft" role="alert">
+        <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        <span class="sr-only">Info</span>
+        <div class="ms-2 text-sm">
+          <span class="font-bold">Atención!</span> <span id="stockAlertMessage">Stock insuficiente.</span>
+        </div>
+        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-danger-soft text-fg-danger-strong rounded-base focus:ring-2 focus:ring-danger-medium p-1.5 hover:bg-danger-medium inline-flex items-center justify-center h-8 w-8 shrink-0" onclick="document.getElementById('stockAlert').classList.add('hidden')" aria-label="Close">
+          <span class="sr-only">Close</span>
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+        </button>
+      </div>
+
       {# Tabla Flowbite — flex:1 1 0 + min-height:0 es el fix correcto para flex-children que no colapsan #}
       <div class="overflow-hidden relative bg-neutral-primary-soft shadow-xs rounded-base border border-default flex flex-col"
            style="flex:1 1 0;
@@ -309,8 +323,44 @@
               }
           }
 
+          // ── Stock Checker & UI Alerts ───────────────────────────────────
+          async function checkStock(productId) {
+              try {
+                  const res = await fetch(`{{ url_for('sales.pos') }}/stock/${productId}`);
+                  if (!res.ok) return 0;
+                  const data = await res.json();
+                  return data.stock || 0;
+              } catch (err) {
+                  console.error("Error checking stock:", err);
+                  return 0;
+              }
+          }
+
+          function showDangerAlert(message) {
+              const alertBox = document.getElementById('stockAlert');
+              if (alertBox) {
+                  document.getElementById('stockAlertMessage').textContent = message;
+                  alertBox.classList.remove('hidden');
+                  
+                  // Auto-hide after 4 seconds
+                  if (window.stockAlertTimer) clearTimeout(window.stockAlertTimer);
+                  window.stockAlertTimer = setTimeout(() => {
+                      alertBox.classList.add('hidden');
+                  }, 4000);
+              }
+          }
+
           // ── Endpoints Builders ───────────────────────────────────
           async function addToCart(productId, qty = 1) {
+              const stock = await checkStock(productId);
+              const existingItem = cartItems.find(i => i.product_id == productId);
+              const currentQty = existingItem ? existingItem.quantity : 0;
+              
+              if (currentQty + qty > stock) {
+                  showDangerAlert(`Stock insuficiente. Disponible en inventario: ${stock}`);
+                  return;
+              }
+
               try {
                   const res = await fetch("{{ url_for('sales.add_item') }}", {
                       method: "POST",
@@ -323,7 +373,12 @@
                           quantity: qty
                       })
                   });
-                  if (res.ok) await loadCart();
+                  if (res.ok) {
+                      await loadCart();
+                  } else {
+                      const errData = await res.json();
+                      showDangerAlert(errData.error || "No se pudo agregar al carrito");
+                  }
               } catch (err) {
                   console.error(err);
               }
@@ -333,6 +388,16 @@
               if (qty < 1) {
                   return removeCartItem(itemId);
               }
+              
+              const cartItem = cartItems.find(i => i.id == itemId);
+              if (cartItem && qty > cartItem.quantity) {
+                  const stock = await checkStock(cartItem.product_id);
+                  if (qty > stock) {
+                      showDangerAlert(`Límite alcanzado. Solo posees ${stock} unidades en inventario.`);
+                      return;
+                  }
+              }
+
               try {
                   const res = await fetch(`{{ url_for('sales.pos') }}/items/${itemId}`, {
                       method: "PUT",
@@ -344,7 +409,12 @@
                           quantity: qty
                       })
                   });
-                  if (res.ok) await loadCart();
+                  if (res.ok) {
+                      await loadCart();
+                  } else {
+                      const errData = await res.json();
+                      showDangerAlert(errData.error || "Error al modificar la cantidad");
+                  }
               } catch (err) {
                   console.error(err);
               }
