@@ -8,7 +8,7 @@
   {% include 'components/ecommerce/categories.html' %}
   <section class="py-16 px-6 max-w-7xl mx-auto">
     <div class="text-center mb-12">
-      <h2 class="text-4xl font-bold text-[#3A3A3A] mb-8">Nuestros Productos</h2>
+      <h2 class="text-4xl font-bold text-heading mb-8">Nuestros Productos</h2>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-12 justify-items-center">
       {% for product in products %}{{ product_card(product) }}{% endfor %}

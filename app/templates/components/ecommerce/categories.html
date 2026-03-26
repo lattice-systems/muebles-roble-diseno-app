@@ -1,23 +1,19 @@
 {# app/templates/components/ecommerce/categories.html #}
-{% from "macros/ecommerce.html" import category_section %}
-{% set categories = [
-  {
-    "title": "Comedor",
-    "image_url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=800",
-    "href": "#",
-    "alt": "Comedor"
-  },
-  {
-    "title": "Sala",
-    "image_url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
-    "href": "#",
-    "alt": "Sala"
-  },
-  {
-    "title": "Habitación",
-    "image_url": "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800",
-    "href": "#",
-    "alt": "Habitación"
-  }
-] %}
-{{ category_section(categories=categories) }}
+{% from "macros/ecommerce.html" import category_card %}
+<section class="py-16 px-6 max-w-7xl mx-auto">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl font-bold text-heading mb-2">Categorias de productos</h2>
+    <p class="text-body">Descubre nuestras lineas de muebles para cada espacio de tu hogar y oficina.</p>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    {% for category in featured_categories %}
+      {{ category_card(category.title, category.image_url, category.href, category.alt, category.subtitle) }}
+    {% endfor %}
+  </div>
+  <div class="mt-10 text-center">
+    <a href="{{ url_for('ecommerce.categories') }}"
+       class="inline-flex items-center justify-center border border-sky-900 text-sky-900 font-semibold py-3 px-10 hover:bg-sky-900 hover:text-white transition-colors">
+      Ver mas categorias
+    </a>
+  </div>
+</section>
