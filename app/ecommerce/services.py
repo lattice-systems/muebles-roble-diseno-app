@@ -11,7 +11,7 @@ class EcommerceService:
         return [
             {
                 "title": "Salas",
-                "subtitle": "Sofas, sillones individuales, loveseats",
+                "subtitle": "Sofas, sillones individuales, sofas de dos plazas",
                 "image_url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
                 "href": "#",
                 "alt": "Salas",
@@ -112,7 +112,7 @@ class EcommerceService:
             {
                 "id": 1,
                 "title": "Syltherine",
-                "subtitle": "Stylish cafe chair",
+                "subtitle": "Silla de cafe moderna",
                 "price": 2500,
                 "original_price": 3500,
                 "badge": "-30%",
@@ -122,7 +122,7 @@ class EcommerceService:
             {
                 "id": 2,
                 "title": "Leviosa",
-                "subtitle": "Stylish cafe chair",
+                "subtitle": "Silla de cafe moderna",
                 "price": 2500,
                 "badge": None,
                 "image": "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800",
@@ -131,7 +131,7 @@ class EcommerceService:
             {
                 "id": 3,
                 "title": "Lolito",
-                "subtitle": "Luxury big sofa",
+                "subtitle": "Sofa grande de lujo",
                 "price": 7000,
                 "original_price": 14000,
                 "badge": "-50%",
@@ -141,16 +141,16 @@ class EcommerceService:
             {
                 "id": 4,
                 "title": "Respira",
-                "subtitle": "Outdoor bar table and stool",
+                "subtitle": "Mesa alta y banco para exterior",
                 "price": 500,
-                "badge": "New",
+                "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
                 "url": "#",
             },
             {
                 "id": 5,
                 "title": "Grifo",
-                "subtitle": "Night lamp",
+                "subtitle": "Lampara de noche",
                 "price": 1500,
                 "original_price": None,
                 "badge": None,
@@ -160,16 +160,16 @@ class EcommerceService:
             {
                 "id": 6,
                 "title": "Muggo",
-                "subtitle": "Small mug",
+                "subtitle": "Taza pequena",
                 "price": 150,
-                "badge": "New",
+                "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1517254456976-ee8db7803e7d?auto=format&fit=crop&q=80&w=800",
                 "url": "#",
             },
             {
                 "id": 7,
                 "title": "Pingky",
-                "subtitle": "Cute bed set",
+                "subtitle": "Juego de cama encantador",
                 "price": 7000,
                 "original_price": 14000,
                 "badge": "-50%",
@@ -179,9 +179,9 @@ class EcommerceService:
             {
                 "id": 8,
                 "title": "Potty",
-                "subtitle": "Minimalist flower pot",
+                "subtitle": "Maceta minimalista",
                 "price": 500,
-                "badge": "New",
+                "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=800",
                 "url": "#",
             },
