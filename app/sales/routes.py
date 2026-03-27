@@ -109,7 +109,7 @@ def create_customer():
         data = request.get_json()
         if not data or not data.get("full_name") or not data.get("email"):
             return jsonify({"error": "Nombre completo y correo son obligatorios."}), 400
-            
+
         customer = SaleService.create_customer(data)
         return jsonify({"success": True, "customer": customer.to_dict()})
     except ValueError as e:
@@ -127,9 +127,8 @@ def get_cart():
     try:
         sale = SaleService.get_active_sale(sale_id)
         items = SaleItemService.get_cart_items(sale.id)
-        return jsonify(
-            {"items": items, "total": float(sale.total) if sale.total else 0}
-        )
+        total = sum(item.get("subtotal", 0) for item in items)
+        return jsonify({"items": items, "total": total})
     except NotFoundError:
         return jsonify({"items": [], "total": 0})
 
@@ -190,20 +189,20 @@ def checkout():
     sale_id = session.get("active_sale_id")
     if not sale_id:
         return jsonify({"error": "No hay venta activa"}), 400
-    
+
     try:
         data = request.get_json()
         amount_given = float(data.get("amount_given", 0))
         payment_method_id = int(data.get("payment_method_id", 0))
-        
+
         if payment_method_id <= 0:
             return jsonify({"error": "Método de pago inválido"}), 400
-            
+
         result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id)
-        
+
         # Limpiar carrito
         session.pop("active_sale_id", None)
-        
+
         return jsonify(result)
     except (NotFoundError, ValueError) as e:
         return jsonify({"error": str(e)}), 400

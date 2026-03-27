@@ -3,6 +3,7 @@ Servicios de lógica de negocio para el módulo de ventas POS.
 """
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
 from sqlalchemy import or_
@@ -227,6 +228,11 @@ class SaleItemService:
     """Servicio para gestionar los detalles de venta (carrito) del POS."""
 
     @staticmethod
+    def _calculate_sale_total(sale_id: int) -> Decimal:
+        items = SaleItem.query.filter_by(sale_id=sale_id).all()
+        return sum((item.price * item.quantity for item in items), Decimal("0"))
+
+    @staticmethod
     def get_cart_items(sale_id: int) -> list[dict]:
         items = (
             SaleItem.query.filter_by(sale_id=sale_id).order_by(SaleItem.id.asc()).all()
@@ -278,6 +284,8 @@ class SaleItemService:
                 price=product.price,
             )
             db.session.add(new_item)
+
+        sale.total = SaleItemService._calculate_sale_total(sale.id)
         db.session.commit()
 
     @staticmethod
@@ -302,6 +310,7 @@ class SaleItemService:
             )
 
         item.quantity = quantity
+        sale.total = SaleItemService._calculate_sale_total(sale.id)
         db.session.commit()
 
     @staticmethod
@@ -312,4 +321,5 @@ class SaleItemService:
             raise NotFoundError("Detalle no encontrado en esta venta.")
 
         db.session.delete(item)
+        sale.total = SaleItemService._calculate_sale_total(sale.id)
         db.session.commit()
