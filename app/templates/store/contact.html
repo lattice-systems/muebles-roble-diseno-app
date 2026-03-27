@@ -1,0 +1,131 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Contacto | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="relative h-64 flex items-center justify-center bg-gray-100">
+    <div class="absolute inset-0 w-full h-full">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1920"
+           alt="Contacto Hero"
+           class="w-full h-full object-cover opacity-50 mix-blend-multiply">
+    </div>
+    <div class="relative z-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-heading mb-4">Contactanos</h1>
+      <div class="flex items-center justify-center text-sm font-medium space-x-2 text-heading">
+        <a href="{{ url_for('ecommerce.home') }}" class="hover:underline">Inicio</a>
+        <span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </span>
+        <span>Contactanos</span>
+      </div>
+    </div>
+  </section>
+  <!-- Contact Form Section -->
+  <section class="py-16 px-6 max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-heading mb-4">Ponte en contacto con nosotros</h2>
+      <p class="text-body-subtle max-w-2xl mx-auto">
+        Para más información sobre nuestros productos y servicios, no dudes en enviarnos un correo electrónico. Nuestro
+        equipo siempre estará disponible para ayudarte. ¡No dudes en contactarnos!
+      </p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
+      <!-- Contact Info -->
+      <div class="space-y-10">
+        <div class="flex gap-4">
+          <div class="shrink-0 mt-1">
+            <svg class="w-6 h-6 text-heading" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-heading mb-2">Dirección</h3>
+            <p class="text-body-subtle leading-relaxed">
+              Blvd. Universidad
+              <br>
+              Tecnológica 225,
+              <br>
+              Universidad Tecnológica,
+              <br>
+              San Carlos la Roncha
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="shrink-0 mt-1">
+            <svg class="w-6 h-6 text-heading" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-heading mb-2">Telefono</h3>
+            <p class="text-body-subtle leading-relaxed">
+              Celular: +(52) 5469-6789
+              <br>
+              Casa: +(52) 456-678900
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="shrink-0 mt-1">
+            <svg class="w-6 h-6 text-heading" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-heading mb-2">Horario de Trabajo</h3>
+            <p class="text-body-subtle leading-relaxed">
+              Lunes-Viernes: 9:00 - 22:00
+              <br>
+              Sabado-Domingo: 9:00 - 21:00
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- Contact Form -->
+      <div>
+        <form class="space-y-6">
+          <div>
+            <label for="name" class="block text-sm font-semibold text-heading mb-2">Nombre</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   placeholder="Abc"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-semibold text-heading mb-2">Correo</label>
+            <input type="email"
+                   id="email"
+                   name="email"
+                   placeholder="Abc@def.com"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+          </div>
+          <div>
+            <label for="subject" class="block text-sm font-semibold text-heading mb-2">Asunto</label>
+            <input type="text"
+                   id="subject"
+                   name="subject"
+                   placeholder="Esto es opcional"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+          </div>
+          <div>
+            <label for="message" class="block text-sm font-semibold text-heading mb-2">Mensaje</label>
+            <textarea id="message"
+                      name="message"
+                      rows="4"
+                      placeholder="¡Hola! Me gustaría preguntar sobre..."
+                      class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors resize-none"></textarea>
+          </div>
+          <button type="submit"
+                  class="bg-sky-900 text-white font-semibold py-3 px-12 rounded-md hover:bg-sky-800 transition-colors w-full sm:w-auto">
+            Enviar
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
