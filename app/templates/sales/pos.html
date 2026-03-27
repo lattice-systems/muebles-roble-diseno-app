@@ -9,17 +9,16 @@
       <p class="text-body">Venta de productos en tienda física</p>
     </div>
     {% include 'admin/components/alerts.html' %}
-    <div class="relative overflow-hidden bg-neutral-primary-soft h-[calc(100vh-13rem)]">
-      <div class="h-full min-h-0">
+    <div class="relative overflow-hidden bg-neutral-primary-soft h-[calc(100vh-13rem)] border-default">
+      <div class="h-full min-h-0 p-1 2xl:p-2">
         {# ── Panel izquierdo: catálogo (scrollable) ── #}
         <div class="flex gap-0 w-full h-full min-h-0 overflow-hidden">
-          <div class="flex flex-col gap-4 min-w-0 min-h-0 pe-6 border-e border-default"
+          <div class="flex flex-col gap-3 2xl:gap-4 min-w-0 min-h-0 pe-3 2xl:pe-6 border-e border-default"
                style="width:45%">
             {# Buscador Flowbite — botón a la derecha del input #}
             <form method="get"
                   action="{{ url_for('sales.pos') }}"
-                  class="shrink-0 flex items-center gap-2 w-full"
-                  style="padding-right: 16px">
+                  class="shrink-0 flex items-center gap-2 w-full p-1 2xl:p-2">
               <div class="relative flex-1">
                 <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
                   <svg class="w-4 h-4 text-body"
@@ -34,16 +33,16 @@
                        id="search"
                        name="q"
                        value="{{ search_term }}"
-                       class="block w-full p-2.5 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                       class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
                        placeholder="Buscar producto por nombre o SKU…" />
               </div>
               <button type="submit"
-                      class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none shrink-0">
+                      class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none shrink-0">
                 Buscar
               </button>
             </form>
             {# Grid de productos (2 columnas fijas, scroll independiente) #}
-            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-1">
               {% if products %}
                 <div style="display:grid;
                             grid-template-columns:repeat(2,minmax(0,1fr));
@@ -51,7 +50,7 @@
                   {% for product in products %}
                     {% set stock = product.inventory_records[0].stock if product.inventory_records else 0 %}
                     {# Flowbite product card exacto — altura uniforme con flex-col #}
-                    <div class="w-full bg-neutral-primary-soft p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
+                    <div class="w-full bg-neutral-primary-soft p-3 2xl:p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
                       {# Imagen — siempre misma altura #}
                       <div class="rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0"
                            style="height:120px">
@@ -82,22 +81,24 @@
                           product.sku }}</span>
                         </div>
                         {# Nombre — 1 línea fija #}
-                        <h5 class="text-sm text-heading font-semibold tracking-tight line-clamp-1 mb-1">
+                        <h5 class="text-xs 2xl:text-sm text-heading font-semibold tracking-tight line-clamp-1 mb-1">
                           {{ product.name
                           }}
                         </h5>
                         {# Descripción — 2 líneas fijas, ocupa espacio con flex-1 #}
-                        <p class="text-xs text-body line-clamp-2 flex-1">{{ product.description or '—' }}</p>
-                        <p class="text-xs mt-2 {{ 'text-fg-success-strong' if stock > 0 else 'text-fg-danger' }}">Stock: {{ stock }}</p>
+                        <p class="text-xs 2xl:text-sm text-body line-clamp-2 flex-1">{{ product.description or '—' }}</p>
+                        <p class="text-xs 2xl:text-sm mt-2 {{ 'text-fg-success-strong' if stock > 0 else 'text-fg-danger' }}">
+                          Stock: {{ stock }}
+                        </p>
                         {# Precio + botón — siempre clavado al fondo con mt-4 #}
                         <div class="flex items-center justify-between mt-4">
-                          <span class="text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) }}</span>
+                          <span class="text-lg 2xl:text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) }}</span>
                           <button type="button"
                                   data-product-id="{{ product.id }}"
                                   data-product-name="{{ product.name }}"
                                   data-product-price="{{ product.price }}"
                                   data-product-sku="{{ product.sku }}"
-                                  class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none"
+                                  class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
                                   {% if stock <= 0 %}disabled aria-disabled="true"{% endif %}>
                             <svg class="w-4 h-4 me-1.5"
                                  aria-hidden="true"
@@ -132,7 +133,7 @@
                         <a href="{{ url_for('sales.pos', page=pagination.prev_num if pagination.has_prev else 1, q=search_term) }}"
                            class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
                           <span class="sr-only">Anterior</span>
-                          <svg class="w-5 h-5"
+                          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
                                aria-hidden="true"
                                fill="currentColor"
                                viewbox="0 0 20 20"
@@ -158,7 +159,7 @@
                         <a href="{{ url_for('sales.pos', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term) }}"
                            class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
                           <span class="sr-only">Siguiente</span>
-                          <svg class="w-5 h-5"
+                          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
                                aria-hidden="true"
                                fill="currentColor"
                                viewbox="0 0 20 20"
@@ -186,12 +187,12 @@
               {% endif %}
             </div>
           </div>
-          <div class="shrink-0 flex flex-col ps-6 min-h-0"
+          <div class="shrink-0 flex flex-col ps-6 pe-1 min-h-0"
                style="height: 100%;
                       width:55%">
             <div class="shrink-0">
-              <h2 class="text-lg font-semibold text-heading">Carrito</h2>
-              <div class="text-xs text-body">
+              <h2 class="text-base 2xl:text-lg font-semibold text-heading">Carrito</h2>
+              <div class="text-xs 2xl:text-sm text-body">
                 {% if sale and sale.customer %}
                   Cliente: <span class="font-medium text-brand">{{ sale.customer.full_name }}</span>
                   <button type="button"
@@ -224,14 +225,14 @@
                       </div>
                       <input type="text"
                              id="customerSearchInput"
-                             class="block w-full p-2.5 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                             class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
                              placeholder="Buscar cliente por nombre o email..."
                              autocomplete="off">
                     </div>
                     <button type="button"
                             data-modal-target="customerModal"
                             data-modal-toggle="customerModal"
-                            class="shrink-0 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+                            class="shrink-0 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
                             title="Nuevo Cliente">
                       <svg class="w-5 h-5 mx-1"
                            aria-hidden="true"
@@ -246,7 +247,7 @@
                   </div>
                   <div id="customerDropdown"
                        class="absolute z-50 w-full bg-white border border-default-medium shadow-md rounded mt-1 hidden max-h-48 overflow-y-auto">
-                    <ul id="customerList" class="text-sm text-heading pb-1">
+                    <ul id="customerList" class="text-xs 2xl:text-sm text-heading pb-1">
                     </ul>
                   </div>
                   <form id="customerForm"
@@ -261,7 +262,7 @@
             </div>
             <div id="cartAlertsContainer" class="w-full shrink-0">
               <div id="staticWarningToast"
-                   class="hidden items-center p-4 mb-4 mt-2 text-sm text-fg-warning rounded-base bg-warning-soft"
+                   class="hidden items-center p-3 2xl:p-4 mb-3 2xl:mb-4 mt-2 text-xs 2xl:text-sm text-fg-warning rounded-base bg-warning-soft"
                    role="alert">
                 <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0"
                      aria-hidden="true"
@@ -273,7 +274,7 @@
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 <span class="sr-only">Warning</span>
-                <div class="ms-2 text-sm whitespace-pre-wrap"
+                <div class="ms-2 text-xs 2xl:text-sm whitespace-pre-wrap"
                      id="staticWarningToastMessage"></div>
                 <button type="button"
                         class="ms-auto -mx-1.5 -my-1.5 rounded focus:ring-2 focus:ring-warning-medium p-1.5 hover:bg-warning-medium inline-flex items-center justify-center h-8 w-8 shrink-0"
@@ -292,7 +293,7 @@
                 </button>
               </div>
               <div id="staticSuccessToast"
-                   class="hidden items-center p-4 mb-4 mt-2 text-sm text-fg-success-strong rounded-base bg-success-soft"
+                   class="hidden items-center p-3 2xl:p-4 mb-3 2xl:mb-4 mt-2 text-xs 2xl:text-sm text-fg-success-strong rounded-base bg-success-soft"
                    role="alert">
                 <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0"
                      aria-hidden="true"
@@ -304,7 +305,7 @@
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 <span class="sr-only">Success</span>
-                <div class="ms-2 text-sm whitespace-pre-wrap"
+                <div class="ms-2 text-xs 2xl:text-sm whitespace-pre-wrap"
                      id="staticSuccessToastMessage"></div>
                 <button type="button"
                         class="ms-auto -mx-1.5 -my-1.5 rounded focus:ring-2 focus:ring-success-medium p-1.5 hover:bg-success-medium inline-flex items-center justify-center h-8 w-8 shrink-0"
@@ -327,9 +328,9 @@
                  style="flex:1 1 0;
                         min-height:0">
               <div class="absolute inset-0 overflow-x-auto overflow-y-auto">
-                <table class="w-full text-sm text-left rtl:text-right text-body"
+                <table class="w-full text-xs 2xl:text-sm text-left rtl:text-right text-body"
                        style="min-height:100%">
-                  <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
+                  <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
                     <tr>
                       <th scope="col" class="px-4 py-3">
                         <span class="sr-only">Image</span>
@@ -342,34 +343,35 @@
                   </thead>
                   <tbody id="cartBody">
                     <tr id="emptyCartRow">
-                      <td colspan="5" class="px-6 py-16 text-center text-body text-sm">El carrito está vacío</td>
+                      <td colspan="5"
+                          class="px-6 py-16 text-center text-body text-xs 2xl:text-sm">El carrito está vacío</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
-            <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-4 space-y-2 mt-2">
-              <div class="flex items-center justify-between text-sm text-body">
+            <div class="shrink-0 bg-neutral-primary-soft border border-default rounded-base p-3 2xl:p-4 space-y-2 mt-2">
+              <div class="flex items-center justify-between text-xs 2xl:text-sm text-body">
                 <span>Subtotal:</span>
                 <span id="subtotalDisplay" class="font-medium text-heading">$0.00</span>
               </div>
-              <div class="flex items-center justify-between text-sm text-body">
+              <div class="flex items-center justify-between text-xs 2xl:text-sm text-body">
                 <span>IVA (16%):</span>
                 <span id="ivaDisplay" class="font-medium text-heading">$0.00</span>
               </div>
-              <div class="flex items-center justify-between text-base font-bold text-heading border-t border-default-medium pt-2 mt-2">
+              <div class="flex items-center justify-between text-sm 2xl:text-base font-bold text-heading border-t border-default-medium pt-2 mt-2">
                 <span>Total:</span>
                 <span id="totalDisplay">$0.00</span>
               </div>
-              <div class="flex gap-2 pt-1">
+              <div class="flex gap-2 pt-1 p-1 -m-1">
                 <button type="button"
                         id="btnConfirmar"
-                        class="flex-1 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="flex-1 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm py-2 2xl:py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                   Confirmar
                 </button>
                 <button type="button"
                         id="btnCancelar"
-                        class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+                        class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-2 2xl:px-4 2xl:py-2.5 focus:outline-none">
                   Cancelar
                 </button>
               </div>
@@ -392,7 +394,7 @@
           <h3 class="text-xl font-bold text-heading">Confirmar Cobro</h3>
           <button id="closeCheckoutModalTop"
                   type="button"
-                  class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center transition-colors"
+                  class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-xs 2xl:text-sm w-8 h-8 ml-auto inline-flex justify-center items-center transition-colors"
                   aria-label="Cerrar modal">
             <svg class="w-3 h-3 pointer-events-none"
                  aria-hidden="true"
@@ -411,20 +413,20 @@
             </div>
             <div class="sm:col-span-2">
               <label for="paymentMethodSelect"
-                     class="block mb-2 text-sm font-medium text-heading">Metodo de pago</label>
+                     class="block mb-2 text-xs 2xl:text-sm font-medium text-heading">Metodo de pago</label>
               <select id="paymentMethodSelect"
-                      class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
+                      class="bg-neutral-primary-soft border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full px-3 py-2 2xl:py-2.5 shadow-xs">
                 <option value="">Selecciona una opcion</option>
               </select>
             </div>
             <div class="sm:col-span-2">
               <label for="amountGivenInput"
-                     class="block mb-2 text-sm font-medium text-heading">Monto recibido</label>
+                     class="block mb-2 text-xs 2xl:text-sm font-medium text-heading">Monto recibido</label>
               <input type="number"
                      id="amountGivenInput"
                      min="0"
                      step="0.01"
-                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full px-3 py-2 2xl:py-2.5 shadow-xs"
                      placeholder="0.00">
             </div>
             <div class="sm:col-span-2 flex items-center justify-between text-sm text-body border-t border-default pt-3">
@@ -433,7 +435,7 @@
             </div>
           </div>
           <div id="checkoutErrorBox"
-               class="hidden items-center p-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft shadow-xs"
+               class="hidden items-center p-3 2xl:p-4 text-xs 2xl:text-sm text-fg-danger-strong rounded-base bg-danger-soft shadow-xs"
                role="alert">
             <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0"
                  aria-hidden="true"
@@ -450,12 +452,12 @@
           <div class="flex justify-end gap-2 pt-2">
             <button type="button"
                     data-modal-hide="checkoutModal"
-                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
               Cancelar
             </button>
             <button type="button"
                     id="btnProcesarPago"
-                    class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-5 py-2.5 focus:outline-none">
+                    class="text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-1.5 2xl:px-5 2xl:py-2.5 focus:outline-none">
               Confirmar Pago
             </button>
           </div>
