@@ -4,17 +4,16 @@
 {% endblock title %}
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col justify-center gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Venta física POS</h1>
-      <p class="text-body">Venta de productos en tienda física</p>
-    </div>
     {% include 'admin/components/alerts.html' %}
-    <div class="relative overflow-hidden bg-neutral-primary-soft h-[calc(100vh-13rem)] border-default">
+    <div class="relative bg-neutral-primary-soft h-auto xl:h-[calc(100vh-9rem)] border-default overflow-visible xl:overflow-hidden">
       <div class="h-full min-h-0 p-1 2xl:p-2">
         {# ── Panel izquierdo: catálogo (scrollable) ── #}
-        <div class="flex gap-0 w-full h-full min-h-0 overflow-hidden">
-          <div class="flex flex-col gap-3 2xl:gap-4 min-w-0 min-h-0 pe-3 2xl:pe-6 border-e border-default"
-               style="width:45%">
+        <div class="flex flex-col xl:flex-row gap-3 xl:gap-0 w-full h-full min-h-0 overflow-visible xl:overflow-hidden">
+          <div class="flex flex-col gap-3 2xl:gap-4 w-full xl:w-[45%] min-w-0 min-h-0 pe-0 xl:pe-3 2xl:pe-6 border-e-0 xl:border-e border-default">
+            <div class="shrink-0">
+              <h2 class="text-base 2xl:text-lg font-semibold text-heading">Catalogo de productos</h2>
+              <div class="text-xs 2xl:text-sm text-body">Explora y agrega articulos al carrito</div>
+            </div>
             {# Buscador Flowbite — botón a la derecha del input #}
             <form method="get"
                   action="{{ url_for('sales.pos') }}"
@@ -42,11 +41,9 @@
               </button>
             </form>
             {# Grid de productos (2 columnas fijas, scroll independiente) #}
-            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-1">
+            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-1 max-h-104 md:max-h-136 xl:max-h-none">
               {% if products %}
-                <div style="display:grid;
-                            grid-template-columns:repeat(2,minmax(0,1fr));
-                            gap:0.75rem">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {% for product in products %}
                     {% set stock = product.inventory_records[0].stock if product.inventory_records else 0 %}
                     {# Flowbite product card exacto — altura uniforme con flex-col #}
@@ -118,54 +115,40 @@
                 </div>
                 {# Paginación #}
                 {% if pagination.pages > 1 %}
-                  <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4"
+                  {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
+                  {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) < pagination.total else pagination.total %}
+                  <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
                        aria-label="Table navigation">
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
                       Mostrando
-                      <span class="font-semibold text-gray-900 dark:text-white">{{
-                        ((pagination.page-1)*pagination.per_page)+1 }}-{{ [pagination.page*pagination.per_page,
-                      pagination.total]|min }}</span>
+                      <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
                       de
-                      <span class="font-semibold text-gray-900 dark:text-white">{{ pagination.total }}</span>
+                      <span class="font-semibold text-heading">{{ pagination.total }}</span>
                     </span>
-                    <ul class="inline-flex items-stretch -space-x-px">
+                    <ul class="flex -space-x-px text-xs 2xl:text-sm">
                       <li>
                         <a href="{{ url_for('sales.pos', page=pagination.prev_num if pagination.has_prev else 1, q=search_term) }}"
-                           class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
-                          <span class="sr-only">Anterior</span>
-                          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
-                               aria-hidden="true"
-                               fill="currentColor"
-                               viewbox="0 0 20 20"
-                               xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                          </svg>
+                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
+                          Anterior
                         </a>
                       </li>
                       {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
                         {% if p %}
                           <li>
                             <a href="{{ url_for('sales.pos', page=p, q=search_term) }}"
-                               class="flex items-center justify-center text-sm py-2 px-3 leading-tight border {{ 'z-10 text-primary-600 bg-primary-50 border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white' if p == pagination.page else 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               class="flex items-center justify-center box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none {{ 'text-fg-brand bg-brand-softer hover:bg-brand-soft hover:text-fg-brand' if p == pagination.page else 'text-body bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium hover:text-heading' }}"
                                {{ 'aria-current="page"' if p==pagination.page }}>{{ p }}</a>
                           </li>
                         {% else %}
                           <li>
-                            <span class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">...</span>
+                            <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
                           </li>
                         {% endif %}
                       {% endfor %}
                       <li>
                         <a href="{{ url_for('sales.pos', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term) }}"
-                           class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
-                          <span class="sr-only">Siguiente</span>
-                          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
-                               aria-hidden="true"
-                               fill="currentColor"
-                               viewbox="0 0 20 20"
-                               xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                          </svg>
+                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
+                          Siguiente
                         </a>
                       </li>
                     </ul>
@@ -187,9 +170,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="shrink-0 flex flex-col ps-6 pe-1 min-h-0"
-               style="height: 100%;
-                      width:55%">
+          <div class="shrink-0 flex flex-col w-full xl:w-[55%] ps-0 xl:ps-6 pe-0 xl:pe-1 min-h-0 mt-1 xl:mt-0">
             <div class="shrink-0">
               <h2 class="text-base 2xl:text-lg font-semibold text-heading">Carrito</h2>
               <div class="text-xs 2xl:text-sm text-body">
@@ -324,21 +305,22 @@
                 </button>
               </div>
             </div>
-            <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2"
+            <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2 h-72 md:h-80 xl:h-auto"
                  style="flex:1 1 0;
                         min-height:0">
               <div class="absolute inset-0 overflow-x-auto overflow-y-auto">
                 <table class="w-full text-xs 2xl:text-sm text-left rtl:text-right text-body"
                        style="min-height:100%">
-                  <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-default-medium sticky top-0 z-10">
+                  <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium sticky top-0 z-10">
                     <tr>
-                      <th scope="col" class="px-4 py-3">
-                        <span class="sr-only">Image</span>
+                      <th scope="col" class="p-3 2xl:p-4 w-20 md:w-24">
+                        <span class="sr-only">Imagen</span>
                       </th>
                       <th scope="col" class="px-6 py-3 font-medium">Producto</th>
-                      <th scope="col" class="px-6 py-3 font-medium">Qty</th>
-                      <th scope="col" class="px-6 py-3 font-medium">Precio</th>
-                      <th scope="col" class="px-6 py-3 font-medium">Acción</th>
+                      <th scope="col" class="px-6 py-3 font-medium">Cantidad</th>
+                      <th scope="col" class="px-6 py-3 font-medium">Importe</th>
+                      <th scope="col"
+                          class="px-6 py-3 font-medium w-36 min-w-36 whitespace-nowrap">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="cartBody">
@@ -611,7 +593,7 @@
               tr.className = "cart-row bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium";
               tr.dataset.itemId = item.id;
               tr.innerHTML = `
-        <td class="p-4">
+        <td class="p-3 2xl:p-4">
           <img src="{{ url_for('static', filename='src/images/sofa.png') }}" class="w-16 md:w-24 max-w-full max-h-full" alt="${item.name}" />
         </td>
         <td class="px-6 py-4 font-semibold text-heading">
@@ -619,12 +601,12 @@
           <p class="text-body text-xs font-normal">${item.sku}</p>
         </td>
         <td class="px-6 py-4">
-          <div class="relative flex items-center">
-            <button type="button" data-action="dec" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6">
+          <div class="inline-flex items-center gap-2">
+            <button type="button" data-action="dec" data-id="${item.id}" data-qty="${item.quantity}" class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm h-8 w-8 focus:outline-none">
               <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" /></svg>
             </button>
-            <span class="shrink-0 text-heading border-0 bg-transparent text-sm font-normal max-w-[2.5rem] text-center">${item.quantity}</span>
-            <button type="button" data-action="inc" data-id="${item.id}" data-qty="${item.quantity}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6">
+            <span class="shrink-0 inline-flex items-center justify-center px-2.5 h-8 min-w-10 rounded-base border border-default-medium bg-neutral-primary-soft text-heading text-xs 2xl:text-sm font-medium">${item.quantity}</span>
+            <button type="button" data-action="inc" data-id="${item.id}" data-qty="${item.quantity}" class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm h-8 w-8 focus:outline-none">
               <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" /></svg>
             </button>
           </div>
@@ -632,8 +614,11 @@
         <td class="px-6 py-4 font-semibold text-heading whitespace-nowrap">
           $${(item.subtotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
         </td>
-        <td class="px-6 py-4">
-          <button type="button" data-action="del" data-id="${item.id}" class="font-medium text-fg-danger hover:underline">Quitar</button>
+        <td class="px-6 py-4 w-36 min-w-36 whitespace-nowrap">
+          <button type="button" data-action="del" data-id="${item.id}" class="shrink-0 inline-flex items-center justify-center text-white bg-danger hover:bg-danger-strong box-border border border-transparent focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-1">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-1 0-.867 12.142A2 2 0 0 1 14.138 21H9.862a2 2 0 0 1-1.995-1.858L7 7m5 4v6m-3-6v6m8-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3" /></svg>
+            Quitar
+          </button>
         </td>`;
               return tr;
           }
