@@ -1,0 +1,80 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Nosotros | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="relative h-64 flex items-center justify-center bg-gray-100">
+    <div class="absolute inset-0 w-full h-full">
+      <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=1920"
+           alt="Nosotros Hero"
+           class="w-full h-full object-cover opacity-50 mix-blend-multiply">
+    </div>
+    <div class="relative z-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-heading mb-4">Nosotros</h1>
+      <div class="flex items-center justify-center text-sm font-medium space-x-2 text-heading">
+        <a href="{{ url_for('ecommerce.home') }}" class="hover:underline">Inicio</a>
+        <span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </span>
+        <span>Nosotros</span>
+      </div>
+    </div>
+  </section>
+  <!-- About Content -->
+  <section class="py-16 px-6 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div class="space-y-6">
+        <h2 class="text-3xl lg:text-4xl font-bold text-heading">La historia detrás de Roble & Diseño</h2>
+        <p class="text-body-subtle leading-relaxed text-lg">
+          En Roble & Diseño, creemos que el hogar es un refugio donde cada pieza debe contar una historia. Fundada con la pasión por el trabajo artesanal en madera, nuestra marca se ha convertido en sinónimo de calidad, durabilidad y diseño atemporal.
+        </p>
+        <p class="text-body-subtle leading-relaxed">
+          Cada mueble que fabricamos es el resultado de un meticuloso proceso de selección de materiales, diseño meticuloso y ensamblaje cuidadoso por manos expertas. Nos inspiramos en la funcionalidad moderna sin perder el encanto de lo rústico y natural.
+        </p>
+        <p class="text-body-subtle leading-relaxed">
+          Nuestro compromiso es transformar tus espacios en lugares de inspiración y confort, ofreciéndote piezas que se hereden por generaciones y que aporten carácter y autenticidad a cada rincón de tu vida.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800"
+             alt="Taller"
+             class="w-full h-80 object-cover rounded-md">
+        <img src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&q=80&w=800"
+             alt="Detalle madera"
+             class="w-full h-80 object-cover rounded-md translate-y-8">
+      </div>
+    </div>
+  </section>
+  <!-- Mission & Vision -->
+  <section class="py-16 bg-gray-50 border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 text-center">
+      <div class="bg-white p-10 rounded-md shadow-sm border border-gray-100">
+        <div class="w-16 h-16 bg-sky-900 text-white flex items-center justify-center rounded-full mx-auto mb-6">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z">
+            </path>
+          </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-heading mb-4">Misión</h3>
+        <p class="text-body-subtle">
+          Crear muebles artesanales de la más alta calidad que armonicen con el entorno, brinden comodidad inigualable y sean el centro de momentos memorables en los hogares de nuestros clientes.
+        </p>
+      </div>
+      <div class="bg-white p-10 rounded-md shadow-sm border border-gray-100">
+        <div class="w-16 h-16 bg-sky-900 text-white flex items-center justify-center rounded-full mx-auto mb-6">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+            </path>
+          </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-heading mb-4">Visión</h3>
+        <p class="text-body-subtle">
+          Ser la marca líder en México en el diseño y creación de muebles a medida, reconocida por nuestra ética artesanal, trato cálido y nuestra capacidad para revivir la pasión por el buen diseño en el país.
+        </p>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
