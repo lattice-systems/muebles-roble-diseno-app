@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
 
 from app.exceptions import NotFoundError
 from app.extensions import db
@@ -117,16 +118,16 @@ class SaleService:
         """
         Crea un nuevo cliente.
         """
-        existing = Customer.query.filter_by(email=data.get('email')).first()
+        existing = Customer.query.filter_by(email=data.get("email")).first()
         if existing:
             raise ValueError("El correo electrónico ya está registrado.")
-        
+
         customer = Customer(
-            full_name=data.get('full_name'),
-            email=data.get('email'),
-            phone=data.get('phone', ''),
-            address=data.get('address', ''),
-            status=True
+            full_name=data.get("full_name"),
+            email=data.get("email"),
+            phone=data.get("phone", ""),
+            address=data.get("address", ""),
+            status=True,
         )
         db.session.add(customer)
         db.session.commit()
@@ -149,7 +150,9 @@ class SaleService:
         Returns:
             Pagination: Objeto de paginación de SQLAlchemy.
         """
-        query = Product.query.filter_by(status=True)
+        query = Product.query.options(
+            selectinload(Product.inventory_records)
+        ).filter_by(status=True)
 
         if search_term:
             search = f"%{search_term.strip()}%"
@@ -169,7 +172,9 @@ class SaleService:
         return PaymentMethod.query.filter_by(status=True, available_pos=True).all()
 
     @staticmethod
-    def checkout_sale(sale_id: int, amount_given: float, payment_method_id: int) -> dict:
+    def checkout_sale(
+        sale_id: int, amount_given: float, payment_method_id: int
+    ) -> dict:
         sale = SaleService.get_active_sale(sale_id)
         if not sale.items:
             raise ValueError("El carrito está vacío no hay nada que cobrar.")
@@ -180,34 +185,41 @@ class SaleService:
             db.session.commit()
 
         if amount_given < float(sale.total):
-            raise ValueError(f"Monto insuficiente. Faltan ${(float(sale.total) - amount_given):,.2f}")
+            raise ValueError(
+                f"Monto insuficiente. Faltan ${(float(sale.total) - amount_given):,.2f}"
+            )
 
         # Reducir stock (RF-VENT-03 / 05)
         for item in sale.items:
-            inv = item.product.inventory_records[0] if item.product.inventory_records else None
+            inv = (
+                item.product.inventory_records[0]
+                if item.product.inventory_records
+                else None
+            )
             # fallback local query if lazy
             if not inv:
                 from app.models.product_inventory import ProductInventory
-                inv = ProductInventory.query.filter_by(product_id=item.product_id).first()
+
+                inv = ProductInventory.query.filter_by(
+                    product_id=item.product_id
+                ).first()
             if inv:
                 inv.stock -= item.quantity
                 if inv.stock < 0:
                     db.session.rollback()
-                    raise ValueError(f"Inventario negativo detectado para el artículo {item.product.name}")
-        
+                    raise ValueError(
+                        f"Inventario negativo detectado para el artículo {item.product.name}"
+                    )
+
         sale.payment_method_id = payment_method_id
         sale.active = False
-        
-        payment = Payment(
-            payment_type="SALE",
-            id_sale=sale.id,
-            amount=amount_given
-        )
+
+        payment = Payment(payment_type="SALE", id_sale=sale.id, amount=amount_given)
         db.session.add(payment)
-        
+
         change = float(amount_given - float(sale.total))
         db.session.commit()
-        
+
         return {"success": True, "change": change, "total": float(sale.total)}
 
 
