@@ -25,6 +25,8 @@ class Supplier(db.Model):
         onupdate=db.func.current_timestamp(),
     )
 
+    raw_materials = db.relationship("RawMaterial", back_populates="supplier", lazy=True)
+
     purchase_orders = db.relationship(
         "PurchaseOrder", back_populates="supplier", lazy=True
     )
