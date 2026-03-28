@@ -1,0 +1,173 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Crear producto
+{% endblock title %}
+{% block content %}
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Crear producto</h1>
+      <p class="text-body">Registra un nuevo producto terminado en el sistema</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <form id="createProductForm"
+            method="post"
+            action="{{ url_for('products.create') }}"
+            class="flex flex-col gap-2.5 2xl:gap-4">
+        {{ form.hidden_tag() }}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.sku.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.sku.label.text }}</label>
+            {{ form.sku(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. PROD-001") }}
+            {% for error in form.sku.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.name.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.name.label.text }}</label>
+            {{ form.name(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. Silla Roble Premium") }}
+            {% for error in form.name.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.furniture_type_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.furniture_type_id.label.text }}</label>
+            {{ form.furniture_type_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.furniture_type_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.price.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.price.label.text }}</label>
+            {{ form.price(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. 2499.99") }}
+            {% for error in form.price.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.description.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.description.label.text }}</label>
+          {{ form.description(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", rows="4", placeholder="Describe el producto terminado") }}
+          {% for error in form.description.errors %}
+            <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.color_ids.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.color_ids.label.text }}</label>
+            {{ form.color_ids(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", multiple=true, size="5") }}
+            {% for error in form.color_ids.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-2.5 2xl:gap-4">
+            <div class="flex flex-col gap-1">
+              <label for="{{ form.stock.id }}"
+                     class="text-xs 2xl:text-sm font-medium text-heading">{{ form.stock.label.text }}</label>
+              {{ form.stock(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. 15") }}
+              {% for error in form.stock.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-xs 2xl:text-sm text-heading">
+                {{ form.status(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+                {{ form.status.label.text }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
+          <a href="{{ url_for('products.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver
+          </a>
+          <button id="openConfirmCreateProductModalBtn"
+                  type="button"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Crear producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
+{% block modals %}
+  <div id="confirmCreateProductModal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="confirmCreateProductModal">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estás seguro de que deseas crear este producto?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button id="confirmCreateProductSubmitBtn"
+                    type="button"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Sí, crear
+            </button>
+            <button data-modal-hide="confirmCreateProductModal"
+                    type="button"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const form = document.getElementById("createProductForm");
+          const modalElement = document.getElementById("confirmCreateProductModal");
+          const openModalBtn = document.getElementById("openConfirmCreateProductModalBtn");
+          const confirmSubmitBtn = document.getElementById("confirmCreateProductSubmitBtn");
+
+          if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
+              return;
+          }
+
+          const modal = new Modal(modalElement);
+
+          openModalBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  form.reportValidity();
+                  return;
+              }
+              modal.show();
+          });
+
+          confirmSubmitBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  modal.hide();
+                  form.reportValidity();
+                  return;
+              }
+              form.requestSubmit();
+          });
+      });
+  </script>
+{% endblock modals %}

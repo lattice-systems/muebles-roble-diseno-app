@@ -2,7 +2,7 @@
 Rutas/Endpoints para el módulo de login.
 """
 
-from flask import flash, redirect, url_for
+from flask import flash, redirect
 from flask_security import auth_required, url_for_security
 from flask_security.utils import logout_user
 

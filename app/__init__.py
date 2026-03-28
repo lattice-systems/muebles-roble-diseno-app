@@ -55,7 +55,7 @@ def create_app():
     app.register_blueprint(suppliers_bp, url_prefix="/admin/suppliers")
 
     from .costs import costs_bp
-    
+
     app.register_blueprint(costs_bp, url_prefix="/costs")
 
     app.register_blueprint(colors_bp, url_prefix="/colors")
@@ -75,6 +75,10 @@ def create_app():
     from .catalogs.payment_method import payment_method_bp
 
     app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
+
+    from .products import products_bp
+
+    app.register_blueprint(products_bp, url_prefix="/products")
 
     @app.route("/admin")
     @auth_required()
