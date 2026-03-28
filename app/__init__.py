@@ -80,6 +80,10 @@ def create_app():
 
     app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
 
+    from .products import products_bp
+
+    app.register_blueprint(products_bp, url_prefix="/products")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
