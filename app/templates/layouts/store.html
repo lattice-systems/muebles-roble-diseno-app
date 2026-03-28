@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="E-commerce de Roble y Diseño" />
+    <meta name="author" content="Lattice Systems" />
+    <title>
+      {% block title %}
+        Roble y Diseño | E-commerce
+      {% endblock title %}
+    </title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='dist/output.css') }}" />
+  </head>
+  <body class="bg-white text-black antialiased font-sans">
+    {% include "components/ecommerce/navbar.html" %}
+    <main class="min-h-screen">
+      {% block content %}
+      {% endblock content %}
+    </main>
+    {% include "components/ecommerce/features.html" %}
+    {% include "components/ecommerce/footer.html" %}
+    {% include "components/ecommerce/cart_sidebar.html" %}
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+</html>

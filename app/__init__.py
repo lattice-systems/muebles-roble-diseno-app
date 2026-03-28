@@ -76,6 +76,10 @@ def create_app():
 
     app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
 
+    from .suppliers.raw_materials import raw_materials_bp
+
+    app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
+
     from .products import products_bp
 
     app.register_blueprint(products_bp, url_prefix="/products")
@@ -90,5 +94,13 @@ def create_app():
     from .catalogs.furniture_type import furniture_type_bp
 
     app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+
+    from .ecommerce import ecommerce_bp
+
+    app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
+
+    from .sales import sales_bp
+
+    app.register_blueprint(sales_bp, url_prefix="/sales")
 
     return app
