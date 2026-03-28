@@ -620,15 +620,16 @@
           }
 
           function updateTotals() {
-              const subtotal = cartTotal;
-              const iva = subtotal * IVA;
+              const total = cartTotal;
+              const subtotal = total / (1 + IVA);
+              const iva = total - subtotal;
               const subtotalDisplay = document.getElementById("subtotalDisplay");
               const ivaDisplay = document.getElementById("ivaDisplay");
               const totalDisplay = document.getElementById("totalDisplay");
 
               if (subtotalDisplay) subtotalDisplay.textContent = `$${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
               if (ivaDisplay) ivaDisplay.textContent = `$${iva.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-              if (totalDisplay) totalDisplay.textContent = `$${(subtotal + iva).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+              if (totalDisplay) totalDisplay.textContent = `$${total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
           }
 
           document.querySelectorAll(".btn-add-product").forEach((btn) => {
@@ -788,9 +789,7 @@
 
           function calculateChange() {
               if (!amountGivenInput) return;
-              const subtotal = cartTotal;
-              const iva = subtotal * IVA;
-              const trueTotal = subtotal + iva;
+              const trueTotal = cartTotal;
               const changeEl = document.getElementById("modalChangeDisplay");
               let given = parseFloat(amountGivenInput.value) || 0;
               let change = given - trueTotal;
@@ -810,9 +809,7 @@
                       showGlobalAlert("warning", "Anade al menos un producto al carrito para proceder con el cobro.");
                       return;
                   }
-                  const subtotal = cartTotal;
-                  const iva = subtotal * IVA;
-                  const trueTotal = subtotal + iva;
+                  const trueTotal = cartTotal;
                   const modalTotal = document.getElementById("modalTotalDisplay");
                   if (modalTotal) modalTotal.textContent = `$${trueTotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
                   calculateChange();
@@ -828,9 +825,7 @@
               btnProcesarPago.addEventListener("click", async () => {
                   const methodId = paymentMethodSelect.value;
                   const amountGiven = parseFloat(amountGivenInput.value);
-                  const subtotal = cartTotal;
-                  const iva = subtotal * IVA;
-                  const trueTotal = subtotal + iva;
+                  const trueTotal = cartTotal;
 
                   if (!methodId) {
                       checkoutErrorMessage.textContent = "Debes seleccionar un metodo de pago en la lista.";
