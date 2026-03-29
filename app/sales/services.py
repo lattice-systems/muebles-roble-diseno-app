@@ -2,7 +2,7 @@
 Servicios de lógica de negocio para el módulo de ventas POS.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
@@ -47,7 +47,7 @@ class SaleService:
             id_customer=customer_id if customer_id else None,
             active=True,
             total=0,
-            sale_date=datetime.now(timezone.utc),
+            sale_date=datetime.now(),
         )
         db.session.add(sale)
         db.session.flush()  # obtiene el ID antes del commit
@@ -57,7 +57,7 @@ class SaleService:
             table_name="sales",
             action="INSERT",
             user_id=employee_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(),
             previous_data=None,
             new_data=sale.to_dict(),
         )
@@ -65,6 +65,18 @@ class SaleService:
         db.session.commit()
 
         return sale
+
+    @staticmethod
+    def update_customer(sale: Sale, customer_id: Optional[int]) -> None:
+        """
+        Actualiza el cliente asignado a una venta activa existente.
+
+        Args:
+            sale: Objeto de venta activa.
+            customer_id: ID del cliente (None para quitar).
+        """
+        sale.id_customer = customer_id
+        db.session.commit()
 
     @staticmethod
     def get_active_sale(sale_id: int) -> Sale:
@@ -129,30 +141,35 @@ class SaleService:
 
         requires_freight = data.get("requires_freight", False)
 
+        # Neighborhood puede venir de un select (neighborhood_select) o del input (neighborhood)
+        neighborhood = data.get("neighborhood") or data.get("neighborhood_select") or ""
+
         if requires_freight:
-            required_freight = ["zip_code", "state", "city", "street", "neighborhood", "exterior_number"]
+            required_freight = ["zip_code", "state", "city", "street", "exterior_number"]
             # To give friendly error messages:
             es_names = {
                 "zip_code": "Código Postal", "state": "Estado", "city": "Ciudad",
-                "street": "Calle", "neighborhood": "Colonia", "exterior_number": "Num Exterior"
+                "street": "Calle", "exterior_number": "Num Exterior"
             }
             for field in required_freight:
                 if not data.get(field) or not str(data.get(field)).strip():
                     raise ValueError(f"Falta el campo obligatorio de flete: {es_names[field]}")
+            if not neighborhood.strip():
+                raise ValueError("Falta el campo obligatorio de flete: Colonia")
 
         customer = Customer(
-            first_name=data.get("first_name").strip(),
-            last_name=data.get("last_name").strip(),
-            email=data.get("email").strip(),
-            phone=data.get("phone").strip(),
+            first_name=str(data.get("first_name", "")).strip(),
+            last_name=str(data.get("last_name", "")).strip(),
+            email=str(data.get("email", "")).strip(),
+            phone=str(data.get("phone", "")).strip(),
             requires_freight=requires_freight,
-            zip_code=data.get("zip_code"),
-            state=data.get("state"),
-            city=data.get("city"),
-            street=data.get("street"),
-            neighborhood=data.get("neighborhood"),
-            exterior_number=data.get("exterior_number"),
-            interior_number=data.get("interior_number"),
+            zip_code=str(data.get("zip_code") or "").strip() or None,
+            state=str(data.get("state") or "").strip() or None,
+            city=str(data.get("city") or "").strip() or None,
+            street=str(data.get("street") or "").strip() or None,
+            neighborhood=str(neighborhood).strip() or None,
+            exterior_number=str(data.get("exterior_number") or "").strip() or None,
+            interior_number=str(data.get("interior_number") or "").strip() or None,
             status=True,
         )
         db.session.add(customer)
