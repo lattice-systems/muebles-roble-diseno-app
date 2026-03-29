@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from math import ceil
+
 from flask import url_for
 from sqlalchemy.orm import joinedload
 
@@ -112,6 +114,7 @@ class EcommerceService:
     @staticmethod
     def _serialize_product(product: Product) -> dict[str, object]:
         category = product.furniture_type.title if product.furniture_type else "General"
+        type_slug = product.furniture_type.slug if product.furniture_type else ""
         subtitle = (
             product.furniture_type.subtitle
             if product.furniture_type and product.furniture_type.subtitle
@@ -154,6 +157,7 @@ class EcommerceService:
             "status": product.status,
             "furniture_type_id": product.furniture_type_id,
             "category": category,
+            "type_slug": type_slug,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
@@ -174,6 +178,7 @@ class EcommerceService:
         type_slug: str = "",
         sort_by: str = "default",
         limit: int = 16,
+        page: int = 1,
     ) -> dict[str, object]:
         """Filtra y ordena productos para la vista de catálogo."""
         products = EcommerceService.get_all_products()
@@ -198,6 +203,8 @@ class EcommerceService:
                         str(product.get("title", "")),
                         str(product.get("subtitle", "")),
                         str(product.get("category", "")),
+                        str(product.get("description", "")),
+                        str(product.get("sku", "")),
                         tags,
                     ]
                 ).lower()
@@ -222,11 +229,33 @@ class EcommerceService:
         if isinstance(limit, int):
             safe_limit = max(1, min(limit, 48))
 
+        total_pages = max(1, ceil(filtered_total / safe_limit))
+        current_page = max(1, min(page if isinstance(page, int) else 1, total_pages))
+        start_index = (current_page - 1) * safe_limit
+        end_index = start_index + safe_limit
+        paginated_products = products[start_index:end_index]
+
+        start_item = start_index + 1 if filtered_total > 0 else 0
+        end_item = min(start_index + len(paginated_products), filtered_total)
+
+        page_window = 2
+        start_page = max(1, current_page - page_window)
+        end_page = min(total_pages, current_page + page_window)
+
         return {
-            "products": products[:safe_limit],
+            "products": paginated_products,
             "total_products": total_products,
             "filtered_total": filtered_total,
             "limit": safe_limit,
+            "page": current_page,
+            "total_pages": total_pages,
+            "has_prev": current_page > 1,
+            "has_next": current_page < total_pages,
+            "prev_page": current_page - 1,
+            "next_page": current_page + 1,
+            "start_item": start_item,
+            "end_item": end_item,
+            "page_numbers": list(range(start_page, end_page + 1)),
             "search_term": search_term,
             "type_slug": type_slug,
             "sort_by": sort_by,
