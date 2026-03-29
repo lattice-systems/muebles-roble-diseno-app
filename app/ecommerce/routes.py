@@ -1,6 +1,6 @@
 """Rutas iniciales para e-commerce."""
 
-from flask import render_template
+from flask import render_template, request
 
 from . import ecommerce_bp
 from .services import EcommerceService
@@ -42,11 +42,33 @@ def categories():
 
 @ecommerce_bp.route("/products")
 def products():
-    """Página de listado de todos los productos (Tienda/Shop)."""
-    all_products = EcommerceService.get_all_products()
+    """Página de listado de productos con búsqueda y filtros."""
+    search_term = request.args.get("q", "", type=str)
+    type_slug = request.args.get("type", "", type=str)
+    sort_by = request.args.get("sort", "default", type=str)
+    limit = request.args.get("limit", 16, type=int) or 16
+
+    filtered_catalog = EcommerceService.get_filtered_products(
+        search_term=search_term,
+        type_slug=type_slug,
+        sort_by=sort_by,
+        limit=limit,
+    )
+    all_categories = EcommerceService.get_product_categories()
+
     return render_template(
         "store/products.html",
-        products=all_products,
+        products=filtered_catalog["products"],
+        categories=all_categories,
+        total_products=filtered_catalog["total_products"],
+        filtered_total=filtered_catalog["filtered_total"],
+        filters={
+            "q": filtered_catalog["search_term"],
+            "type": filtered_catalog["type_slug"],
+            "sort": filtered_catalog["sort_by"],
+            "limit": filtered_catalog["limit"],
+        },
+        limit_options=[8, 16, 24, 32, 48],
         active_section="products",
     )
 

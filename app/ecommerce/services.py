@@ -59,6 +59,7 @@ class EcommerceService:
                 "colors": ["purple", "black", "yellow"],
                 "sku": "SY001",
                 "category": "Sillas",
+                "type_slug": "sillas",
                 "tags": ["Silla", "Café", "Hogar", "Tienda"],
                 "url": "#",
             },
@@ -69,6 +70,8 @@ class EcommerceService:
                 "price": 2500,
                 "badge": None,
                 "image": "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800",
+                "category": "Sillas",
+                "type_slug": "sillas",
                 "url": "#",
             },
             {
@@ -79,6 +82,8 @@ class EcommerceService:
                 "original_price": 14000,
                 "badge": "-50%",
                 "image": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
+                "category": "Sofás",
+                "type_slug": "sofas",
                 "url": "#",
             },
             {
@@ -88,6 +93,8 @@ class EcommerceService:
                 "price": 50000,
                 "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+                "category": "Exterior",
+                "type_slug": "exterior",
                 "url": "#",
             },
             {
@@ -97,6 +104,8 @@ class EcommerceService:
                 "price": 1500,
                 "badge": None,
                 "image": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&q=80&w=800",
+                "category": "Decoración",
+                "type_slug": "decoracion",
                 "url": "#",
             },
             {
@@ -106,6 +115,8 @@ class EcommerceService:
                 "price": 150,
                 "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1517254456976-ee8db7803e7d?auto=format&fit=crop&q=80&w=800",
+                "category": "Decoración",
+                "type_slug": "decoracion",
                 "url": "#",
             },
             {
@@ -116,6 +127,8 @@ class EcommerceService:
                 "original_price": 14000,
                 "badge": "-50%",
                 "image": "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800",
+                "category": "Recámara",
+                "type_slug": "recamara",
                 "url": "#",
             },
             {
@@ -125,6 +138,8 @@ class EcommerceService:
                 "price": 500,
                 "badge": "Nuevo",
                 "image": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=800",
+                "category": "Decoración",
+                "type_slug": "decoracion",
                 "url": "#",
             },
             {
@@ -145,10 +160,76 @@ class EcommerceService:
                 "colors": ["purple", "black", "yellow"],
                 "sku": "SS001",
                 "category": "Sofás",
+                "type_slug": "sofas",
                 "tags": ["Sofá", "Silla", "Hogar", "Tienda"],
                 "url": "#",
             },
         ]
+
+    @staticmethod
+    def get_filtered_products(
+        *,
+        search_term: str = "",
+        type_slug: str = "",
+        sort_by: str = "default",
+        limit: int = 16,
+    ) -> dict[str, object]:
+        """Filtra y ordena productos para la vista de catálogo."""
+        products = EcommerceService.get_all_products()
+        total_products = len(products)
+
+        normalized_search = (search_term or "").strip().lower()
+        normalized_type = (type_slug or "").strip().lower()
+
+        if normalized_type:
+            products = [
+                p
+                for p in products
+                if str(p.get("type_slug", "")).strip().lower() == normalized_type
+            ]
+
+        if normalized_search:
+            filtered_products = []
+            for product in products:
+                tags = " ".join(product.get("tags", []) or [])
+                searchable = " ".join(
+                    [
+                        str(product.get("title", "")),
+                        str(product.get("subtitle", "")),
+                        str(product.get("category", "")),
+                        tags,
+                    ]
+                ).lower()
+                if normalized_search in searchable:
+                    filtered_products.append(product)
+            products = filtered_products
+
+        if sort_by == "price_asc":
+            products = sorted(products, key=lambda p: float(p.get("price", 0)))
+        elif sort_by == "price_desc":
+            products = sorted(
+                products, key=lambda p: float(p.get("price", 0)), reverse=True
+            )
+        elif sort_by == "name_asc":
+            products = sorted(products, key=lambda p: str(p.get("title", "")).lower())
+        else:
+            sort_by = "default"
+
+        filtered_total = len(products)
+
+        safe_limit = 16
+        if isinstance(limit, int):
+            safe_limit = max(1, min(limit, 48))
+
+        return {
+            "products": products[:safe_limit],
+            "total_products": total_products,
+            "filtered_total": filtered_total,
+            "limit": safe_limit,
+            "search_term": search_term,
+            "type_slug": type_slug,
+            "sort_by": sort_by,
+        }
 
     @staticmethod
     def get_product_by_id(product_id: int) -> dict[str, object] | None:
