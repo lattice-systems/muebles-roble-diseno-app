@@ -39,17 +39,9 @@
           <span class="text-xs 2xl:text-sm text-body">Descripción</span>
           <p class="text-heading font-medium">{{ product.description if product.description else "Sin descripción" }}</p>
         </div>
-        <div class="flex flex-col gap-1 md:col-span-2">
-          <span class="text-xs 2xl:text-sm text-body">Colores</span>
-          <div class="flex flex-wrap gap-2">
-            {% for relation in product.colors %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">
-                {{ relation.color.name }}
-              </span>
-            {% else %}
-              <p class="text-heading font-medium">Sin colores asignados</p>
-            {% endfor %}
-          </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Color</span>
+          <p class="text-heading font-medium">{{ product.colors[0].color.name if product.colors else "Sin color asignado" }}</p>
         </div>
         <div class="flex flex-col gap-1">
           <span class="text-xs 2xl:text-sm text-body">Estado</span>
@@ -59,6 +51,20 @@
             {% else %}
               <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
             {% endif %}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-xs 2xl:text-sm text-body">Imágenes</span>
+          <div class="flex flex-wrap gap-3 mt-1">
+            {% for image in product.images[:4] %}
+              <div class="w-24 h-24 rounded-base border border-default-medium overflow-hidden bg-neutral-secondary-medium">
+                <img src="{{ url_for('static', filename=image.image_path) }}"
+                     alt="Imagen del producto"
+                     class="w-full h-full object-cover">
+              </div>
+            {% else %}
+              <p class="text-heading font-medium">Sin imágenes registradas</p>
+            {% endfor %}
           </div>
         </div>
       </div>
