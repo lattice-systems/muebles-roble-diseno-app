@@ -40,6 +40,26 @@ def categories():
     )
 
 
+@ecommerce_bp.route("/search")
+def search():
+    """Búsqueda global en catálogos y productos."""
+    search_term = request.args.get("q", "", type=str)
+    search_results = EcommerceService.search_catalogs_and_products(
+        search_term=search_term,
+        product_limit=12,
+    )
+    return render_template(
+        "store/search.html",
+        search_term=search_results["search_term"],
+        categories=search_results["categories"],
+        products=search_results["products"],
+        categories_total=search_results["categories_total"],
+        products_total=search_results["products_total"],
+        total_results=search_results["total_results"],
+        active_section="",
+    )
+
+
 @ecommerce_bp.route("/products")
 def products():
     """Página de listado de productos con búsqueda y filtros."""

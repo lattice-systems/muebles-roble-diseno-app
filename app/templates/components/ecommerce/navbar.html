@@ -6,7 +6,7 @@
        class="flex items-center gap-2">
       <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
            alt="Logo Roble y Diseño"
-           class="h-10 w-[198px] object-contain">
+           class="h-10 w-49.5 object-contain">
     </a>
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-12">
@@ -23,7 +23,9 @@
     </nav>
     <!-- Icons & Mobile Menu Toggle -->
     <div class="flex items-center gap-4 md:gap-6">
-      <button class="text-heading hover:text-body transition-colors">
+      <button type="button"
+              id="search-button"
+              class="text-heading hover:text-body transition-colors">
         <span class="sr-only">Buscar</span>
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
@@ -75,15 +77,63 @@
          class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'contact' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Contacto</a>
     </nav>
   </div>
+  <!-- Integrated Search Bar -->
+  <div id="navbar-search-bar"
+       class="hidden w-full border-t border-b border-slate-200 bg-neutral-primary">
+    <div class="max-w-7xl mx-auto px-6 py-3">
+      <form method="get"
+            action="{{ url_for('ecommerce.search') }}"
+            class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+        <label for="navbar-search-input" class="sr-only">Buscar en catálogos y productos</label>
+        <div class="relative w-full sm:flex-1">
+          <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+            <svg class="w-4 h-4 text-body"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+            </svg>
+          </div>
+          <input type="text"
+                 id="navbar-search-input"
+                 name="q"
+                 value="{{ request.args.get('q', '') }}"
+                 class="block h-11 w-full bg-white ps-9 pe-3 rounded border border-gray-300 text-sm text-heading focus:ring-sky-900 focus:border-sky-900"
+                 placeholder="Buscar productos y catálogos..."
+                 autocomplete="off" />
+        </div>
+        <button type="submit"
+                class="h-11 w-full sm:w-auto px-5 rounded bg-sky-900 text-white text-sm font-medium hover:bg-sky-800 transition-colors shrink-0">
+          Buscar
+        </button>
+      </form>
+    </div>
+  </div>
 </header>
 <!-- Spacer to offset the fixed navbar -->
-<div class="h-20 w-full"></div>
+<div id="navbar-spacer" class="h-20 w-full"></div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const closeMenuButton = document.getElementById('close-menu-button');
         const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
         const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const searchButton = document.getElementById('search-button');
+        const searchBar = document.getElementById('navbar-search-bar');
+        const searchInput = document.getElementById('navbar-search-input');
+        const navbarSpacer = document.getElementById('navbar-spacer');
+        const baseSpacerHeight = 80;
+
+        function updateSpacerHeight() {
+            if (!navbarSpacer) return;
+            if (!searchBar || searchBar.classList.contains('hidden')) {
+                navbarSpacer.style.height = `${baseSpacerHeight}px`;
+                return;
+            }
+            const searchBarHeight = searchBar.offsetHeight || 0;
+            navbarSpacer.style.height = `${baseSpacerHeight + searchBarHeight}px`;
+        }
 
         function toggleMenu() {
             const isClosed = mobileMenuDrawer.classList.contains('translate-x-full');
@@ -107,5 +157,30 @@
         mobileMenuButton.addEventListener('click', toggleMenu);
         closeMenuButton.addEventListener('click', toggleMenu);
         mobileMenuOverlay.addEventListener('click', toggleMenu);
+
+        if (searchButton) {
+            searchButton.addEventListener('click', () => {
+                if (!searchBar) return;
+                const isHidden = searchBar.classList.contains('hidden');
+                if (isHidden) {
+                    searchBar.classList.remove('hidden');
+                    updateSpacerHeight();
+                    if (searchInput) searchInput.focus();
+                    return;
+                }
+                searchBar.classList.add('hidden');
+                updateSpacerHeight();
+            });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && searchBar && !searchBar.classList.contains('hidden')) {
+                searchBar.classList.add('hidden');
+                updateSpacerHeight();
+            }
+        });
+
+        window.addEventListener('resize', updateSpacerHeight);
+        updateSpacerHeight();
     });
 </script>
