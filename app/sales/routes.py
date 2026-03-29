@@ -2,12 +2,15 @@
 Rutas/Endpoints para el módulo de ventas POS.
 """
 
+from decimal import Decimal
+
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_security import auth_required, current_user
 
 from . import sales_bp
 from .services import SaleService, SaleItemService
 from .copomex_service import CopomexService
+from .freight_config import calculate_freight
 from app.exceptions import NotFoundError
 from app.models.customer import Customer
 
@@ -173,14 +176,25 @@ def update_customer_data(customer_id):
 def get_cart():
     sale_id = session.get("active_sale_id")
     if not sale_id:
-        return jsonify({"items": [], "total": 0})
+        # Aún así calcular flete si hay cliente en sesión
+        customer_id = session.get("pos_customer_id")
+        customer = Customer.query.get(customer_id) if customer_id else None
+        freight = calculate_freight(customer, Decimal("0"))
+        return jsonify({"items": [], "total": 0, **freight})
     try:
         sale = SaleService.get_active_sale(sale_id)
         items = SaleItemService.get_cart_items(sale.id)
-        total = sum(item.get("subtotal", 0) for item in items)
-        return jsonify({"items": items, "total": total})
+        subtotal = sum(item.get("subtotal", 0) for item in items)
+
+        # Calcular flete según el cliente asociado
+        customer_id = session.get("pos_customer_id") or (sale.id_customer if sale else None)
+        customer = Customer.query.get(customer_id) if customer_id else None
+        freight = calculate_freight(customer, Decimal(str(subtotal)))
+
+        total_with_freight = subtotal + freight["cost"]
+        return jsonify({"items": items, "total": total_with_freight, "products_total": subtotal, **freight})
     except NotFoundError:
-        return jsonify({"items": [], "total": 0})
+        return jsonify({"items": [], "total": 0, "cost": 0, "zone": None, "free": False, "reason": ""})
 
 
 @sales_bp.route("/pos/items", methods=["POST"])
@@ -262,7 +276,13 @@ def checkout():
         if payment_method_id <= 0:
             return jsonify({"error": "Método de pago inválido"}), 400
 
-        result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id)
+        # Calcular flete para incluirlo en el total
+        customer = Customer.query.get(sale.id_customer)
+        cart_subtotal = sum(item.price * item.quantity for item in sale.items)
+        freight = calculate_freight(customer, cart_subtotal)
+        freight_cost = Decimal(str(freight["cost"]))
+
+        result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id, freight_cost=freight_cost)
 
         # Limpiar carrito y cliente de sesión
         session.pop("active_sale_id", None)
@@ -318,6 +338,14 @@ def ticket(sale_id):
     sale = Sale.query.get_or_404(sale_id)
     items = SaleItem.query.filter_by(sale_id=sale.id).all()
     payment = Payment.query.filter_by(id_sale=sale.id).first()
-    
-    return render_template("sales/ticket.html", sale=sale, items=items, payment=payment)
+
+    # Calcular flete para mostrar en ticket
+    products_total = sum(i.price * i.quantity for i in items)
+    freight = calculate_freight(sale.customer, products_total)
+
+    return render_template(
+        "sales/ticket.html",
+        sale=sale, items=items, payment=payment,
+        freight=freight, products_total=float(products_total),
+    )
 

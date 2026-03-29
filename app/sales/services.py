@@ -216,20 +216,22 @@ class SaleService:
 
     @staticmethod
     def checkout_sale(
-        sale_id: int, amount_given: float, payment_method_id: int
+        sale_id: int, amount_given: float, payment_method_id: int,
+        freight_cost: Decimal = Decimal("0"),
     ) -> dict:
         sale = SaleService.get_active_sale(sale_id)
         if not sale.items:
             raise ValueError("El carrito está vacío no hay nada que cobrar.")
 
         calculated_total = sum(item.price * item.quantity for item in sale.items)
-        if sale.total != calculated_total:
-            sale.total = calculated_total
-            db.session.commit()
+        # Sumar flete al total
+        total_with_freight = calculated_total + freight_cost
+        sale.total = total_with_freight
+        db.session.flush()
 
-        if amount_given < float(sale.total):
+        if amount_given < float(total_with_freight):
             raise ValueError(
-                f"Monto insuficiente. Faltan ${(float(sale.total) - amount_given):,.2f}"
+                f"Monto insuficiente. Faltan ${(float(total_with_freight) - amount_given):,.2f}"
             )
 
         # Reducir stock (RF-VENT-03 / 05)
@@ -260,10 +262,16 @@ class SaleService:
         payment = Payment(payment_type="SALE", id_sale=sale.id, amount=amount_given)
         db.session.add(payment)
 
-        change = float(amount_given - float(sale.total))
+        change = float(amount_given - float(total_with_freight))
         db.session.commit()
 
-        return {"success": True, "change": change, "total": float(sale.total), "sale_id": sale.id}
+        return {
+            "success": True,
+            "change": change,
+            "total": float(total_with_freight),
+            "freight_cost": float(freight_cost),
+            "sale_id": sale.id,
+        }
 
 
 class SaleItemService:
