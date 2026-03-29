@@ -53,8 +53,8 @@ def create():
     form = ProductForm()
 
     form.furniture_type_id.choices = [
-        (f.id, f.name)
-        for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
+        (f.id, f.title)
+        for f in FurnitureType.query.order_by(FurnitureType.title.asc()).all()
     ]
     form.color_ids.choices = [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()
@@ -90,8 +90,8 @@ def edit(product_id):
     form = ProductForm(obj=product)
 
     form.furniture_type_id.choices = [
-        (f.id, f.name)
-        for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
+        (f.id, f.title)
+        for f in FurnitureType.query.order_by(FurnitureType.title.asc()).all()
     ]
     form.color_ids.choices = [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()

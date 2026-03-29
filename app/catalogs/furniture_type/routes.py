@@ -43,7 +43,7 @@ def create_furniture_type():
     if form.validate_on_submit():
         raw_status = request.form.get("status", "1")
         data = {
-            "name": form.name.data,
+            "title": form.title.data,
             "status": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
@@ -73,7 +73,7 @@ def edit_furniture_type(id_furniture_type: int):
     if form.validate_on_submit():
         raw_status = request.form.get("status", "1")
         data = {
-            "name": form.name.data,
+            "title": form.title.data,
             "status": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
