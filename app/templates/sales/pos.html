@@ -327,15 +327,24 @@ POS – Venta Física | Furniture Store
 {% block modals %}
 {% include 'utils/customer_modal.html' %}
 {% include 'utils/checkout_modal.html' %}
+<div id="posConfig" class="hidden" data-csrf="{{ csrf_token() if csrf_token else '' }}"
+  data-url-cart="{{ url_for('sales.get_cart') }}" data-url-add-item="{{ url_for('sales.add_item') }}"
+  data-url-pos="{{ url_for('sales.pos') }}" data-url-search-customers="{{ url_for('sales.search_customers') }}"
+  data-url-create-customer="{{ url_for('sales.create_customer') }}"
+  data-url-payment-methods="{{ url_for('sales.get_payment_methods') }}"
+  data-url-checkout="{{ url_for('sales.checkout') }}"
+  data-url-sofa-img="{{ url_for('static', filename='src/images/sofa.png') }}"
+  data-has-customer="{{ 'true' if pos_customer else 'false' }}"></div>
 <script>
   (() => {
     "use strict";
 
+    const posConfig = document.getElementById("posConfig");
     const IVA = 0.16;
     let cartItems = [];
     let cartTotal = 0;
     let activeToastTimer = null;
-    const csrfToken = "{{ csrf_token() if csrf_token else '' }}";
+    const csrfToken = posConfig.dataset.csrf;
 
     const checkoutModal = document.getElementById("checkoutModal");
     const customerModal = document.getElementById("customerModal");
@@ -396,7 +405,7 @@ POS – Venta Física | Furniture Store
 
     async function loadCart() {
       try {
-        const res = await fetch("{{ url_for('sales.get_cart') }}");
+        const res = await fetch(posConfig.dataset.urlCart);
         const data = await res.json();
         cartItems = data.items || [];
         cartTotal = data.total || 0;
@@ -408,7 +417,7 @@ POS – Venta Física | Furniture Store
 
     async function addToCart(productId, qty = 1) {
       try {
-        const res = await fetch("{{ url_for('sales.add_item') }}", {
+        const res = await fetch(posConfig.dataset.urlAddItem, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -433,7 +442,7 @@ POS – Venta Física | Furniture Store
     async function updateCartItem(itemId, qty) {
       if (qty < 1) return removeCartItem(itemId);
       try {
-        const res = await fetch(`{{ url_for('sales.pos') }}/items/${itemId}`, {
+        const res = await fetch(`${posConfig.dataset.urlPos}/items/${itemId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -456,7 +465,7 @@ POS – Venta Física | Furniture Store
 
     async function removeCartItem(itemId) {
       try {
-        const res = await fetch(`{{ url_for('sales.pos') }}/items/${itemId}`, {
+        const res = await fetch(`${posConfig.dataset.urlPos}/items/${itemId}`, {
           method: "DELETE",
           headers: {
             "X-CSRFToken": csrfToken
@@ -475,7 +484,7 @@ POS – Venta Física | Furniture Store
       card.innerHTML = `
         <div class="flex items-center gap-3">
           <div class="h-14 w-14 md:h-16 md:w-16 rounded-base bg-neutral-secondary-medium p-1 shrink-0 flex items-center justify-center">
-            <img src="{{ url_for('static', filename='src/images/sofa.png') }}" class="h-full w-full object-contain" alt="${item.name}" />
+            <img src="${posConfig.dataset.urlSofaImg}" class="h-full w-full object-contain" alt="${item.name}" />
           </div>
           <div class="min-w-0 flex-1">
             <p class="text-heading text-xs 2xl:text-sm font-semibold truncate" title="${item.name}">${item.name}</p>
@@ -555,7 +564,7 @@ POS – Venta Física | Furniture Store
     const btnCancelar = document.getElementById("btnCancelar");
     if (btnCancelar) {
       btnCancelar.addEventListener("click", () => {
-        Promise.all(cartItems.map((item) => fetch(`{{ url_for('sales.pos') }}/items/${item.id}`, {
+        Promise.all(cartItems.map((item) => fetch(`${posConfig.dataset.urlPos}/items/${item.id}`, {
           method: "DELETE",
           headers: {
             "X-CSRFToken": csrfToken
@@ -580,7 +589,7 @@ POS – Venta Física | Furniture Store
           return;
         }
         debounceTimer = setTimeout(() => {
-          fetch(`{{ url_for('sales.search_customers') }}?q=${encodeURIComponent(q)}`)
+          fetch(`${posConfig.dataset.urlSearchCustomers}?q=${encodeURIComponent(q)}`)
             .then((res) => res.json())
             .then((data) => {
               customerList.innerHTML = "";
@@ -639,7 +648,7 @@ POS – Venta Física | Furniture Store
         };
 
         try {
-          const res = await fetch("{{ url_for('sales.create_customer') }}", {
+          const res = await fetch(posConfig.dataset.urlCreateCustomer, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -683,7 +692,7 @@ POS – Venta Física | Furniture Store
     async function loadPaymentMethods() {
       if (!paymentMethodSelect) return;
       try {
-        const res = await fetch("{{ url_for('sales.get_payment_methods') }}");
+        const res = await fetch(posConfig.dataset.urlPaymentMethods);
         const methods = await res.json();
         methods.forEach((m) => {
           const opt = document.createElement("option");
@@ -765,7 +774,7 @@ POS – Venta Física | Furniture Store
 
     if (amountGivenInput) amountGivenInput.addEventListener("input", calculateChange);
 
-    const hasCustomer = {{ 'true' if pos_customer else 'false' }};
+    const hasCustomer = posConfig.dataset.hasCustomer === "true";
 
     if (btnConfirmar) {
       btnConfirmar.addEventListener("click", () => {
@@ -812,7 +821,7 @@ POS – Venta Física | Furniture Store
         btnProcesarPago.textContent = "Autorizando cobro de servidor...";
 
         try {
-          const res = await fetch("{{ url_for('sales.checkout') }}", {
+          const res = await fetch(posConfig.dataset.urlCheckout, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -827,10 +836,10 @@ POS – Venta Física | Furniture Store
           if (res.ok) {
             setModalVisible(checkoutModal, false);
             showGlobalAlert("success", `Cobro registrado. Cambio a entregar: $${data.change.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`);
-              
+
             // Abrir popup de ticket
             if (data.sale_id) {
-              const ticketUrl = `{{ url_for('sales.pos') }}`.replace('/pos', `/sales/${data.sale_id}/ticket`);
+              const ticketUrl = posConfig.dataset.urlPos.replace('/pos', `/sales/${data.sale_id}/ticket`);
               window.open(ticketUrl, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no,status=no');
             }
 
