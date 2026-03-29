@@ -61,7 +61,11 @@ def product(product_id: int):
     if not product_data:
         abort(404)
 
-    related_products = EcommerceService.get_featured_products()[:4]
+    related_products = [
+        item
+        for item in EcommerceService.get_featured_products()
+        if item.get("id") != product_data.get("id")
+    ][:4]
 
     return render_template(
         "store/product.html",

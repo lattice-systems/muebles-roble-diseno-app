@@ -71,6 +71,45 @@ class EcommerceService:
         return EcommerceService.DEFAULT_PRODUCT_IMAGE
 
     @staticmethod
+    def _resolve_images(product: Product) -> list[str]:
+        """Resuelve imágenes con la regla: mínimo 1 y máximo 4."""
+        candidates: list[str] = [EcommerceService._resolve_image(product)]
+
+        for attr in ("images", "image_urls", "gallery_images", "photos"):
+            value = getattr(product, attr, None)
+            if not value:
+                continue
+
+            if isinstance(value, str):
+                parsed_values = (
+                    [segment.strip() for segment in value.split(",")]
+                    if "," in value
+                    else [value.strip()]
+                )
+            elif isinstance(value, (list, tuple, set)):
+                parsed_values = list(value)
+            else:
+                continue
+
+            for img in parsed_values:
+                if isinstance(img, str) and img.strip():
+                    candidates.append(img.strip())
+
+        normalized_images: list[str] = []
+        for img in candidates:
+            if img and img not in normalized_images:
+                normalized_images.append(img)
+
+        if len(normalized_images) == 1:
+            for fallback_img in EcommerceService.DEFAULT_PRODUCT_GALLERY[1:]:
+                if fallback_img not in normalized_images:
+                    normalized_images.append(fallback_img)
+                if len(normalized_images) == 4:
+                    break
+
+        return normalized_images[:4] or [EcommerceService.DEFAULT_PRODUCT_IMAGE]
+
+    @staticmethod
     def _serialize_product(product: Product) -> dict[str, object]:
         category = product.furniture_type.title if product.furniture_type else "General"
         subtitle = (
@@ -78,15 +117,22 @@ class EcommerceService:
             if product.furniture_type and product.furniture_type.subtitle
             else f"Mueble de tipo {category.lower()}"
         )
-        image = EcommerceService._resolve_image(product)
-        images = [image] + EcommerceService.DEFAULT_PRODUCT_GALLERY[1:]
+        images = EcommerceService._resolve_images(product)
+        image = images[0]
         stock = product.inventory_records[0].stock if product.inventory_records else 0
         color_names = [
             rel.color.name.lower()
             for rel in product.colors
             if rel.color and rel.color.name and rel.color.status
         ]
-        tags = [category, "Hogar", "Tienda"]
+        color_palette = [
+            {
+                "name": rel.color.name,
+                "hex": rel.color.hex_code,
+            }
+            for rel in product.colors
+            if rel.color and rel.color.name and rel.color.status
+        ]
 
         return {
             "id": product.id,
@@ -100,9 +146,14 @@ class EcommerceService:
             "description": product.description,
             "sizes": ["S", "M", "L"],
             "colors": color_names,
+            "color_palette": color_palette,
             "sku": product.sku,
+            "stock": stock,
+            "in_stock": stock > 0,
+            "photo_count": len(images),
+            "status": product.status,
+            "furniture_type_id": product.furniture_type_id,
             "category": category,
-            "tags": tags,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
