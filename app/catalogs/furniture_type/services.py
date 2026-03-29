@@ -26,9 +26,7 @@ class FurnitureTypeService:
 
         if search_term:
             search = f"%{search_term}%"
-            query = query.filter(
-                or_(FurnitureType.name.ilike(search))
-            )
+            query = query.filter(or_(FurnitureType.name.ilike(search)))
 
         if status_filter == "active":
             query = query.filter_by(status=True)
@@ -55,9 +53,7 @@ class FurnitureTypeService:
         if existing:
             raise ConflictError(f"Ya existe un tipo de mueble con el nombre '{name}'")
 
-        furniture_type = FurnitureType(
-            name=name, status=data.get("status", True)
-        )
+        furniture_type = FurnitureType(name=name, status=data.get("status", True))
         db.session.add(furniture_type)
 
         try:

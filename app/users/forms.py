@@ -107,4 +107,6 @@ class UserEditForm(FlaskForm):
                 or not re.search(r"\d", value)
                 or not re.search(r"[^A-Za-z0-9]", value)
             ):
-                raise ValidationError("La contraseña no cumple los requisitos de seguridad")
+                raise ValidationError(
+                    "La contraseña no cumple los requisitos de seguridad"
+                )

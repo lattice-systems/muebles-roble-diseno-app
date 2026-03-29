@@ -54,6 +54,10 @@ def create_app():
 
     app.register_blueprint(suppliers_bp, url_prefix="/admin/suppliers")
 
+    from .purchases import purchases_bp
+
+    app.register_blueprint(purchases_bp, url_prefix="/admin/purchases")
+
     from .costs import costs_bp
 
     app.register_blueprint(costs_bp, url_prefix="/costs")
@@ -80,6 +84,10 @@ def create_app():
 
     app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
 
+    from .products import products_bp
+
+    app.register_blueprint(products_bp, url_prefix="/products")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
@@ -90,6 +98,10 @@ def create_app():
     from .catalogs.furniture_type import furniture_type_bp
 
     app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+
+    from .ecommerce import ecommerce_bp
+
+    app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
 
     from .sales import sales_bp
 

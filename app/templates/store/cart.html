@@ -1,0 +1,95 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Carrito | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <!-- Hero Section -->
+  <div class="relative bg-slate-200 py-20 flex flex-col items-center justify-center">
+    <!-- Fallback background or an actual image -->
+    <div class="absolute inset-0 overflow-hidden bg-white/70">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=2000"
+           alt="Carrito Hero"
+           class="w-full h-full object-cover opacity-30 mix-blend-multiply blur-[2px]" />
+    </div>
+    <div class="relative z-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-heading mb-4">Carrito</h1>
+      <nav class="flex justify-center items-center space-x-2 text-sm text-heading font-medium">
+        <a href="{{ url_for('ecommerce.home') }}"
+           class="hover:text-sky-900 transition-colors">Inicio</a>
+        <span>
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
+        <span class="font-normal text-body">Carrito</span>
+      </nav>
+    </div>
+  </div>
+  <!-- Cart Content -->
+  <section class="max-w-7xl mx-auto px-6 py-16">
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+      <!-- Cart Table -->
+      <div class="flex-1 w-full overflow-x-auto">
+        <table class="w-full min-w-[600px] text-left">
+          <thead>
+            <tr class="bg-slate-100 text-heading font-medium text-sm lg:text-base">
+              <th class="py-4 px-6 rounded-l-lg">Producto</th>
+              <th class="py-4 px-6">Precio</th>
+              <th class="py-4 px-6 text-center">Cantidad</th>
+              <th class="py-4 px-6 rounded-r-lg">Subtotal</th>
+              <th class="py-4 px-6"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart.cart_items %}
+              <tr class="border-b border-transparent">
+                <td class="py-8 px-6 flex items-center gap-4">
+                  <div class="w-24 h-24 rounded-lg bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+                    <img src="{{ item.product.image }}"
+                         alt="{{ item.product.title }}"
+                         class="w-full h-full object-cover mix-blend-multiply opacity-90">
+                  </div>
+                  <span class="text-body-subtle font-medium">{{ item.product.title }}</span>
+                </td>
+                <td class="py-8 px-6 text-body-subtle">MX {{ "{:,.0f}".format(item.product.price) }}</td>
+                <td class="py-8 px-6 text-center">
+                  <input type="number"
+                         value="{{ item.quantity }}"
+                         class="w-12 h-10 border border-gray-300 rounded text-center focus:ring-sky-900 focus:border-sky-900 p-1 mx-auto" />
+                </td>
+                <td class="py-8 px-6 text-heading font-medium">MX {{ "{:,.0f}".format(item.subtotal) }}</td>
+                <td class="py-8 px-6 text-center">
+                  <button class="text-sky-900 hover:text-red-500 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="py-12 text-center text-body-subtle">Tu carrito está vacío.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <!-- Cart Totals -->
+      <div class="w-full lg:w-96 bg-slate-100 rounded-lg p-8 pb-12 shrink-0 flex flex-col items-center">
+        <h2 class="text-3xl text-heading font-bold mb-12 text-center w-full">Total a Pagar</h2>
+        <div class="w-full flex justify-between items-center mb-6">
+          <span class="text-heading font-medium">Subtotal</span>
+          <span class="text-body-subtle text-sm">MX {{ "{:,.0f}".format(cart.subtotal) }}</span>
+        </div>
+        <div class="w-full flex justify-between items-center mb-10">
+          <span class="text-heading font-medium">Total</span>
+          <span class="text-sky-900 text-xl font-medium">MX {{ "{:,.0f}".format(cart.total) }}</span>
+        </div>
+        <a href="{{ url_for('ecommerce.checkout') }}"
+           class="w-full text-center max-w-[200px] py-3 px-6 rounded-full border border-heading text-heading text-xl hover:bg-heading hover:text-white transition-colors duration-300">
+          Pagar
+        </a>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
