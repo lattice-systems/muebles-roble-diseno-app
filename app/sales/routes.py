@@ -7,6 +7,7 @@ from flask_security import auth_required, current_user
 
 from . import sales_bp
 from .services import SaleService, SaleItemService
+from .copomex_service import CopomexService
 from app.exceptions import NotFoundError
 
 
@@ -215,3 +216,28 @@ def checkout():
 def get_payment_methods():
     methods = SaleService.get_payment_methods()
     return jsonify([{"id": m.id, "name": m.name} for m in methods])
+
+
+@sales_bp.route("/api/cp/<string:cp>", methods=["GET"])
+@auth_required()
+def lookup_cp(cp):
+    """
+    Proxy hacia COPOMEX con caché en memoria.
+
+    Retorna estado, municipio y colonias para un CP de 5 dígitos.
+    Solo consume 1 crédito por CP único (los siguientes son cache hits).
+    """
+    result = CopomexService.lookup_cp(cp)
+
+    if result is None:
+        return jsonify({
+            "error": True,
+            "message": "Código postal no encontrado o inválido.",
+        }), 404
+
+    return jsonify({
+        "error": False,
+        "estado": result["estado"],
+        "municipio": result["municipio"],
+        "colonias": result["colonias"],
+    })
