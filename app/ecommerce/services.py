@@ -2,105 +2,32 @@
 
 from __future__ import annotations
 
+from app.models.furniture_type import FurnitureType
+
 
 class EcommerceService:
-    """Contiene datos iniciales para la vitrina de e-commerce."""
+    """Servicios para la vitrina de e-commerce."""
 
     @staticmethod
     def get_product_categories() -> list[dict[str, str]]:
-        return [
-            {
-                "title": "Salas",
-                "subtitle": "Sofas, sillones individuales, sofas de dos plazas",
-                "image_url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Salas",
-            },
-            {
-                "title": "Comedores",
-                "subtitle": "Mesas de comedor, sillas de comedor, bancos",
-                "image_url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Comedores",
-            },
-            {
-                "title": "Recamaras",
-                "subtitle": "Camas, cabeceras, buros",
-                "image_url": "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Recamaras",
-            },
-            {
-                "title": "Closets y almacenamiento",
-                "subtitle": "Closets, roperos, armarios",
-                "image_url": "https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Closets y almacenamiento",
-            },
-            {
-                "title": "Escritorios y oficina",
-                "subtitle": "Escritorios, sillas de oficina, estaciones de trabajo",
-                "image_url": "https://images.unsplash.com/photo-1486946255434-2466348c2166?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Escritorios y oficina",
-            },
-            {
-                "title": "Muebles para TV",
-                "subtitle": "Centros de entretenimiento, bases para TV, consolas",
-                "image_url": "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Muebles para TV",
-            },
-            {
-                "title": "Mesas",
-                "subtitle": "Mesas de centro, mesas laterales, mesas auxiliares",
-                "image_url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Mesas",
-            },
-            {
-                "title": "Estanterias y libreros",
-                "subtitle": "Libreros, repisas, estantes",
-                "image_url": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Estanterias y libreros",
-            },
-            {
-                "title": "Cocina",
-                "subtitle": "Alacenas, islas de cocina, gabinetes",
-                "image_url": "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Cocina",
-            },
-            {
-                "title": "Muebles infantiles",
-                "subtitle": "Camas infantiles, escritorios para ninos, organizadores",
-                "image_url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Muebles infantiles",
-            },
-            {
-                "title": "Muebles decorativos",
-                "subtitle": "Consolas decorativas, biombos, bancos decorativos",
-                "image_url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Muebles decorativos",
-            },
-            {
-                "title": "Muebles personalizados",
-                "subtitle": "Disenos a medida, proyectos especiales, muebles bajo pedido",
-                "image_url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Muebles personalizados",
-            },
-            {
-                "title": "Muebles de jardin",
-                "subtitle": "Salas de exterior, comedores de exterior, camastros y tumbonas",
-                "image_url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=800",
-                "href": "#",
-                "alt": "Muebles de jardin",
-            },
-        ]
+        """Obtiene categorías desde la BD (furniture_types) con atributos e-commerce."""
+        categories = (
+            FurnitureType.query.filter_by(status=True).order_by(FurnitureType.id).all()
+        )
+        result = []
+        for cat in categories:
+            result.append(
+                {
+                    "id": cat.id,
+                    "title": cat.title,
+                    "subtitle": cat.subtitle or "",
+                    "image_url": cat.image_url or "#",
+                    "href": f"/products?type={cat.slug}" if cat.slug else "#",
+                    "alt": cat.title,
+                    "slug": cat.slug,
+                }
+            )
+        return result
 
     @staticmethod
     def get_featured_categories(limit: int = 3) -> list[dict[str, str]]:
