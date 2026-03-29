@@ -26,15 +26,15 @@ def _parse_selected_ids(raw_ids: str) -> list[int]:
 @users_bp.route("/profile", methods=["GET"])
 @login_required
 def profile():
-	"""Muestra el perfil del usuario actual."""
-	user = current_user
-	has_2fa = bool(user.tf_primary_method)
-	
-	return render_template(
-		"admin/administration/users/profile.html",
-		user=user,
-		has_2fa=has_2fa,
-	)
+    """Muestra el perfil del usuario actual."""
+    user = current_user
+    has_2fa = bool(user.tf_primary_method)
+
+    return render_template(
+        "admin/administration/users/profile.html",
+        user=user,
+        has_2fa=has_2fa,
+    )
 
 
 @users_bp.route("/profile/setup-2fa", methods=["GET"])
@@ -125,9 +125,11 @@ def toggle_status(id_user: int):
 
         new_status = UserService.toggle_status(id_user)
         flash(
-            "Usuario activado exitosamente"
-            if new_status
-            else "Usuario desactivado exitosamente",
+            (
+                "Usuario activado exitosamente"
+                if new_status
+                else "Usuario desactivado exitosamente"
+            ),
             "success",
         )
     except NotFoundError as e:
@@ -235,7 +237,9 @@ def bulk_action_users():
 
         output = StringIO()
         writer = csv.writer(output)
-        writer.writerow(["ID", "Nombre", "Correo", "Rol", "Estado", "Fecha de creacion"])
+        writer.writerow(
+            ["ID", "Nombre", "Correo", "Rol", "Estado", "Fecha de creacion"]
+        )
         for user in users:
             writer.writerow(
                 [
@@ -244,7 +248,11 @@ def bulk_action_users():
                     user.email,
                     user.role.name if user.role else "Sin rol",
                     "Activo" if user.status else "Inactivo",
-                    user.created_at.strftime("%Y-%m-%d %H:%M:%S") if user.created_at else "",
+                    (
+                        user.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                        if user.created_at
+                        else ""
+                    ),
                 ]
             )
 

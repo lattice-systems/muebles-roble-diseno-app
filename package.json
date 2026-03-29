@@ -23,7 +23,7 @@
   "homepage": "https://github.com/furniture-store-utl/backend-furniture-store#readme",
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.1",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.2"
   },
   "dependencies": {
     "flowbite": "^4.0.1"

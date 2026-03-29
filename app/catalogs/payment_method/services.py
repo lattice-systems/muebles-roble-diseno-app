@@ -71,7 +71,9 @@ class PaymentMethodService:
         """Obtiene un método de pago por su ID."""
         payment_method = db.session.get(PaymentMethod, id_payment_method)
         if not payment_method:
-            raise NotFoundError(f"No se encontró un método de pago con ID {id_payment_method}")
+            raise NotFoundError(
+                f"No se encontró un método de pago con ID {id_payment_method}"
+            )
         return payment_method
 
     # ------------------------------------------------------------------ #
@@ -100,18 +102,20 @@ class PaymentMethodService:
         pm_type = pm_type.strip().lower()
 
         description = (data.get("description") or "").strip() or None
-        
+
         status = data.get("status", True)
         if isinstance(status, str):
             status = status == "1"
-            
+
         available_pos = data.get("available_pos", True)
         if isinstance(available_pos, str):
             available_pos = available_pos.lower() == "true" or available_pos == "1"
 
         available_ecommerce = data.get("available_ecommerce", True)
         if isinstance(available_ecommerce, str):
-            available_ecommerce = available_ecommerce.lower() == "true" or available_ecommerce == "1"
+            available_ecommerce = (
+                available_ecommerce.lower() == "true" or available_ecommerce == "1"
+            )
 
         # Unicidad solo entre activos
         existing = PaymentMethod.query.filter(
@@ -119,7 +123,9 @@ class PaymentMethodService:
             PaymentMethod.status.is_(True),
         ).first()
         if existing:
-            raise ConflictError(f"Ya existe un método de pago activo con el nombre '{name}'")
+            raise ConflictError(
+                f"Ya existe un método de pago activo con el nombre '{name}'"
+            )
 
         payment_method = PaymentMethod(
             name=name,
@@ -169,7 +175,7 @@ class PaymentMethodService:
         pm_type = pm_type.strip().lower()
 
         description = (data.get("description") or "").strip() or None
-        
+
         status = data.get("status", payment_method.status)
         if isinstance(status, str):
             status = status == "1"
@@ -178,9 +184,13 @@ class PaymentMethodService:
         if isinstance(available_pos, str):
             available_pos = available_pos.lower() == "true" or available_pos == "1"
 
-        available_ecommerce = data.get("available_ecommerce", payment_method.available_ecommerce)
+        available_ecommerce = data.get(
+            "available_ecommerce", payment_method.available_ecommerce
+        )
         if isinstance(available_ecommerce, str):
-            available_ecommerce = available_ecommerce.lower() == "true" or available_ecommerce == "1"
+            available_ecommerce = (
+                available_ecommerce.lower() == "true" or available_ecommerce == "1"
+            )
 
         # Unicidad solo entre activos (excluyendo a sí mismo)
         existing = PaymentMethod.query.filter(
@@ -189,7 +199,9 @@ class PaymentMethodService:
             PaymentMethod.id != id_payment_method,
         ).first()
         if existing:
-            raise ConflictError(f"Ya existe otro método de pago activo con el nombre '{name}'")
+            raise ConflictError(
+                f"Ya existe otro método de pago activo con el nombre '{name}'"
+            )
 
         payment_method.name = name
         payment_method.type = pm_type
@@ -242,7 +254,9 @@ class PaymentMethodService:
     @staticmethod
     def bulk_deactivate(ids: list[int]) -> int:
         """Desactiva múltiples métodos de pago. Retorna la cantidad de desactivados."""
-        methods = PaymentMethod.query.filter(PaymentMethod.id.in_(ids), PaymentMethod.status.is_(True)).all()
+        methods = PaymentMethod.query.filter(
+            PaymentMethod.id.in_(ids), PaymentMethod.status.is_(True)
+        ).all()
         for method in methods:
             previous = method.to_dict()
             method.status = False
@@ -253,7 +267,9 @@ class PaymentMethodService:
     @staticmethod
     def bulk_activate(ids: list[int]) -> int:
         """Activa múltiples métodos de pago. Retorna la cantidad de activados."""
-        methods = PaymentMethod.query.filter(PaymentMethod.id.in_(ids), PaymentMethod.status.is_(False)).all()
+        methods = PaymentMethod.query.filter(
+            PaymentMethod.id.in_(ids), PaymentMethod.status.is_(False)
+        ).all()
         for method in methods:
             previous = method.to_dict()
             method.status = True

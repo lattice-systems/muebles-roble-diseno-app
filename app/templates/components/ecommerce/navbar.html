@@ -1,0 +1,111 @@
+{# app/templates/components/ecommerce/navbar.html #}
+<header class="bg-neutral-primary px-6 w-full fixed top-0 left-0 z-50">
+  <div class="max-w-7xl mx-auto flex items-center justify-between h-20">
+    <!-- Logo -->
+    <a href="{{ url_for('ecommerce.home') }}"
+       class="flex items-center gap-2">
+      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           alt="Logo Roble y Diseño"
+           class="h-10 w-[198px] object-contain">
+    </a>
+    <!-- Desktop Navigation Links -->
+    <nav class="hidden md:flex items-center gap-12">
+      <a href="{{ url_for('ecommerce.home') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'home' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Inicio</a>
+      <a href="{{ url_for('ecommerce.categories') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'categories' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Categorías</a>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'products' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Productos</a>
+      <a href="{{ url_for('ecommerce.about') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'about' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Nosotros</a>
+      <a href="{{ url_for('ecommerce.contact') }}"
+         class="text-heading hover:text-body transition-colors text-base {% if active_section == 'contact' %}font-bold border-b-2 border-sky-900 pb-1{% else %}font-medium border-b-2 border-transparent pb-1{% endif %}">Contacto</a>
+    </nav>
+    <!-- Icons & Mobile Menu Toggle -->
+    <div class="flex items-center gap-4 md:gap-6">
+      <button class="text-heading hover:text-body transition-colors">
+        <span class="sr-only">Buscar</span>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+        </svg>
+      </button>
+      <button type="button"
+              data-drawer-target="cart-sidebar"
+              data-drawer-show="cart-sidebar"
+              data-drawer-placement="right"
+              aria-controls="cart-sidebar"
+              class="text-heading hover:text-body transition-colors relative cursor-pointer">
+        <span class="sr-only">Carrito</span>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
+        </svg>
+      </button>
+      <!-- Hamburger Menu Button -->
+      <button id="mobile-menu-button"
+              class="md:hidden text-heading focus:outline-none ml-2">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <!-- Mobile Menu Drawer Overlay -->
+  <div id="mobile-menu-overlay"
+       class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity duration-300"></div>
+  <!-- Mobile Menu Drawer -->
+  <div id="mobile-menu-drawer"
+       class="fixed top-0 right-0 h-full w-3/4 max-w-sm bg-neutral-primary  z-50 transform translate-x-full transition-transform duration-300 ease-in-out shadow-2xl flex flex-col">
+    <div class="p-6 flex justify-end">
+      <button id="close-menu-button" class="text-heading focus:outline-none">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="flex flex-col px-8 gap-6 mt-4">
+      <a href="{{ url_for('ecommerce.home') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'home' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Inicio</a>
+      <a href="{{ url_for('ecommerce.categories') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'categories' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Categorías</a>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'products' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Productos</a>
+      <a href="{{ url_for('ecommerce.about') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'about' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Nosotros</a>
+      <a href="{{ url_for('ecommerce.contact') }}"
+         class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'contact' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Contacto</a>
+    </nav>
+  </div>
+</header>
+<!-- Spacer to offset the fixed navbar -->
+<div class="h-20 w-full"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+        const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+
+        function toggleMenu() {
+            const isClosed = mobileMenuDrawer.classList.contains('translate-x-full');
+            if (isClosed) {
+                // Open
+                mobileMenuOverlay.classList.remove('hidden');
+                // trigger reflow
+                void mobileMenuOverlay.offsetWidth;
+                mobileMenuOverlay.classList.remove('opacity-0');
+                mobileMenuOverlay.classList.add('opacity-100');
+                mobileMenuDrawer.classList.remove('translate-x-full');
+            } else {
+                // Close
+                mobileMenuDrawer.classList.add('translate-x-full');
+                mobileMenuOverlay.classList.remove('opacity-100');
+                mobileMenuOverlay.classList.add('opacity-0');
+                setTimeout(() => mobileMenuOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+        mobileMenuButton.addEventListener('click', toggleMenu);
+        closeMenuButton.addEventListener('click', toggleMenu);
+        mobileMenuOverlay.addEventListener('click', toggleMenu);
+    });
+</script>

@@ -1,67 +1,89 @@
 {# app/templates/macros/ecommerce.html #}
-{% macro price_tag(price, currency="$") %}
-  <span class="text-3xl font-bold text-heading">{{ currency }}{{ price }}</span>
+{% macro category_card(title, image_url, href="#", alt=None, subtitle=None) %}
+  <a href="{{ href }}" class="group block text-center">
+    <div class="overflow-hidden rounded-xl mb-4 h-96 w-full">
+      <img src="{{ image_url }}"
+           alt="{{ alt or title }}"
+           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+    </div>
+    <h3 class="text-xl font-semibold text-heading">{{ title }}</h3>
+    {% if subtitle %}<p class="mt-2 text-sm text-body">{{ subtitle }}</p>{% endif %}
+  </a>
 {% endmacro %}
-{% macro rating_stars(rating, max=5) %}
-  <div class="flex items-center mt-2.5 mb-5 space-x-1">
-    {% for i in range(max) %}
-      {% if i < rating %}
-        <svg class="w-5 h-5 text-fg-yellow"
-             aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             fill="currentColor"
-             viewBox="0 0 24 24">
-          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z">
-          </path>
-        </svg>
-      {% else %}
-        <svg class="w-5 h-5 text-fg-disabled"
-             aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             fill="currentColor"
-             viewBox="0 0 24 24">
-          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
-        </svg>
-      {% endif %}
-    {% endfor %}
-    <span class="bg-brand-softer text-fg-brand-strong text-xs font-medium px-2.5 py-0.5 rounded ml-3">{{ rating }}</span>
-  </div>
+{% macro category_section(title="Explorar la coleccion", description="Descubre muebles disenados para transformar tus espacios.", categories=[]) %}
+  <section class="py-16 px-6 max-w-7xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-heading mb-2">{{ title }}</h2>
+      <p class="text-body">{{ description }}</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      {% for category in categories %}
+        {{ category_card(category.title, category.image_url, category.href, category.alt, category.subtitle) }}
+      {% endfor %}
+    </div>
+  </section>
 {% endmacro %}
-{% macro add_to_cart_button(product_id) %}
-  <button type="button"
-          data-product-id="{{ product_id }}"
-          class="inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-    <svg class="w-3.5 h-3.5 mr-2"
-         aria-hidden="true"
-         xmlns="http://www.w3.org/2000/svg"
-         fill="currentColor"
-         viewBox="0 0 18 21">
-      <path d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
-    </svg>
-    Añadir al carrito
-  </button>
+{% macro outline_button(label, href=None, type="button") %}
+  {% set classes = "border border-sky-900 text-sky-900 font-semibold py-3 px-16 hover:bg-sky-900 hover:text-neutral-primary transition-colors cursor-pointer inline-flex items-center justify-center" %}
+  {% if href %}
+    <a href="{{ href }}" class="{{ classes }}">{{ label }}</a>
+  {% else %}
+    <button type="{{ type }}" class="{{ classes }}">{{ label }}</button>
+  {% endif %}
 {% endmacro %}
 {% macro product_card(product) %}
-  <div class="bg-neutral-primary-soft block w-full max-w-sm border border-default rounded-base shadow-xs hover:bg-neutral-secondary-medium group">
-    <a href="{{ product.url | default('#') }}">
-      <img class="p-8 rounded-t-base h-64 w-full object-cover group-hover:opacity-90 transition-opacity"
-           width="512"
-           height="256"
-           src="{{ product.image | default('https://flowbite.com/docs/images/products/apple-watch.png') }}"
-           alt="{{ product.title }}" />
-    </a>
-    <div class="px-6 pb-6 border-t border-default pt-4">
-      <a href="{{ product.url | default('#') }}">
-        <h5 class="mb-3 text-2xl font-semibold tracking-tight text-heading leading-8">{{ product.title }}</h5>
+  <div class="bg-neutral-primary group relative flex flex-col w-full h-full max-w-sm rounded-xs overflow-hidden border border-slate-200">
+    <!-- Image & Badge Container -->
+    <div class="relative w-full h-72 shrink-0 bg-gray-100">
+      <a href="{{ url_for('ecommerce.product', product_id=product.id) }}"
+         class="block w-full h-full">
+        <img src="{{ product.image }}"
+             alt="{{ product.title }}"
+             class="w-full h-full object-cover" />
       </a>
-      {{ rating_stars(product.rating | default(0) ) }}
-      <div class="flex items-center justify-between mt-4">
-        {{ price_tag(product.price | default(0) ) }}
-        {{ add_to_cart_button(product.id) }}
+      <!-- Badges -->
+      {% if product.badge %}
+        <div class="absolute top-6 right-6 w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-medium pointer-events-none {% if product.badge == 'Nuevo' %}bg-sky-600{% else %}bg-slate-700{% endif %}">
+          {{ product.badge }}
+        </div>
+      {% endif %}
+      <!-- Hover Overlay -->
+      <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <button class="bg-neutral-primary text-sky-900 font-semibold py-3 px-10 mb-4 hover:bg-sky-900 hover:text-neutral-primary transition-colors cursor-pointer pointer-events-auto">
+          Añadir al carrito
+        </button>
+        <div class="flex gap-4 text-white text-sm font-semibold pointer-events-auto">
+          <button class="flex items-center gap-1 hover:text-slate-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            Compartir
+          </button>
+          <button class="flex items-center gap-1 hover:text-slate-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            Favorito
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Product Info -->
+    <div class="p-4 flex-1 flex flex-col justify-between">
+      <div>
+        <a href="{{ url_for('ecommerce.product', product_id=product.id) }}"
+           class="block group/title">
+          <h5 class="text-heading text-2xl font-bold mb-1 group-hover/title:text-sky-900 transition-colors">
+            {{ product.title }}
+          </h5>
+        </a>
+        <p class="text-body text-base font-medium mb-2">{{ product.subtitle }}</p>
+      </div>
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <span class="text-heading text-xl font-bold">MX {{ "{:,.0f}".format(product.price) }}</span>
+        {% if product.original_price %}
+          <span class="text-body text-base line-through">MX {{ "{:,.0f}".format(product.original_price) }}</span>
+        {% endif %}
       </div>
     </div>
   </div>

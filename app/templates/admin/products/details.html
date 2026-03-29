@@ -1,0 +1,77 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalle de producto
+{% endblock title %}
+{% block content %}
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de producto</h1>
+      <p class="text-body">Consulta la información del producto seleccionado</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">ID</span>
+          <p class="text-heading font-medium">{{ product.id }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">SKU</span>
+          <p class="text-heading font-medium">{{ product.sku }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Nombre</span>
+          <p class="text-heading font-medium">{{ product.name }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Tipo de mueble</span>
+          <p class="text-heading font-medium">{{ product.furniture_type.name if product.furniture_type else "Sin tipo" }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Precio</span>
+          <p class="text-heading font-medium">${{ product.price }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Stock</span>
+          <p class="text-heading font-medium">{{ inventory.stock if inventory else 0 }}</p>
+        </div>
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-xs 2xl:text-sm text-body">Descripción</span>
+          <p class="text-heading font-medium">{{ product.description if product.description else "Sin descripción" }}</p>
+        </div>
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-xs 2xl:text-sm text-body">Colores</span>
+          <div class="flex flex-wrap gap-2">
+            {% for relation in product.colors %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">
+                {{ relation.color.name }}
+              </span>
+            {% else %}
+              <p class="text-heading font-medium">Sin colores asignados</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Estado</span>
+          <div>
+            {% if product.status %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Activo</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-6">
+        <a href="{{ url_for('products.index') }}"
+           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+          Volver
+        </a>
+        <a href="{{ url_for('products.edit', product_id=product.id) }}"
+           class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+          Editar
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
