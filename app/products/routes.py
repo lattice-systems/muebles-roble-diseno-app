@@ -74,8 +74,8 @@ def create():
 
     # cargar selects SIEMPRE antes de validar
     form.furniture_type_id.choices = [
-        (f.id, f.name)
-        for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
+        (f.id, f.title)
+        for f in FurnitureType.query.order_by(FurnitureType.title.asc()).all()
     ]
     form.color_id.choices = [(0, "Seleccionar color")] + [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()
@@ -139,8 +139,8 @@ def edit(product_id):
     db.session.commit()
 
     form.furniture_type_id.choices = [
-        (f.id, f.name)
-        for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
+        (f.id, f.title)
+        for f in FurnitureType.query.order_by(FurnitureType.title.asc()).all()
     ]
     form.color_id.choices = [(0, "Seleccionar color")] + [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()

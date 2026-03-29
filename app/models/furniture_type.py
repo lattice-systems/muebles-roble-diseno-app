@@ -10,8 +10,10 @@ class FurnitureType(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     id_furniture_type = synonym("id")
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=True)
+    title = db.Column(db.String(100), nullable=False, unique=True)
+    subtitle = db.Column(db.String(255), nullable=True)
+    image_url = db.Column(db.String(500), nullable=True)
+    slug = db.Column(db.String(120), nullable=True, unique=True, index=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
     created_at = db.Column(
@@ -30,8 +32,10 @@ class FurnitureType(db.Model):
         return {
             "id": self.id,
             "id_furniture_type": self.id_furniture_type,
-            "name": self.name,
-            "description": self.description,
+            "title": self.title,
+            "subtitle": self.subtitle,
+            "image_url": self.image_url,
+            "slug": self.slug,
             "status": self.status,
             "active": self.active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
