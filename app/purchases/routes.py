@@ -132,8 +132,13 @@ def edit_order(id_order: int):
         return redirect(url_for("purchases.index"))
 
     form = PurchaseOrderForm()
-    form.supplier_id.choices = PurchaseOrderService.get_supplier_choices()
-    raw_materials_choices = PurchaseOrderService.get_raw_material_choices()
+    form.supplier_id.choices = PurchaseOrderService.get_supplier_choices(
+        include_inactive_id=order.supplier_id
+    )
+    current_material_ids = [item.raw_material_id for item in order.items]
+    raw_materials_choices = PurchaseOrderService.get_raw_material_choices(
+        include_inactive_ids=current_material_ids
+    )
 
     if request.method == "GET":
         form.supplier_id.data = order.supplier_id

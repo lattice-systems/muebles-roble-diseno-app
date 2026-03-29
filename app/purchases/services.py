@@ -31,23 +31,38 @@ class PurchaseOrderService:
         db.session.add(entry)
 
     @staticmethod
-    def get_supplier_choices() -> list[tuple[int, str]]:
+    def get_supplier_choices(
+        include_inactive_id: int | None = None,
+    ) -> list[tuple[int, str]]:
         """Obtiene las opciones de proveedores activos para selectores."""
-        suppliers = (
-            Supplier.query.filter(Supplier.status.is_(True))
-            .order_by(Supplier.name.asc())
-            .all()
-        )
+        query = Supplier.query
+        if include_inactive_id:
+            query = query.filter(
+                or_(Supplier.status.is_(True), Supplier.id == include_inactive_id)
+            )
+        else:
+            query = query.filter(Supplier.status.is_(True))
+
+        suppliers = query.order_by(Supplier.name.asc()).all()
         return [(s.id, s.name) for s in suppliers]
 
     @staticmethod
-    def get_raw_material_choices() -> list[tuple[int, str]]:
+    def get_raw_material_choices(
+        include_inactive_ids: list[int] | None = None,
+    ) -> list[tuple[int, str]]:
         """Obtiene las opciones de materia prima para selectores, incluyendo su unidad."""
-        materials = (
-            RawMaterial.query.join(RawMaterial.unit)
-            .order_by(RawMaterial.name.asc())
-            .all()
-        )
+        query = RawMaterial.query.join(RawMaterial.unit)
+        if include_inactive_ids:
+            query = query.filter(
+                or_(
+                    RawMaterial.status == "active",
+                    RawMaterial.id.in_(include_inactive_ids),
+                )
+            )
+        else:
+            query = query.filter(RawMaterial.status == "active")
+
+        materials = query.order_by(RawMaterial.name.asc()).all()
         return [(m.id, f"{m.name} ({m.unit.abbreviation})") for m in materials]
 
     @staticmethod
@@ -308,6 +323,7 @@ class PurchaseOrderService:
                             movement_type="ENTRADA",
                             quantity=added_qty,
                             reference=f"Compra OC-{order.id}",
+                            reason="Recepción de orden de compra",
                         )
                         db.session.add(movement)
             else:
@@ -327,6 +343,7 @@ class PurchaseOrderService:
                             movement_type="ENTRADA",
                             quantity=added_qty,
                             reference=f"Compra OC-{order.id}",
+                            reason="Recepción de orden de compra",
                         )
                         db.session.add(movement)
 
