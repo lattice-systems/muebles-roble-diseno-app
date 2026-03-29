@@ -2,14 +2,12 @@
 Rutas/Endpoints para el módulo de ventas POS.
 """
 
-from flask import jsonify, redirect, render_template, request, session, url_for
+from flask import flash, jsonify, redirect, render_template, request, session, url_for
 from flask_security import auth_required, current_user
 
 from . import sales_bp
 from .services import SaleService, SaleItemService
-from .copomex_service import CopomexService
 from app.exceptions import NotFoundError
-from app.models.customer import Customer
 
 
 @sales_bp.route("/pos", methods=["GET"])
@@ -18,13 +16,16 @@ def pos():
     """
     Vista principal del POS.
 
-    La venta se crea bajo demanda (al agregar el primer producto).
-    El cliente se almacena en la sesión, no crea registros en BD.
+    Muestra la cuadrícula de productos y el panel de carrito.
+    Si no existe una venta activa en sesión, auto-abre una nueva.
+
+    Returns:
+        HTML: Página del POS con productos paginados y carrito activo.
     """
     search_term = request.args.get("q", "")
     page = request.args.get("page", 1, type=int)
 
-    # Recuperar venta activa (si existe)
+    # Auto-abrir venta si no existe una activa en sesión
     sale = None
     sale_id = session.get("active_sale_id")
     if sale_id:
@@ -32,21 +33,18 @@ def pos():
             sale = SaleService.get_active_sale(sale_id)
         except NotFoundError:
             session.pop("active_sale_id", None)
+            sale_id = None
 
-    # Recuperar cliente de la sesión (independiente de la venta)
-    pos_customer = None
-    pos_customer_id = session.get("pos_customer_id")
-    if pos_customer_id:
-        pos_customer = Customer.query.get(pos_customer_id)
-        if not pos_customer:
-            session.pop("pos_customer_id", None)
+    if not sale:
+        # Crear cabecera automáticamente al entrar al POS
+        sale = SaleService.open_sale(employee_id=current_user.id)
+        session["active_sale_id"] = sale.id
 
     pagination = SaleService.get_products(search_term=search_term, page=page)
 
     return render_template(
         "sales/pos.html",
         sale=sale,
-        pos_customer=pos_customer,
         products=pagination.items,
         pagination=pagination,
         search_term=search_term,
@@ -57,30 +55,30 @@ def pos():
 @auth_required()
 def open_sale():
     """
-    Asigna o quita el cliente del POS.
+    Abre manualmente una nueva cabecera de venta y redirige al POS.
 
-    Solo guarda el customer_id en la sesión, NO crea registros en BD.
-    Si ya hay una venta activa con items, también actualiza su customer_id.
+    POST: Recibe customer_id (opcional) y crea la venta.
+
+    Returns:
+        Redirect: Redirige a la vista principal del POS.
     """
     customer_id_raw = request.form.get("customer_id")
     customer_id = (
         int(customer_id_raw) if customer_id_raw and customer_id_raw.isdigit() else None
     )
 
-    # Guardar/quitar cliente en sesión
-    if customer_id:
-        session["pos_customer_id"] = customer_id
-    else:
-        session.pop("pos_customer_id", None)
+    # Cerrar venta activa anterior si la hay
+    session.pop("active_sale_id", None)
 
-    # Si ya existe una venta activa con items, actualizar su customer_id
-    sale_id = session.get("active_sale_id")
-    if sale_id:
-        try:
-            sale = SaleService.get_active_sale(sale_id)
-            SaleService.update_customer(sale, customer_id)
-        except NotFoundError:
-            session.pop("active_sale_id", None)
+    try:
+        sale = SaleService.open_sale(
+            employee_id=current_user.id,
+            customer_id=customer_id,
+        )
+        session["active_sale_id"] = sale.id
+        flash("Nueva venta abierta exitosamente", "success")
+    except Exception as e:
+        flash(str(e), "error")
 
     return redirect(url_for("sales.pos"))
 
@@ -102,27 +100,6 @@ def search_customers():
     return jsonify(customers)
 
 
-@sales_bp.route("/pos/customers", methods=["POST"])
-@auth_required()
-def create_customer():
-    """
-    Crea un nuevo cliente desde el POS.
-    """
-    try:
-        data = request.get_json()
-        if not data or not data.get("first_name") or not data.get("last_name") or not data.get("email") or not data.get("phone"):
-            return jsonify({"error": "Nombre, apellidos, correo y teléfono son obligatorios."}), 400
-
-        customer = SaleService.create_customer(data)
-        return jsonify({"success": True, "customer": customer.to_dict()})
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500
-
-
 @sales_bp.route("/pos/cart", methods=["GET"])
 @auth_required()
 def get_cart():
@@ -132,8 +109,9 @@ def get_cart():
     try:
         sale = SaleService.get_active_sale(sale_id)
         items = SaleItemService.get_cart_items(sale.id)
-        total = sum(item.get("subtotal", 0) for item in items)
-        return jsonify({"items": items, "total": total})
+        return jsonify(
+            {"items": items, "total": float(sale.total) if sale.total else 0}
+        )
     except NotFoundError:
         return jsonify({"items": [], "total": 0})
 
@@ -142,17 +120,8 @@ def get_cart():
 @auth_required()
 def add_item():
     sale_id = session.get("active_sale_id")
-
-    # Crear venta bajo demanda si aún no existe
     if not sale_id:
-        customer_id = session.get("pos_customer_id")
-        sale = SaleService.open_sale(
-            employee_id=current_user.id,
-            customer_id=customer_id,
-        )
-        session["active_sale_id"] = sale.id
-        sale_id = sale.id
-
+        return jsonify({"error": "No hay venta activa"}), 400
     try:
         data = request.get_json()
         product_id = data.get("product_id")
@@ -197,66 +166,11 @@ def remove_item(item_id):
         return jsonify({"error": str(e)}), 400
 
 
-@sales_bp.route("/pos/checkout", methods=["POST"])
+@sales_bp.route("/pos/stock/<int:product_id>", methods=["GET"])
 @auth_required()
-def checkout():
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        return jsonify({"error": "No hay venta activa"}), 400
-
+def get_stock(product_id):
     try:
-        # Validar que la venta tenga cliente asignado
-        sale = SaleService.get_active_sale(sale_id)
-        if not sale.id_customer:
-            return jsonify({"error": "Debes asignar un cliente antes de confirmar el cobro."}), 400
-
-        data = request.get_json()
-        amount_given = float(data.get("amount_given", 0))
-        payment_method_id = int(data.get("payment_method_id", 0))
-
-        if payment_method_id <= 0:
-            return jsonify({"error": "Método de pago inválido"}), 400
-
-        result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id)
-
-        # Limpiar carrito y cliente de sesión
-        session.pop("active_sale_id", None)
-        session.pop("pos_customer_id", None)
-
-        return jsonify(result)
-    except (NotFoundError, ValueError) as e:
-        return jsonify({"error": str(e)}), 400
+        stock = SaleService.get_product_stock(product_id)
+        return jsonify({"stock": stock})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@sales_bp.route("/pos/payment-methods", methods=["GET"])
-@auth_required()
-def get_payment_methods():
-    methods = SaleService.get_payment_methods()
-    return jsonify([{"id": m.id, "name": m.name} for m in methods])
-
-
-@sales_bp.route("/api/cp/<string:cp>", methods=["GET"])
-@auth_required()
-def lookup_cp(cp):
-    """
-    Proxy hacia COPOMEX con caché en memoria.
-
-    Retorna estado, municipio y colonias para un CP de 5 dígitos.
-    Solo consume 1 crédito por CP único (los siguientes son cache hits).
-    """
-    result = CopomexService.lookup_cp(cp)
-
-    if result is None:
-        return jsonify({
-            "error": True,
-            "message": "Código postal no encontrado o inválido.",
-        }), 404
-
-    return jsonify({
-        "error": False,
-        "estado": result["estado"],
-        "municipio": result["municipio"],
-        "colonias": result["colonias"],
-    })
+        return jsonify({"error": str(e)}), 400
