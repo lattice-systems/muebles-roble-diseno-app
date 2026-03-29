@@ -727,10 +727,18 @@
 
                   const formData = new FormData(customerRegistrationForm);
                   const data = {
-                      full_name: formData.get("name"),
+                      first_name: formData.get("first_name"),
+                      last_name: formData.get("last_name"),
                       email: formData.get("email"),
                       phone: formData.get("phone"),
-                      address: formData.get("address")
+                      requires_freight: document.getElementById('new_customer_requires_freight') ? document.getElementById('new_customer_requires_freight').checked : false,
+                      zip_code: formData.get("zip_code"),
+                      state: formData.get("state"),
+                      city: formData.get("city"),
+                      street: formData.get("street"),
+                      neighborhood: formData.get("neighborhood"),
+                      exterior_number: formData.get("exterior_number"),
+                      interior_number: formData.get("interior_number")
                   };
 
                   try {

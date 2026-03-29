@@ -20,20 +20,65 @@
                 <form id="customerRegistrationForm" action="#">
                     <div class="grid gap-4 mb-4 sm:grid-cols-2">
                         <div>
-                            <label for="new_customer_name" class="block mb-2 text-sm font-medium text-heading dark:text-white">Nombre Completo</label>
-                            <input type="text" name="name" id="new_customer_name" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Juan Pérez" required="">
+                            <label for="new_customer_first_name" class="block mb-2 text-sm font-medium text-heading dark:text-white">Nombre(s) <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="first_name" id="new_customer_first_name" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Juan" required="">
                         </div>
                         <div>
-                            <label for="new_customer_email" class="block mb-2 text-sm font-medium text-heading dark:text-white">Correo Electrónico</label>
+                            <label for="new_customer_last_name" class="block mb-2 text-sm font-medium text-heading dark:text-white">Apellidos <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="last_name" id="new_customer_last_name" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Pérez" required="">
+                        </div>
+                        <div>
+                            <label for="new_customer_email" class="block mb-2 text-sm font-medium text-heading dark:text-white">Correo Electrónico <span class="text-danger-strong">*</span></label>
                             <input type="email" name="email" id="new_customer_email" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="correo@ejemplo.com" required="">
                         </div>
                         <div>
-                            <label for="new_customer_phone" class="block mb-2 text-sm font-medium text-heading dark:text-white">Teléfono (Opcional)</label>
-                            <input type="text" name="phone" id="new_customer_phone" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. 1234567890">
+                            <label for="new_customer_phone" class="block mb-2 text-sm font-medium text-heading dark:text-white">Teléfono <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="phone" id="new_customer_phone" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. 1234567890" required="">
+                        </div>
+                        
+                        <!-- Freight check -->
+                        <div class="sm:col-span-2 mt-2 border-t border-default pt-4">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="new_customer_requires_freight" name="requires_freight" class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-neutral-secondary-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-medium rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
+                                <span class="ms-3 text-sm font-medium text-heading dark:text-white">¿Requiere flete?</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Freight specific fields (Hidden by default) -->
+                    <div id="freightFieldsContainer" class="hidden grid gap-4 mb-4 sm:grid-cols-2 bg-neutral-secondary-soft p-4 rounded-base border border-default-medium">
+                        <div class="sm:col-span-2">
+                            <h4 class="text-sm font-bold text-heading text-heading dark:text-white">Detalles de envío</h4>
+                            <p class="text-xs text-body mb-2 text-body dark:text-neutral-secondary">Por favor complete la dirección para el envío por flete.</p>
+                        </div>
+                        <div>
+                            <label for="new_customer_zip_code" class="block mb-2 text-sm font-medium text-heading dark:text-white">Código Postal <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="zip_code" id="new_customer_zip_code" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. 64000">
+                        </div>
+                        <div>
+                            <label for="new_customer_state" class="block mb-2 text-sm font-medium text-heading dark:text-white">Estado <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="state" id="new_customer_state" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Nuevo León">
+                        </div>
+                        <div>
+                            <label for="new_customer_city" class="block mb-2 text-sm font-medium text-heading dark:text-white">Ciudad <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="city" id="new_customer_city" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Monterrey">
+                        </div>
+                        <div>
+                            <label for="new_customer_neighborhood" class="block mb-2 text-sm font-medium text-heading dark:text-white">Colonia <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="neighborhood" id="new_customer_neighborhood" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Centro">
                         </div>
                         <div class="sm:col-span-2">
-                            <label for="new_customer_address" class="block mb-2 text-sm font-medium text-heading dark:text-white">Dirección (Opcional)</label>
-                            <textarea id="new_customer_address" rows="3" class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Dirección completa del cliente"></textarea>                    
+                            <label for="new_customer_street" class="block mb-2 text-sm font-medium text-heading dark:text-white">Calle <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="street" id="new_customer_street" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. Av. Juárez">
+                        </div>
+                        <div>
+                            <label for="new_customer_ext_num" class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm Exterior <span class="text-danger-strong">*</span></label>
+                            <input type="text" name="exterior_number" id="new_customer_ext_num" class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. 123">
+                        </div>
+                        <div>
+                            <label for="new_customer_int_num" class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm Interior (Opcional)</label>
+                            <input type="text" name="interior_number" id="new_customer_int_num" class="bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs" placeholder="Ej. A">
                         </div>
                     </div>
                     
@@ -48,6 +93,25 @@
                         Guardar Cliente
                     </button>
                 </form>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const freightCheckbox = document.getElementById('new_customer_requires_freight');
+                        const freightContainer = document.getElementById('freightFieldsContainer');
+                        const freightInputs = document.querySelectorAll('.freight-input');
+                        
+                        if(freightCheckbox) {
+                            freightCheckbox.addEventListener('change', function() {
+                                if(this.checked) {
+                                    freightContainer.classList.remove('hidden');
+                                    freightInputs.forEach(input => input.setAttribute('required', 'required'));
+                                } else {
+                                    freightContainer.classList.add('hidden');
+                                    freightInputs.forEach(input => input.removeAttribute('required'));
+                                }
+                            });
+                        }
+                    });
+                </script>
             </div>
         </div>
     </div>
