@@ -6,6 +6,7 @@ Solo se realiza una llamada a COPOMEX por código postal único.
 """
 
 import logging
+import os
 import re
 import threading
 
@@ -14,7 +15,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ── Configuración ──────────────────────────────────────────────────────
-COPOMEX_TOKEN = "e74a76cd-2e9c-4155-84fb-ae2fd2004e86"
+COPOMEX_TOKEN = os.environ.get("COPOMEX_TOKEN", "")
 COPOMEX_BASE_URL = "https://api.copomex.com/query/info_cp"
 REQUEST_TIMEOUT = 8  # segundos
 
