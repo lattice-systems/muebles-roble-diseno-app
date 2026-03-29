@@ -1,6 +1,6 @@
 """Rutas iniciales para e-commerce."""
 
-from flask import render_template
+from flask import abort, render_template
 
 from . import ecommerce_bp
 from .services import EcommerceService
@@ -56,10 +56,16 @@ def product(product_id: int):
     """Página de detalle de producto."""
     product_data = EcommerceService.get_product_by_id(product_id)
     if not product_data:
-        # Fallback a un producto por defecto o error (simplificado aquí)
-        product_data = EcommerceService.get_product_by_id(99)
+        featured_products = EcommerceService.get_featured_products()
+        product_data = featured_products[0] if featured_products else None
+    if not product_data:
+        abort(404)
 
-    related_products = EcommerceService.get_featured_products()[:4]
+    related_products = [
+        item
+        for item in EcommerceService.get_featured_products()
+        if item.get("id") != product_data.get("id")
+    ][:4]
 
     return render_template(
         "store/product.html",

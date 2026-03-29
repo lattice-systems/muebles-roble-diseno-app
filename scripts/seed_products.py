@@ -17,14 +17,14 @@ from app.models.furniture_type import FurnitureType
 from app.models.product import Product
 
 FURNITURE_TYPES = [
-    {"name": "Silla", "description": "Sillas de todo tipo y estilo"},
-    {"name": "Mesa", "description": "Mesas de comedor, centro y escritorio"},
-    {"name": "Sofa", "description": "Sofas y sillones para sala"},
-    {"name": "Cama", "description": "Camas individuales, matrimoniales y king"},
-    {"name": "Estante", "description": "Libreros y estantes de pared"},
-    {"name": "Armario", "description": "Armarios, roperos y vestidores"},
-    {"name": "Escritorio", "description": "Escritorios para oficina y estudio"},
-    {"name": "Comoda", "description": "Comodas y gaveteros"},
+    {"title": "Silla"},
+    {"title": "Mesa"},
+    {"title": "Sofa"},
+    {"title": "Cama"},
+    {"title": "Estante"},
+    {"title": "Armario"},
+    {"title": "Escritorio"},
+    {"title": "Comoda"},
 ]
 
 PRODUCTS = [
@@ -165,20 +165,19 @@ def seed_products():
         type_map: dict[str, int] = {}
 
         for ft_data in FURNITURE_TYPES:
-            existing = FurnitureType.query.filter_by(name=ft_data["name"]).first()
+            existing = FurnitureType.query.filter_by(title=ft_data["title"]).first()
             if existing:
-                print(f"  ⏭️  Omitido: {existing.name} (ya existe, id={existing.id})")
-                type_map[existing.name] = existing.id
+                print(f"  ⏭️  Omitido: {existing.title} (ya existe, id={existing.id})")
+                type_map[existing.title] = existing.id
             else:
                 ft = FurnitureType(
-                    name=ft_data["name"],
-                    description=ft_data["description"],
+                    title=ft_data["title"],
                     status=True,
                 )
                 db.session.add(ft)
                 db.session.commit()
-                type_map[ft.name] = ft.id
-                print(f"  ✅ Creado: {ft.name} (id={ft.id})")
+                type_map[ft.title] = ft.id
+                print(f"  ✅ Creado: {ft.title} (id={ft.id})")
 
         # ── 2. Productos ────────────────────────────────────────────────
         print("\n🪑 Sembrando productos...")
