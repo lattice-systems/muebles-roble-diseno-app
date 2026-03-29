@@ -325,6 +325,16 @@ POS – Venta Física | Furniture Store
               <span>IVA (16%):</span>
               <span id="ivaDisplay" class="font-medium text-heading">$0.00</span>
             </div>
+            <div id="freightRow" class="hidden flex items-center justify-between text-xs 2xl:text-sm text-body">
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                </svg>
+                Envío <span id="freightZoneBadge" class="text-xs"></span>:
+              </span>
+              <span id="freightDisplay" class="font-medium text-heading">$0.00</span>
+            </div>
             <div
               class="flex items-center justify-between text-sm 2xl:text-base font-bold text-heading border-t border-default-medium pt-2 mt-2">
               <span>Total:</span>
@@ -370,6 +380,11 @@ POS – Venta Física | Furniture Store
     const IVA = 0.16;
     let cartItems = [];
     let cartTotal = 0;
+    let productsTotal = 0;
+    let freightCost = 0;
+    let freightZone = null;
+    let freightFree = false;
+    let freightReason = "";
     let activeToastTimer = null;
     const csrfToken = posConfig.dataset.csrf;
 
@@ -436,6 +451,11 @@ POS – Venta Física | Furniture Store
         const data = await res.json();
         cartItems = data.items || [];
         cartTotal = data.total || 0;
+        productsTotal = data.products_total || data.total || 0;
+        freightCost = data.cost || 0;
+        freightZone = data.zone || null;
+        freightFree = data.free || false;
+        freightReason = data.reason || "";
         renderCart();
       } catch (err) {
         console.error("Error loading cart:", err);
@@ -553,16 +573,43 @@ POS – Venta Física | Furniture Store
     }
 
     function updateTotals() {
-      const total = cartTotal;
-      const subtotal = total / (1 + IVA);
-      const iva = total - subtotal;
+      // Subtotal e IVA se calculan sobre el total de productos (sin flete)
+      const pTotal = productsTotal;
+      const subtotal = pTotal / (1 + IVA);
+      const iva = pTotal - subtotal;
       const subtotalDisplay = document.getElementById("subtotalDisplay");
       const ivaDisplay = document.getElementById("ivaDisplay");
       const totalDisplay = document.getElementById("totalDisplay");
+      const freightRow = document.getElementById("freightRow");
+      const freightDisplay = document.getElementById("freightDisplay");
+      const freightZoneBadge = document.getElementById("freightZoneBadge");
 
-      if (subtotalDisplay) subtotalDisplay.textContent = `$${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-      if (ivaDisplay) ivaDisplay.textContent = `$${iva.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-      if (totalDisplay) totalDisplay.textContent = `$${total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+      const fmt = (v) => `$${v.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
+      if (subtotalDisplay) subtotalDisplay.textContent = fmt(subtotal);
+      if (ivaDisplay) ivaDisplay.textContent = fmt(iva);
+
+      // Flete
+      if (freightRow) {
+        if (freightZone && cartItems.length > 0) {
+          freightRow.classList.remove("hidden");
+          freightRow.classList.add("flex");
+          const zoneLabel = freightZone === "local" ? "local" : "nacional";
+          if (freightZoneBadge) freightZoneBadge.textContent = `(${zoneLabel})`;
+          if (freightDisplay) {
+            if (freightFree) {
+              freightDisplay.innerHTML = '<span class="text-fg-success-strong font-semibold">GRATIS</span>';
+            } else {
+              freightDisplay.textContent = fmt(freightCost);
+            }
+          }
+        } else {
+          freightRow.classList.add("hidden");
+          freightRow.classList.remove("flex");
+        }
+      }
+
+      if (totalDisplay) totalDisplay.textContent = fmt(cartTotal);
     }
 
     document.querySelectorAll(".btn-add-product").forEach((btn) => {
@@ -815,7 +862,29 @@ POS – Venta Física | Furniture Store
         }
         const trueTotal = cartTotal;
         const modalTotal = document.getElementById("modalTotalDisplay");
-        if (modalTotal) modalTotal.textContent = `$${trueTotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+        const fmt = (v) => `$${v.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+        if (modalTotal) modalTotal.textContent = fmt(trueTotal);
+
+        // Mostrar info de flete en el modal
+        const modalFreightRow = document.getElementById("modalFreightRow");
+        const modalFreightZone = document.getElementById("modalFreightZone");
+        const modalFreightCost = document.getElementById("modalFreightCost");
+        if (modalFreightRow) {
+          if (freightZone) {
+            modalFreightRow.classList.remove("hidden");
+            modalFreightRow.classList.add("flex");
+            if (modalFreightZone) modalFreightZone.textContent = `(${freightZone})`;
+            if (modalFreightCost) {
+              modalFreightCost.innerHTML = freightFree
+                ? '<span class="text-fg-success-strong font-semibold">GRATIS</span>'
+                : fmt(freightCost);
+            }
+          } else {
+            modalFreightRow.classList.add("hidden");
+            modalFreightRow.classList.remove("flex");
+          }
+        }
+
         calculateChange();
         setModalVisible(checkoutModal, true);
       });

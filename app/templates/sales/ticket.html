@@ -122,9 +122,11 @@
 
         <!-- Totales -->
         <div class="border-dashed mb-4 pb-2">
-            {% set s_total = sale.total|float %}
-            {% set subtotal = s_total / 1.16 %}
-            {% set iva = s_total - subtotal %}
+            {% set p_total = products_total|default(sale.total|float) %}
+            {% set subtotal = p_total / 1.16 %}
+            {% set iva = p_total - subtotal %}
+            {% set f_cost = freight.cost|default(0)|float %}
+            {% set grand_total = p_total + f_cost %}
             <table class="text-xs">
                 <tr>
                     <td class="w-1/2">Subtotal:</td>
@@ -134,17 +136,25 @@
                     <td>IVA (16%):</td>
                     <td class="text-right">${{ "%.2f"|format(iva) }}</td>
                 </tr>
+                {% if freight and freight.zone %}
+                <tr>
+                    <td>Envío ({{ freight.zone }}):</td>
+                    <td class="text-right">
+                        {% if freight.free %}GRATIS{% else %}${{ "%.2f"|format(f_cost) }}{% endif %}
+                    </td>
+                </tr>
+                {% endif %}
                 <tr class="font-bold text-sm">
                     <td class="pt-1">TOTAL:</td>
-                    <td class="pt-1 text-right">${{ "%.2f"|format(s_total) }}</td>
+                    <td class="pt-1 text-right">${{ "%.2f"|format(grand_total) }}</td>
                 </tr>
             </table>
         </div>
 
         <!-- Pago -->
         <div class="border-dashed mb-4 pb-2 text-xs">
-            {% set p_amount = (payment.amount|float) if payment else s_total %}
-            {% set p_change = (p_amount - s_total) if payment and p_amount >= s_total else 0 %}
+            {% set p_amount = (payment.amount|float) if payment else grand_total %}
+            {% set p_change = (p_amount - grand_total) if payment and p_amount >= grand_total else 0 %}
             <p><strong>Método de pago:</strong> {{ sale.payment_method.name if sale.payment_method else "Efectivo" }}</p>
             <p><strong>Recibido:</strong> ${{ "%.2f"|format(p_amount) }}</p>
             <p><strong>Cambio:</strong> ${{ "%.2f"|format(p_change) }}</p>
