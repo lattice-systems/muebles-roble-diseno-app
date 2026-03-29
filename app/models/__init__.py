@@ -23,6 +23,7 @@ from .unit_of_measure import UnitOfMeasure
 from .user import User
 from .wood_type import WoodType
 from .material_category import MaterialCategory
+from .payment import Payment
 
 __all__ = [
     "AuditLog",
@@ -50,4 +51,5 @@ __all__ = [
     "User",
     "WoodType",
     "MaterialCategory",
+    "Payment",
 ]
