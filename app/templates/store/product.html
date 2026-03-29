@@ -4,209 +4,124 @@
   {{ product.title }} | Roble & Diseño
 {% endblock title %}
 {% block content %}
-  <!-- Breadcrumb Bar -->
   <div class="bg-gray-100 py-6">
-    <div class="max-w-7xl mx-auto px-6 flex items-center gap-4 text-sm">
+    <div class="max-w-7xl mx-auto px-6 flex items-center gap-3 text-sm">
       <a href="{{ url_for('ecommerce.home') }}"
          class="text-body hover:text-sky-900 transition-colors">Inicio</a>
-      <svg class="w-4 h-4 text-heading"
-           fill="none"
-           stroke="currentColor"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-      </svg>
-      <a href="{{ url_for('ecommerce.categories') }}"
-         class="text-body hover:text-sky-900 transition-colors">Tienda</a>
-      <svg class="w-4 h-4 text-heading"
-           fill="none"
-           stroke="currentColor"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-      </svg>
-      <span class="text-heading font-medium border-l border-gray-400 pl-4 ml-2">{{ product.title }}</span>
+      <span class="text-body">/</span>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-body hover:text-sky-900 transition-colors">Productos</a>
+      <span class="text-body">/</span>
+      <span class="text-heading font-semibold truncate">{{ product.title }}</span>
     </div>
   </div>
-  <div class="max-w-7xl mx-auto px-6 py-12">
-    <!-- Main Product Section -->
-    <div class="flex flex-col lg:flex-row gap-12">
-      <!-- Image Gallery (Left) -->
-      <div class="w-full lg:w-1/2 flex gap-6">
-        <!-- Thumbnails -->
-        <div class="hidden md:flex flex-col gap-4 w-24">
-          {% if product.images %}
-            {% for img in product.images %}
-              <button class="w-20 h-20 rounded bg-gray-50 overflow-hidden border border-transparent focus:border-sky-900 hover:opacity-80 transition-all">
-                <img src="{{ img }}"
-                     alt="Thumbnail {{ loop.index }}"
-                     class="w-full h-full object-cover">
-              </button>
-            {% endfor %}
-          {% else %}
-            <div class="w-20 h-20 rounded bg-gray-100 flex items-center justify-center">
-              <span class="text-xs text-body">No imgs</span>
-            </div>
+  <section class="max-w-7xl mx-auto px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div class="flex flex-col-reverse md:flex-row gap-4">
+        <div class="flex md:flex-col gap-3 md:w-24 overflow-x-auto md:overflow-visible">
+          {% for img in product.images[:4] %}
+            <button type="button"
+                    class="product-thumb h-20 w-20 shrink-0 rounded-lg overflow-hidden border-2 {% if loop.first %}border-sky-900{% else %}border-transparent{% endif %} bg-white hover:border-sky-700 transition-colors"
+                    data-image-src="{{ img }}">
+              <img src="{{ img }}"
+                   alt="Foto {{ loop.index }} de {{ product.title }}"
+                   class="h-full w-full object-cover">
+            </button>
+          {% endfor %}
+        </div>
+        <div class="flex-1 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
+          <img id="product-main-image"
+               src="{{ product.images[0] }}"
+               alt="{{ product.title }}"
+               class="w-full h-[460px] object-cover">
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-3xl md:text-4xl font-bold text-heading leading-tight">{{ product.title }}</h1>
+            <p class="text-body mt-2">{{ product.subtitle }}</p>
+          </div>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {% if product.in_stock %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+            {% if product.in_stock %}
+              Disponible
+            {% else %}
+              Sin stock
+            {% endif %}
+          </span>
+        </div>
+        <div class="mt-6 flex items-end gap-4">
+          <p class="text-3xl font-bold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
+          {% if product.original_price %}
+            <p class="text-base text-body line-through pb-1">MX {{ "{:,.2f}".format(product.original_price) }}</p>
           {% endif %}
         </div>
-        <!-- Main Image -->
-        <div class="flex-1 rounded-lg bg-gray-50 overflow-hidden shadow-sm border border-slate-100 h-128">
-          <img src="{{ product.image }}"
-               alt="{{ product.title }}"
-               class="w-full h-full object-cover">
-        </div>
-      </div>
-      <!-- Details (Right) -->
-      <div class="w-full lg:w-1/2 flex flex-col pt-2">
-        <h1 class="text-4xl text-heading font-normal mb-2">{{ product.title }}</h1>
-        <p class="text-2xl text-body font-medium mb-4">Mx. {{ "{:,.2f}".format(product.price) }}</p>
-        <!-- Stars & Review -->
-        <div class="flex items-center gap-4 mb-5">
-          <div class="flex text-yellow-400 gap-1">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-              </path>
-            </svg>
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-              </path>
-            </svg>
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-              </path>
-            </svg>
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-              </path>
-            </svg>
-            <svg class="w-5 h-5 fill-current text-yellow-500 opacity-50"
-                 viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-              </path>
-            </svg>
-          </div>
-          <span class="text-sm text-body border-l border-gray-400 pl-4 h-5 flex items-center">5 Reseñas de clientes</span>
-        </div>
-        <p class="text-sm text-heading leading-relaxed mb-6">
-          {{ product.description or "Este producto no tiene una descripción detallada, pero es una excelente adición a cualquier espacio, combinando diseño y funcionalidad." }}
+        <p class="mt-6 text-sm text-heading leading-relaxed">
+          {{ product.description or "Este producto no tiene descripción registrada por el momento." }}
         </p>
-        <!-- Options -->
-        <div class="mb-4">
-          <h4 class="text-sm text-body mb-2 font-medium">Tamaño</h4>
-          <div class="flex gap-4">
-            {% for size in product.sizes or ['S', 'M', 'L'] %}
-              <button class="w-9 h-9 flex items-center justify-center rounded bg-slate-100 text-heading text-sm hover:bg-sky-900 hover:text-white transition-colors {% if loop.first %}bg-sky-900 text-white{% endif %}">
-                {{ size }}
-              </button>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="mb-8">
-          <h4 class="text-sm text-body mb-2 font-medium">Color</h4>
-          <div class="flex gap-4">
-            <button class="w-8 h-8 rounded-full bg-indigo-500 shadow-sm border border-transparent"></button>
-            <button class="w-8 h-8 rounded-full bg-black shadow-sm ring-2 ring-sky-900 ring-offset-2"></button>
-            <button class="w-8 h-8 rounded-full bg-amber-600 shadow-sm border border-transparent"></button>
-          </div>
-        </div>
-        <!-- Add to Cart actions -->
-        <div class="flex flex-wrap gap-4 pb-12 border-b border-gray-200">
-          <!-- Quantity -->
-          <div class="flex items-center rounded border border-gray-300 w-32 h-12 bg-white overflow-hidden shrink-0">
-            <button class="w-10 text-body hover:text-heading h-full flex items-center justify-center">-</button>
-            <input type="number"
-                   value="1"
-                   class="flex-1 w-full h-full p-0 m-0 text-center border-none shadow-none focus:ring-0 text-heading font-medium bg-transparent appearance-none">
-            <button class="w-10 text-body hover:text-heading h-full flex items-center justify-center">+</button>
-          </div>
-          <!-- Cart button -->
-          <button class="flex-1 min-w-[180px] h-12 border border-heading text-heading font-bold rounded hover:bg-heading hover:text-white transition-colors duration-300">
-            Añadir al Carrito
-          </button>
-          <!-- Compare -->
-          <button class="px-6 h-12 border border-heading rounded text-heading font-bold hover:bg-gray-100 transition-colors hidden sm:block">
-            + Comparar
-          </button>
-        </div>
-        <!-- Meta Info -->
-        <div class="py-8 space-y-3 text-body text-sm">
-          <div class="flex">
-            <span class="w-24 shrink-0">SKU</span>
-            <span class="mr-2">:</span>
-            <span class="text-body-subtle">{{ product.sku or 'N/A' }}</span>
-          </div>
-          <div class="flex">
-            <span class="w-24 shrink-0">Categoría</span>
-            <span class="mr-2">:</span>
-            <span class="text-body-subtle">{{ product.category or 'General' }}</span>
-          </div>
-          <div class="flex">
-            <span class="w-24 shrink-0">Etiquetas</span>
-            <span class="mr-2">:</span>
-            <span class="text-body-subtle">{{ product.tags|join(", ") if product.tags else 'Hogar, Tienda' }}</span>
-          </div>
-          <div class="flex items-center">
-            <span class="w-24 shrink-0">Compartir</span>
-            <span class="mr-2">:</span>
-            <div class="flex gap-4 text-heading">
-              <a href="#" class="hover:text-sky-900 transition-colors">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </a>
-              <a href="#" class="hover:text-sky-900 transition-colors">
-                <svg class="w-4 h-4"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
-                  <circle cx="4" cy="4" r="2" fill="currentColor" />
-                </svg>
-              </a>
-              <a href="#" class="hover:text-sky-900 transition-colors">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                </svg>
-              </a>
+        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">SKU</p>
+              <p class="text-sm font-semibold text-heading mt-1">{{ product.sku or "N/A" }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Categoría</p>
+              <p class="text-sm font-semibold text-heading mt-1">{{ product.category or "General" }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Disponibilidad</p>
+              <p class="text-sm font-semibold mt-1 {% if product.in_stock %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                {% if product.in_stock %}
+                  En stock ({{ product.stock }} piezas)
+                {% else %}
+                  Agotado temporalmente
+                {% endif %}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Envío</p>
+              <p class="text-sm font-semibold text-heading mt-1">
+                {% if product.in_stock %}
+                  Entrega estimada 3-5 días
+                {% else %}
+                  Reabastecimiento próximamente
+                {% endif %}
+              </p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- Tabs Section -->
-    <div class="mt-16 mb-12 border-t border-gray-200 pt-10">
-      <!-- Tab Headers -->
-      <div class="flex justify-center flex-wrap gap-8 md:gap-16 mb-8 text-xl md:text-2xl font-medium">
-        <button class="text-heading border-none outline-none">Descripción</button>
-        <button class="text-body border-none outline-none hover:text-heading transition-colors">Información General</button>
-        <button class="text-body border-none outline-none hover:text-heading transition-colors">Comentarios [5]</button>
-      </div>
-      <!-- Tab Content -->
-      <div class="max-w-4xl mx-auto">
-        <div class="space-y-6 text-body-subtle text-base leading-relaxed text-left md:text-justify mb-10">
-          <p>
-            Encarnando el espíritu crudo y rebelde, este producto toma la inconfundible apariencia del diseño contemporáneo, desconecta los cables y lleva tu estilo de vida al siguiente nivel.
-          </p>
-          <p>
-            Este producto ha sido diseñado para ofrecer una combinación perfecta entre estilo, funcionalidad y comodidad. Su diseño moderno se adapta fácilmente a diferentes espacios, proporcionando una apariencia elegante y sofisticada. Los materiales de alta calidad garantizan durabilidad y un rendimiento confiable, mientras que sus detalles cuidadosamente elaborados aportan un toque distintivo. Además, su estructura permite un uso práctico y versátil, ideal para complementar cualquier ambiente del hogar.
-          </p>
+        <div class="mt-6">
+          <h3 class="text-sm font-semibold text-heading mb-2">Colores</h3>
+          {% if product.color_palette %}
+            <div class="flex flex-wrap gap-2">
+              {% for color in product.color_palette %}
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-sky-700 hover:text-sky-900 transition-colors">
+                  <span class="w-3 h-3 rounded-full border border-slate-300"
+                        style="background-color: {{ color.hex or '#D1D5DB' }}"></span>
+                  {{ color.name }}
+                </button>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-sm text-body">No hay colores registrados para este producto.</p>
+          {% endif %}
         </div>
-        <!-- Additional Images in Description -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="bg-slate-100 rounded-lg overflow-hidden h-80">
-            <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800"
-                 class="w-full h-full object-cover opacity-90 mix-blend-multiply"
-                 alt="Detalle Sofá" />
-          </div>
-          <div class="bg-slate-100 rounded-lg overflow-hidden h-80">
-            <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800"
-                 class="w-full h-full object-cover opacity-90 mix-blend-multiply"
-                 alt="Detalle Sofá 2" />
-          </div>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <button class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors">
+            Añadir al carrito
+          </button>
+          <button type="button"
+                  class="js-share-product h-11 px-6 rounded-lg border border-slate-300 text-heading font-semibold hover:bg-slate-100 transition-colors"
+                  data-share-title="{{ product.title }}"
+                  data-share-url="{{ url_for('ecommerce.product', product_id=product.id) }}">
+            Compartir producto
+          </button>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Related Products Section -->
+  </section>
   <div class="bg-white border-t border-gray-100 py-16">
     <div class="max-w-7xl mx-auto px-6">
       <h2 class="text-3xl text-heading font-medium text-center mb-10">Productos Relacionados</h2>
@@ -216,4 +131,21 @@
       <div class="text-center">{{ outline_button("Mostrar Más") }}</div>
     </div>
   </div>
+  <script>
+      (() => {
+          const thumbs = document.querySelectorAll(".product-thumb");
+          const mainImage = document.getElementById("product-main-image");
+          if (!thumbs.length || !mainImage) return;
+
+          thumbs.forEach((thumb) => {
+              thumb.addEventListener("click", () => {
+                  mainImage.src = thumb.dataset.imageSrc;
+                  thumbs.forEach((item) => item.classList.remove("border-sky-900"));
+                  thumbs.forEach((item) => item.classList.add("border-transparent"));
+                  thumb.classList.remove("border-transparent");
+                  thumb.classList.add("border-sky-900");
+              });
+          });
+      })();
+  </script>
 {% endblock content %}
