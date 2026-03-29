@@ -1,8 +1,10 @@
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_required
-
+import os
+from werkzeug.utils import secure_filename
+from flask import current_app
 from app import db
-from app.models import Product, FurnitureType, Color, ProductInventory
+from app.models import Product, FurnitureType, Color, ProductInventory, ProductImage
 from . import products_bp
 from .forms import ProductForm
 from .services import (
@@ -11,6 +13,24 @@ from .services import (
     update_product,
     toggle_product_status,
 )
+
+
+def save_product_images(product, files):
+    upload_folder = os.path.join(current_app.root_path, "static/uploads/products")
+
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+
+    for file in files:
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(upload_folder, filename)
+            file.save(filepath)
+
+            image = ProductImage(
+                product_id=product.id, image_path=f"uploads/products/{filename}"
+            )
+            db.session.add(image)
 
 
 @products_bp.route("/")
@@ -52,22 +72,37 @@ def index():
 def create():
     form = ProductForm()
 
+    # cargar selects SIEMPRE antes de validar
     form.furniture_type_id.choices = [
         (f.id, f.name)
         for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
     ]
-    form.color_ids.choices = [
+    form.color_id.choices = [(0, "Seleccionar color")] + [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()
     ]
 
     if form.validate_on_submit():
         try:
-            create_product(form)
+            files = request.files.getlist("images")
+            files = [f for f in files if f and f.filename]
+
+            if len(files) > 4:
+                flash("Máximo 4 imágenes por producto", "danger")
+                return render_template("admin/products/create.html", form=form)
+
+            product = create_product(form)
+
+            save_product_images(product, files)
+
+            db.session.commit()
+
             flash("Producto creado correctamente.", "success")
             return redirect(url_for("products.index"))
+
         except ValueError as e:
             flash(str(e), "danger")
-        except Exception:
+        except Exception as e:
+            print(e)
             flash("Ocurrió un error al crear el producto.", "danger")
 
     return render_template("admin/products/create.html", form=form)
@@ -88,17 +123,32 @@ def details(product_id):
 def edit(product_id):
     product = get_product_by_id(product_id)
     form = ProductForm(obj=product)
+    files = request.files.getlist("images")
+    files = [f for f in files if f and f.filename]
+
+    current_images = len(product.images)
+
+    if current_images + len(files) > 4:
+        flash("Máximo 4 imágenes por producto", "danger")
+        return render_template("admin/products/edit.html", form=form, product=product)
+
+    update_product(product, form)
+
+    save_product_images(product, files)
+
+    db.session.commit()
 
     form.furniture_type_id.choices = [
         (f.id, f.name)
         for f in FurnitureType.query.order_by(FurnitureType.name.asc()).all()
     ]
-    form.color_ids.choices = [
+    form.color_id.choices = [(0, "Seleccionar color")] + [
         (c.id, c.name) for c in Color.query.order_by(Color.name.asc()).all()
     ]
 
     if request.method == "GET":
-        form.color_ids.data = [relation.color_id for relation in product.colors]
+        first_color = product.colors[0].color_id if product.colors else 0
+        form.color_id.data = first_color
         inventory = ProductInventory.query.filter_by(product_id=product.id).first()
         form.stock.data = inventory.stock if inventory else 0
 
@@ -128,6 +178,10 @@ def change_status(product_id):
 @products_bp.route("/bulk-action", methods=["POST"])
 @login_required
 def bulk_action_products():
+    import csv
+    from io import StringIO
+    from flask import make_response
+
     action = request.form.get("action", "").strip()
     selected_ids_raw = request.form.get("selected_ids", "").strip()
 
@@ -180,6 +234,51 @@ def bulk_action_products():
         flash(
             "Los productos seleccionados fueron desactivados correctamente.", "success"
         )
+    elif action == "export":
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(
+            [
+                "ID",
+                "SKU",
+                "Nombre",
+                "Tipo de mueble",
+                "Precio",
+                "Stock",
+                "Estado",
+                "Color",
+            ]
+        )
+
+        for product in products:
+            furniture_type = (
+                product.furniture_type.name if product.furniture_type else ""
+            )
+            stock = (
+                product.inventory_records[0].stock if product.inventory_records else 0
+            )
+            status = "Activo" if product.status else "Inactivo"
+            color = product.colors[0].color.name if product.colors else ""
+
+            writer.writerow(
+                [
+                    product.id,
+                    product.sku,
+                    product.name,
+                    furniture_type,
+                    product.price,
+                    stock,
+                    status,
+                    color,
+                ]
+            )
+
+        response = make_response(output.getvalue())
+        response.headers["Content-Disposition"] = (
+            "attachment; filename=productos_seleccionados.csv"
+        )
+        response.headers["Content-type"] = "text/csv; charset=utf-8"
+        return response
 
     else:
         flash("La acción solicitada no es válida.", "danger")

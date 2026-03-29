@@ -125,6 +125,13 @@
                 aria-labelledby="actionsDropdownButton">
               <li>
                 <button type="button"
+                        id="bulkExportBtn"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                  Exportar seleccionados
+                </button>
+              </li>
+              <li>
+                <button type="button"
                         id="bulkActivateBtn"
                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
                   Activar seleccionados
@@ -535,6 +542,13 @@
                       buttonClass: "bg-success hover:bg-success-strong focus:ring-success-medium",
                   };
               }
+              if (action === "export") {
+                  return {
+                      message: "¿Deseas exportar los productos seleccionados?",
+                      buttonText: "Sí, exportar",
+                      buttonClass: "bg-brand hover:bg-brand-strong focus:ring-brand-medium",
+                  };
+              }
 
               return {
                   message: "¿Deseas desactivar los productos seleccionados?",
@@ -542,6 +556,13 @@
                   buttonClass: "bg-danger hover:bg-danger-strong focus:ring-danger-medium",
               };
           };
+
+          const bulkExportBtn = document.getElementById("bulkExportBtn");
+          if (bulkExportBtn) {
+              bulkExportBtn.addEventListener("click", function() {
+                  submitBulkAction("export");
+              });
+          }
 
           const applyConfirmButtonStyle = (buttonClass) => {
               if (!confirmSubmitBtn) return;

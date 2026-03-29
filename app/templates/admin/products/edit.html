@@ -11,7 +11,9 @@
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
       <form id="editProductForm"
+            data-images-count="{{ product.images|length }}"
             method="post"
+            enctype="multipart/form-data"
             action="{{ url_for('products.edit', product_id=product.id) }}"
             class="flex flex-col gap-2.5 2xl:gap-4">
         {{ form.hidden_tag() }}
@@ -55,10 +57,10 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
           <div class="flex flex-col gap-1">
-            <label for="{{ form.color_ids.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.color_ids.label.text }}</label>
-            {{ form.color_ids(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", multiple=true, size="5") }}
-            {% for error in form.color_ids.errors %}
+            <label for="{{ form.color_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.color_id.label.text }}</label>
+            {{ form.color_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.color_id.errors %}
               <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
             {% endfor %}
           </div>
@@ -76,6 +78,29 @@
               </label>
             </div>
           </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-xs 2xl:text-sm font-medium text-heading">Imágenes actuales</label>
+          <div class="flex flex-wrap gap-3">
+            {% for image in product.images %}
+              <div class="w-24 h-24 rounded-base border border-default-medium overflow-hidden bg-neutral-secondary-medium">
+                <img src="{{ url_for('static', filename=image.image_path) }}"
+                     alt="Imagen del producto"
+                     class="w-full h-full object-cover">
+              </div>
+            {% else %}
+              <p class="text-xs 2xl:text-sm text-body">No hay imágenes registradas.</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.images.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">Agregar imágenes (máximo total: 4)</label>
+          <div class="bg-neutral-secondary-medium border border-default-medium rounded-base p-4 2xl:p-6">
+            {{ form.images(class_="block w-full text-xs 2xl:text-sm text-heading file:mr-3 file:px-3 file:py-2 file:border-0 file:rounded-base file:bg-brand file:text-white hover:file:bg-brand-strong", multiple=true, accept="image/*") }}
+            <p class="mt-2 text-xs 2xl:text-sm text-body">Puedes subir imágenes adicionales siempre que el total no exceda 4.</p>
+          </div>
+          {% for error in form.images.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
         </div>
         <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
           <a href="{{ url_for('products.index') }}"
@@ -145,9 +170,20 @@
           const modalElement = document.getElementById("confirmEditProductModal");
           const openModalBtn = document.getElementById("openConfirmEditProductModalBtn");
           const confirmSubmitBtn = document.getElementById("confirmEditProductSubmitBtn");
+          const imagesInput = document.getElementById("{{ form.images.id }}");
+          const currentImagesCount = parseInt(form?.dataset.imagesCount || "0", 10);
 
           if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
               return;
+          }
+
+          if (imagesInput) {
+              imagesInput.addEventListener("change", function() {
+                  if ((currentImagesCount + this.files.length) > 4) {
+                      alert("Solo puedes tener un máximo de 4 imágenes por producto.");
+                      this.value = "";
+                  }
+              });
           }
 
           const modal = new Modal(modalElement);

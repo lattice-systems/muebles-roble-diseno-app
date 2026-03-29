@@ -3,13 +3,13 @@ from wtforms import (
     StringField,
     TextAreaField,
     SelectField,
-    SelectMultipleField,
     DecimalField,
     IntegerField,
     BooleanField,
     SubmitField,
 )
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
+from flask_wtf.file import MultipleFileField
 
 
 class ProductForm(FlaskForm):
@@ -27,10 +27,12 @@ class ProductForm(FlaskForm):
         "Precio", places=2, validators=[DataRequired(), NumberRange(min=0)]
     )
 
-    color_ids = SelectMultipleField("Colores", coerce=int, validators=[Optional()])
+    color_id = SelectField("Color", coerce=int, validators=[Optional()])
 
     stock = IntegerField("Stock inicial", validators=[Optional(), NumberRange(min=0)])
 
     status = BooleanField("Activo", default=True)
+
+    images = MultipleFileField("Imágenes")
 
     submit = SubmitField("Guardar")

@@ -24,8 +24,8 @@ def create_product(form):
         raise ValueError("El SKU ya existe.")
 
     product = Product(
-        sku=form.sku.data.strip(),
-        name=form.name.data.strip(),
+        sku=(form.sku.data or "").strip(),
+        name=(form.name.data or "").strip(),
         furniture_type_id=form.furniture_type_id.data,
         description=(form.description.data or "").strip(),
         price=form.price.data,
@@ -35,9 +35,8 @@ def create_product(form):
     db.session.add(product)
     db.session.flush()
 
-    color_ids = form.color_ids.data or []
-    for color_id in color_ids:
-        db.session.add(ProductColor(product_id=product.id, color_id=color_id))
+    if form.color_id.data and form.color_id.data != 0:
+        db.session.add(ProductColor(product_id=product.id, color_id=form.color_id.data))
 
     stock_value = form.stock.data if form.stock.data is not None else 0
     db.session.add(ProductInventory(product_id=product.id, stock=stock_value))
@@ -57,17 +56,13 @@ def update_product(product, form):
     product.price = form.price.data
     product.status = form.status.data
 
-    selected_color_ids = set(form.color_ids.data or [])
     current_relations = ProductColor.query.filter_by(product_id=product.id).all()
-    current_color_ids = {relation.color_id for relation in current_relations}
 
     for relation in current_relations:
-        if relation.color_id not in selected_color_ids:
-            db.session.delete(relation)
+        db.session.delete(relation)
 
-    for color_id in selected_color_ids:
-        if color_id not in current_color_ids:
-            db.session.add(ProductColor(product_id=product.id, color_id=color_id))
+    if form.color_id.data and form.color_id.data != 0:
+        db.session.add(ProductColor(product_id=product.id, color_id=form.color_id.data))
 
     inventory = ProductInventory.query.filter_by(product_id=product.id).first()
     if inventory:
