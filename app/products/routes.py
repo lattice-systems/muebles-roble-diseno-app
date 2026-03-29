@@ -16,7 +16,7 @@ from .services import (
 
 
 def save_product_images(product, files):
-    upload_folder = os.path.join(current_app.root_path, "static/uploads/products")
+    upload_folder = os.path.join(current_app.root_path, "static", "uploads", "products")
 
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder)
@@ -286,3 +286,32 @@ def bulk_action_products():
     return redirect(
         url_for("products.index", page=page, q=search_term, status=status_filter)
     )
+
+
+@products_bp.route("/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+def delete_image(image_id):
+    image = ProductImage.query.get_or_404(image_id)
+    product_id = image.product_id
+
+    try:
+        file_path = os.path.join(current_app.root_path, "static", image.image_path)
+
+        print("PATH:", file_path)
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            print("NO EXISTE:", file_path)
+
+        db.session.delete(image)
+        db.session.commit()
+
+        flash("Imagen eliminada correctamente.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        print("ERROR:", e)
+        flash("Error al eliminar la imagen.", "danger")
+
+    return redirect(url_for("products.edit", product_id=product_id))

@@ -79,12 +79,44 @@
           </div>
         </div>
         <div class="flex flex-col gap-1">
-          <label for="{{ form.images.id }}"
-                 class="text-xs 2xl:text-sm font-medium text-heading">Imágenes (máximo 4)</label>
-          <div class="bg-neutral-secondary-medium border border-default-medium rounded-base p-4 2xl:p-6">
-            {{ form.images(class_="block w-full text-xs 2xl:text-sm text-heading file:mr-3 file:px-3 file:py-2 file:border-0 file:rounded-base file:bg-brand file:text-white hover:file:bg-brand-strong", multiple=true, accept="image/*") }}
-            <p class="mt-2 text-xs 2xl:text-sm text-body">Puedes subir hasta 4 imágenes por producto.</p>
+          <label class="text-xs 2xl:text-sm font-medium text-heading">Imágenes (máximo 4)</label>
+          <div id="images-dropzone" class="flex items-center justify-center w-full">
+            <div id="images-dropzone-box"
+                 class="flex flex-col items-center justify-center w-full h-64 bg-neutral-secondary-medium border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium transition-colors">
+              <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                <svg class="w-8 h-8 mb-4"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2" />
+                </svg>
+                <p class="mb-2 text-sm">
+                  <span class="font-semibold">Haz clic para subir</span> o arrastra y suelta
+                </p>
+                <p class="text-xs">PNG, JPG, JPEG o GIF</p>
+                <p class="text-xs mt-1">Máximo 4 imágenes</p>
+                <button type="button"
+                        onclick="document.getElementById('{{ form.images.id }}').click()"
+                        class="mt-4 inline-flex items-center text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none">
+                  <svg class="w-4 h-4 me-1.5"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       width="24"
+                       height="24"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                  </svg>
+                  Browse file
+                </button>
+              </div>
+            </div>
+            {{ form.images(id=form.images.id, class_="hidden", multiple=true, accept="image/*") }}
           </div>
+          <div id="{{ form.images.id }}-preview" class="flex flex-wrap gap-3 mt-2"></div>
           {% for error in form.images.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
         </div>
         <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
@@ -155,22 +187,116 @@
           const modalElement = document.getElementById("confirmCreateProductModal");
           const openModalBtn = document.getElementById("openConfirmCreateProductModalBtn");
           const confirmSubmitBtn = document.getElementById("confirmCreateProductSubmitBtn");
+
           const imagesInput = document.getElementById("{{ form.images.id }}");
+          const previewContainer = document.getElementById("{{ form.images.id }}-preview");
+          const dropzone = document.getElementById("images-dropzone-box");
 
           if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
               return;
           }
 
-          if (imagesInput) {
-              imagesInput.addEventListener("change", function() {
-                  if (this.files.length > 4) {
-                      alert("Solo puedes subir un máximo de 4 imágenes.");
-                      this.value = "";
-                  }
+          const modal = new Modal(modalElement);
+
+          function renderImagePreview(files) {
+              if (!previewContainer) return;
+              previewContainer.innerHTML = "";
+
+              Array.from(files).forEach((file, index) => {
+                  if (!file.type.startsWith("image/")) return;
+
+                  const reader = new FileReader();
+
+                  reader.onload = function(e) {
+                      const wrapper = document.createElement("div");
+                      wrapper.className = "relative w-24 h-24 rounded-base border border-default-medium overflow-hidden bg-neutral-secondary-medium";
+
+                      const img = document.createElement("img");
+                      img.src = e.target.result;
+                      img.alt = file.name;
+                      img.className = "w-full h-full object-cover";
+
+                      const removeBtn = document.createElement("button");
+                      removeBtn.type = "button";
+                      removeBtn.innerHTML = "×";
+                      removeBtn.className = "absolute top-1 right-1 bg-danger text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow";
+
+                      removeBtn.addEventListener("click", function() {
+                          removeImage(index);
+                      });
+
+                      wrapper.appendChild(img);
+                      wrapper.appendChild(removeBtn);
+                      previewContainer.appendChild(wrapper);
+                  };
+
+                  reader.readAsDataURL(file);
               });
           }
 
-          const modal = new Modal(modalElement);
+          function removeImage(indexToRemove) {
+              const dt = new DataTransfer();
+
+              Array.from(imagesInput.files).forEach((file, index) => {
+                  if (index !== indexToRemove) {
+                      dt.items.add(file);
+                  }
+              });
+
+              imagesInput.files = dt.files;
+              renderImagePreview(imagesInput.files);
+          }
+
+          function handleFiles(fileList) {
+              const files = Array.from(fileList).filter(file => file.type.startsWith("image/"));
+
+              if (files.length > 4) {
+                  alert("Solo puedes subir un máximo de 4 imágenes.");
+                  if (imagesInput) imagesInput.value = "";
+                  if (previewContainer) previewContainer.innerHTML = "";
+                  return;
+              }
+
+              const dt = new DataTransfer();
+              files.forEach(file => dt.items.add(file));
+              imagesInput.files = dt.files;
+
+              renderImagePreview(imagesInput.files);
+          }
+
+          if (imagesInput) {
+              imagesInput.addEventListener("change", function() {
+                  handleFiles(this.files);
+              });
+          }
+
+          if (dropzone) {
+              ["dragenter", "dragover"].forEach(eventName => {
+                  dropzone.addEventListener(eventName, function(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dropzone.classList.add("bg-neutral-tertiary-medium");
+                  });
+              });
+
+              ["dragleave", "dragend"].forEach(eventName => {
+                  dropzone.addEventListener(eventName, function(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dropzone.classList.remove("bg-neutral-tertiary-medium");
+                  });
+              });
+
+              dropzone.addEventListener("drop", function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  dropzone.classList.remove("bg-neutral-tertiary-medium");
+
+                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleFiles(e.dataTransfer.files);
+                  }
+              });
+          }
 
           openModalBtn.addEventListener("click", function() {
               if (!form.checkValidity()) {
