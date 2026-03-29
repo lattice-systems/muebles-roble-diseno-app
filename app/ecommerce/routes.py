@@ -40,6 +40,26 @@ def categories():
     )
 
 
+@ecommerce_bp.route("/search")
+def search():
+    """Búsqueda global en catálogos y productos."""
+    search_term = request.args.get("q", "", type=str)
+    search_results = EcommerceService.search_catalogs_and_products(
+        search_term=search_term,
+        product_limit=12,
+    )
+    return render_template(
+        "store/search.html",
+        search_term=search_results["search_term"],
+        categories=search_results["categories"],
+        products=search_results["products"],
+        categories_total=search_results["categories_total"],
+        products_total=search_results["products_total"],
+        total_results=search_results["total_results"],
+        active_section="",
+    )
+
+
 @ecommerce_bp.route("/products")
 def products():
     """Página de listado de productos con búsqueda y filtros."""
@@ -47,12 +67,14 @@ def products():
     type_slug = request.args.get("type", "", type=str)
     sort_by = request.args.get("sort", "default", type=str)
     limit = request.args.get("limit", 16, type=int) or 16
+    page = request.args.get("page", 1, type=int) or 1
 
     filtered_catalog = EcommerceService.get_filtered_products(
         search_term=search_term,
         type_slug=type_slug,
         sort_by=sort_by,
         limit=limit,
+        page=page,
     )
     all_categories = EcommerceService.get_product_categories()
 
@@ -67,6 +89,18 @@ def products():
             "type": filtered_catalog["type_slug"],
             "sort": filtered_catalog["sort_by"],
             "limit": filtered_catalog["limit"],
+            "page": filtered_catalog["page"],
+        },
+        pagination={
+            "page": filtered_catalog["page"],
+            "total_pages": filtered_catalog["total_pages"],
+            "has_prev": filtered_catalog["has_prev"],
+            "has_next": filtered_catalog["has_next"],
+            "prev_page": filtered_catalog["prev_page"],
+            "next_page": filtered_catalog["next_page"],
+            "start_item": filtered_catalog["start_item"],
+            "end_item": filtered_catalog["end_item"],
+            "page_numbers": filtered_catalog["page_numbers"],
         },
         limit_options=[8, 16, 24, 32, 48],
         active_section="products",

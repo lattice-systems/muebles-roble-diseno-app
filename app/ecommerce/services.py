@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import re
+from math import ceil
+
 from flask import url_for
+from markupsafe import escape
 from sqlalchemy.orm import joinedload
 
 from app.models.furniture_type import FurnitureType
@@ -112,6 +116,7 @@ class EcommerceService:
     @staticmethod
     def _serialize_product(product: Product) -> dict[str, object]:
         category = product.furniture_type.title if product.furniture_type else "General"
+        type_slug = product.furniture_type.slug if product.furniture_type else ""
         subtitle = (
             product.furniture_type.subtitle
             if product.furniture_type and product.furniture_type.subtitle
@@ -154,6 +159,7 @@ class EcommerceService:
             "status": product.status,
             "furniture_type_id": product.furniture_type_id,
             "category": category,
+            "type_slug": type_slug,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
@@ -174,6 +180,7 @@ class EcommerceService:
         type_slug: str = "",
         sort_by: str = "default",
         limit: int = 16,
+        page: int = 1,
     ) -> dict[str, object]:
         """Filtra y ordena productos para la vista de catálogo."""
         products = EcommerceService.get_all_products()
@@ -198,6 +205,8 @@ class EcommerceService:
                         str(product.get("title", "")),
                         str(product.get("subtitle", "")),
                         str(product.get("category", "")),
+                        str(product.get("description", "")),
+                        str(product.get("sku", "")),
                         tags,
                     ]
                 ).lower()
@@ -222,14 +231,158 @@ class EcommerceService:
         if isinstance(limit, int):
             safe_limit = max(1, min(limit, 48))
 
+        total_pages = max(1, ceil(filtered_total / safe_limit))
+        current_page = max(1, min(page if isinstance(page, int) else 1, total_pages))
+        start_index = (current_page - 1) * safe_limit
+        end_index = start_index + safe_limit
+        paginated_products = products[start_index:end_index]
+
+        start_item = start_index + 1 if filtered_total > 0 else 0
+        end_item = min(start_index + len(paginated_products), filtered_total)
+
+        page_window = 2
+        start_page = max(1, current_page - page_window)
+        end_page = min(total_pages, current_page + page_window)
+
         return {
-            "products": products[:safe_limit],
+            "products": paginated_products,
             "total_products": total_products,
             "filtered_total": filtered_total,
             "limit": safe_limit,
+            "page": current_page,
+            "total_pages": total_pages,
+            "has_prev": current_page > 1,
+            "has_next": current_page < total_pages,
+            "prev_page": current_page - 1,
+            "next_page": current_page + 1,
+            "start_item": start_item,
+            "end_item": end_item,
+            "page_numbers": list(range(start_page, end_page + 1)),
             "search_term": search_term,
             "type_slug": type_slug,
             "sort_by": sort_by,
+        }
+
+    @staticmethod
+    def _highlight_match(value: object, search_term: str) -> str:
+        """Subraya las coincidencias de búsqueda dentro de un texto."""
+        text = str(value or "")
+        needle = (search_term or "").strip()
+        if not text:
+            return ""
+        if not needle:
+            return str(escape(text))
+
+        pattern = re.compile(re.escape(needle), re.IGNORECASE)
+        parts: list[str] = []
+        last_index = 0
+
+        for match in pattern.finditer(text):
+            parts.append(str(escape(text[last_index : match.start()])))
+            parts.append(
+                "<mark class='rounded px-0.5 bg-yellow-200/80 text-heading'>"
+                f"{escape(match.group(0))}"
+                "</mark>"
+            )
+            last_index = match.end()
+
+        parts.append(str(escape(text[last_index:])))
+        return "".join(parts)
+
+    @staticmethod
+    def search_catalogs_and_products(
+        *,
+        search_term: str = "",
+        product_limit: int = 12,
+    ) -> dict[str, object]:
+        """Realiza búsqueda global en catálogos (furniture types) y productos."""
+        normalized_search = (search_term or "").strip().lower()
+
+        all_categories = EcommerceService.get_product_categories()
+        all_products = EcommerceService.get_all_products()
+
+        if not normalized_search:
+            safe_product_limit = max(1, min(product_limit, 24))
+            return {
+                "search_term": "",
+                "categories": [],
+                "products": all_products[:safe_product_limit],
+                "categories_total": 0,
+                "products_total": len(all_products),
+                "total_results": len(all_products),
+            }
+
+        filtered_categories = []
+        for category in all_categories:
+            candidate_fields = [
+                ("Nombre", str(category.get("title", ""))),
+                ("Subtítulo", str(category.get("subtitle", ""))),
+                ("Slug", str(category.get("slug", ""))),
+            ]
+
+            matched_fields = []
+            for label, raw_value in candidate_fields:
+                if not raw_value.strip():
+                    continue
+                if normalized_search in raw_value.lower():
+                    matched_fields.append(
+                        {
+                            "label": label,
+                            "value": raw_value,
+                            "highlighted": EcommerceService._highlight_match(
+                                raw_value, search_term
+                            ),
+                        }
+                    )
+
+            if matched_fields:
+                enriched_category = dict(category)
+                enriched_category["matched_fields"] = matched_fields
+                filtered_categories.append(enriched_category)
+
+        filtered_products = []
+        for product in all_products:
+            tags_list = product.get("tags", []) or []
+            tags_value = ", ".join(str(tag) for tag in tags_list if tag)
+            candidate_fields = [
+                ("Nombre", str(product.get("title", ""))),
+                ("Subtítulo", str(product.get("subtitle", ""))),
+                ("Categoría", str(product.get("category", ""))),
+                ("Descripción", str(product.get("description", ""))),
+                ("SKU", str(product.get("sku", ""))),
+                ("Tags", tags_value),
+            ]
+
+            matched_fields = []
+            for label, raw_value in candidate_fields:
+                if not raw_value.strip():
+                    continue
+                if normalized_search in raw_value.lower():
+                    matched_fields.append(
+                        {
+                            "label": label,
+                            "value": raw_value,
+                            "highlighted": EcommerceService._highlight_match(
+                                raw_value, search_term
+                            ),
+                        }
+                    )
+
+            if matched_fields:
+                enriched_product = dict(product)
+                enriched_product["matched_fields"] = matched_fields
+                filtered_products.append(enriched_product)
+
+        safe_product_limit = max(1, min(product_limit, 24))
+        limited_products = filtered_products[:safe_product_limit]
+
+        return {
+            "search_term": search_term.strip(),
+            "categories": filtered_categories,
+            "products": limited_products,
+            "categories_total": len(filtered_categories),
+            "products_total": len(filtered_products),
+            "total_results": len(filtered_categories) + len(filtered_products),
         }
 
     @staticmethod
