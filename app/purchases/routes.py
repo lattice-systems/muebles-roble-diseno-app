@@ -6,7 +6,15 @@ import csv
 from datetime import datetime
 from io import StringIO
 
-from flask import flash, make_response, redirect, render_template, request, url_for
+from flask import (
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_security import auth_required
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
@@ -32,15 +40,23 @@ def _parse_selected_ids(raw_ids: str) -> list[int]:
 @auth_required()
 def index():
     search_term = request.args.get("q", "").strip()
-    status_filter = request.args.get("status", "todos")
+    status_filter = request.args.get("status", "pendiente")
+    date_from = request.args.get("date_from", "").strip()
+    date_to = request.args.get("date_to", "").strip()
+    sort_by = request.args.get("sort", "date_desc")
     page = request.args.get("page", 1, type=int)
 
     pagination = PurchaseOrderService.get_all(
         search_term=search_term or None,
         status_filter=status_filter,
+        date_from=date_from or None,
+        date_to=date_to or None,
+        sort_by=sort_by,
         page=page,
         per_page=10,
     )
+
+    session["purchases_list_url"] = request.url
 
     return render_template(
         "admin/purchases/index.html",
@@ -48,6 +64,9 @@ def index():
         pagination=pagination,
         search_term=search_term,
         status_filter=status_filter,
+        date_from=date_from,
+        date_to=date_to,
+        sort_by=sort_by,
     )
 
 
@@ -144,7 +163,7 @@ def edit_order(id_order: int):
         try:
             PurchaseOrderService.update(id_order, data, items_data)
             flash("Orden de compra actualizada exitosamente", "success")
-            return redirect(url_for("purchases.index"))
+            return redirect(url_for("purchases.detail_order", id_order=id_order))
         except (ValidationError, ConflictError) as e:
             flash(e.message, "error")
 
@@ -176,33 +195,34 @@ def detail_order(id_order: int):
 def change_status_order(id_order: int):
     new_status = request.form.get("status")
 
-    search_term = request.form.get("q", "").strip()
-    status_filter = request.form.get("current_status_filter", "todos")
-    page_raw = request.form.get("page", "1")
-    page = int(page_raw) if page_raw.isdigit() else 1
+    received_qtys_raw = request.form.getlist("received_qty[]")
+    received_qtys = []
+    for qty in received_qtys_raw:
+        try:
+            received_qtys.append(float(qty))
+        except ValueError:
+            received_qtys.append(0.0)
 
     try:
-        PurchaseOrderService.change_status(id_order, new_status)
-        flash(f"La orden ahora se encuentra en estado '{new_status}'", "success")
-    except (NotFoundError, ConflictError) as e:
+        order = PurchaseOrderService.change_status(
+            id_order, new_status, received_qtys=received_qtys
+        )
+        flash(f"La orden ahora se encuentra en estado '{order.status}'", "success")
+    except (NotFoundError, ConflictError, ValidationError) as e:
         flash(e.message, "error")
 
-    # Mantenemos las variables de la tabla para redireccionar a la vista original
-    return redirect(
-        url_for(
-            "purchases.index",
-            page=page,
-            q=search_term,
-            status=status_filter,
-        )
-    )
+    # Mantenemos al usuario en la misma vista de detalle de la orden
+    return redirect(url_for("purchases.detail_order", id_order=id_order))
 
 
 @purchases_bp.route("/<int:id_order>/delete", methods=["POST"])
 @auth_required()
 def delete_order(id_order: int):
     search_term = request.form.get("q", "").strip()
-    status_filter = request.form.get("status_filter", "todos")
+    status_filter = request.form.get("status", "pendiente")
+    date_from = request.form.get("date_from", "").strip()
+    date_to = request.form.get("date_to", "").strip()
+    sort_by = request.form.get("sort", "date_desc")
     page_raw = request.form.get("page", "1")
     page = int(page_raw) if page_raw.isdigit() else 1
 
@@ -218,6 +238,9 @@ def delete_order(id_order: int):
             page=page,
             q=search_term,
             status=status_filter,
+            date_from=date_from,
+            date_to=date_to,
+            sort=sort_by,
         )
     )
 
@@ -226,7 +249,10 @@ def delete_order(id_order: int):
 @auth_required()
 def bulk_action_orders():
     search_term = request.form.get("q", "").strip()
-    status_filter = request.form.get("status", "todos")
+    status_filter = request.form.get("status", "pendiente")
+    date_from = request.form.get("date_from", "").strip()
+    date_to = request.form.get("date_to", "").strip()
+    sort_by = request.form.get("sort", "date_desc")
     page_raw = request.form.get("page", "1")
     page = int(page_raw) if page_raw.isdigit() else 1
 
@@ -241,6 +267,9 @@ def bulk_action_orders():
                 page=page,
                 q=search_term,
                 status=status_filter,
+                date_from=date_from,
+                date_to=date_to,
+                sort=sort_by,
             )
         )
 
@@ -254,6 +283,9 @@ def bulk_action_orders():
                     page=page,
                     q=search_term,
                     status=status_filter,
+                    date_from=date_from,
+                    date_to=date_to,
+                    sort=sort_by,
                 )
             )
 
@@ -300,5 +332,8 @@ def bulk_action_orders():
             page=page,
             q=search_term,
             status=status_filter,
+            date_from=date_from,
+            date_to=date_to,
+            sort=sort_by,
         )
     )

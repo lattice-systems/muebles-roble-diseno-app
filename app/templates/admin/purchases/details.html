@@ -33,6 +33,8 @@
               <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Confirmada</span>
             {% elif order.status == 'recibida' %}
               <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Recibida</span>
+            {% elif order.status == 'recibida_parcial' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning-strong text-xs 2xl:text-sm font-medium rounded bg-warning-soft">Recibida Parcial</span>
             {% elif order.status == 'cancelada' %}
               <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Cancelada</span>
             {% else %}
@@ -62,7 +64,7 @@
                       {{ item.raw_material.name if item.raw_material else 'Desc.' }}
                     </td>
                     <td class="px-3 py-2 2xl:px-4">
-                      {{ item.quantity }} {{ item.raw_material.unit.abbreviation if item.raw_material and item.raw_material.unit else '' }}
+                      {{ item.received_quantity }}/{{ item.quantity }} {{ item.raw_material.unit.abbreviation if item.raw_material and item.raw_material.unit else '' }}
                     </td>
                     <td class="px-3 py-2 2xl:px-4 text-right">${{ "%.2f"|format(item.unit_price) }}</td>
                     <td class="px-3 py-2 2xl:px-4 font-medium text-heading text-right whitespace-nowrap">
@@ -87,7 +89,7 @@
       </div>
       <div class="flex items-center justify-between gap-2.5 2xl:gap-3 mt-6 pt-4 border-t border-default-medium">
         <div>
-          <a href="{{ url_for('purchases.index') }}"
+          <a href="{{ session.get('purchases_list_url', url_for('purchases.index') ) }}"
              class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
             Volver
           </a>
@@ -111,11 +113,15 @@
               Cambiar a Confirmada
             </button>
           {% endif %}
-          {% if order.status == 'confirmada' %}
+          {% if order.status in ['confirmada', 'recibida_parcial'] %}
             <button data-modal-target="status-recibir-modal"
                     data-modal-toggle="status-recibir-modal"
                     class="inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-              Recibir Materia Prima
+              {% if order.status == 'confirmada' %}
+                Recibir Materia Prima
+              {% else %}
+                Recibir Pendientes
+              {% endif %}
             </button>
           {% endif %}
         </div>
@@ -156,29 +162,80 @@
   <div id="status-recibir-modal"
        tabindex="-1"
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-3 w-full max-w-md max-h-full">
+    <div class="relative p-3 w-full max-w-2xl max-h-full">
       <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-6 text-center">
-        <h3 class="mb-4 text-heading font-medium">¿Marcar orden como RECIBIDA?</h3>
-        <p class="mb-6 text-body text-sm">
-          Esta acción <strong>sumará las cantidades al inventario</strong> de materia prima y no se puede deshacer de forma sencilla.
+        <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             fill="none"
+             viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h3 class="text-heading font-medium">
+          {% if order.status == 'confirmada' %}
+            ¿Marcar orden como RECIBIDA?
+          {% else %}
+            Recibir Materia Prima Faltante
+          {% endif %}
+        </h3>
+        <p class="mb-6 text-body text-sm mt-2">
+          Por favor confirma la cantidad recibida de cada material. Esto <strong>sumará las cantidades al inventario</strong>.
         </p>
-        <div class="flex items-center space-x-4 justify-center">
-          <form method="post"
-                action="{{ url_for('purchases.change_status_order', id_order=order.id) }}">
-            <input type="hidden"
-                   name="csrf_token"
-                   value="{{ csrf_token() if csrf_token else '' }}">
-            <input type="hidden" name="status" value="recibida">
+        <form method="post"
+              action="{{ url_for('purchases.change_status_order', id_order=order.id) }}">
+          <input type="hidden"
+                 name="csrf_token"
+                 value="{{ csrf_token() if csrf_token else '' }}">
+          <input type="hidden" name="status" value="recibida">
+          <div class="overflow-x-auto mb-6 border border-default-medium rounded-base shadow-sm">
+            <table class="w-full text-left text-xs text-body">
+              <thead class="text-xs text-heading bg-neutral-secondary-medium border-b border-default-medium">
+                <tr>
+                  <th class="px-3 py-2">Materia Prima</th>
+                  <th class="px-3 py-2 text-center">Pedido</th>
+                  <th class="px-3 py-2 text-center">Pendiente</th>
+                  <th class="px-3 py-2 text-center w-32">Cantidad a Recibir</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.items %}
+                  <tr class="bg-neutral-primary-soft border-b border-default">
+                    <td class="px-3 py-2 font-medium">{{ item.raw_material.name }}</td>
+                    <td class="px-3 py-2 text-center">
+                      {{ "%.3f"|format(item.quantity) | replace('.000', '') }} {{ item.raw_material.unit.abbreviation }}
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                      {{ "%.3f"|format(item.pending_quantity) | replace('.000', '') }} {{ item.raw_material.unit.abbreviation }}
+                    </td>
+                    <td class="px-3 py-2">
+                      <input type="number"
+                             step="0.001"
+                             min="0"
+                             max="{{ item.pending_quantity }}"
+                             name="received_qty[]"
+                             value="{{ "%.3f"|format(item.pending_quantity) | replace('.000', '') }}"
+                             required
+                             class="block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs rounded-base focus:ring-brand focus:border-brand">
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center space-x-4 justify-center">
             <button type="submit"
                     class="text-white bg-brand hover:bg-brand-strong focus:ring-4 font-medium rounded-base text-sm px-4 py-2">
               Sí, recibir en inventario
             </button>
-          </form>
-          <button data-modal-hide="status-recibir-modal"
-                  class="text-body bg-neutral-secondary-medium hover:text-heading font-medium rounded-base text-sm px-4 py-2 mx-2 border border-default-medium">
-            Cancelar
-          </button>
-        </div>
+            <button type="button"
+                    data-modal-hide="status-recibir-modal"
+                    class="text-body bg-neutral-secondary-medium hover:text-heading font-medium rounded-base text-sm px-4 py-2 border border-default-medium">
+              Cancelar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

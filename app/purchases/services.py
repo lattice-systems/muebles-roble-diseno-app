@@ -2,6 +2,7 @@
 Servicios de lógica de negocio para compras (Purchase Orders).
 """
 
+from datetime import datetime
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
@@ -53,6 +54,9 @@ class PurchaseOrderService:
     def get_all(
         search_term: str | None = None,
         status_filter: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        sort_by: str = "date_desc",
         page: int = 1,
         per_page: int = 10,
     ):
@@ -61,6 +65,20 @@ class PurchaseOrderService:
 
         if status_filter and status_filter != "todos":
             query = query.filter(PurchaseOrder.status == status_filter.lower())
+
+        if date_from:
+            try:
+                dt_from = datetime.strptime(date_from, "%Y-%m-%d").date()
+                query = query.filter(PurchaseOrder.order_date >= dt_from)
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                dt_to = datetime.strptime(date_to, "%Y-%m-%d").date()
+                query = query.filter(PurchaseOrder.order_date <= dt_to)
+            except ValueError:
+                pass
 
         if search_term and search_term.strip():
             term = f"%{search_term.strip()}%"
@@ -78,7 +96,15 @@ class PurchaseOrderService:
 
             query = query.join(PurchaseOrder.supplier).filter(or_(*filters))
 
-        query = query.order_by(PurchaseOrder.id.desc())
+        if sort_by == "date_asc":
+            query = query.order_by(
+                PurchaseOrder.order_date.asc(), PurchaseOrder.id.asc()
+            )
+        else:
+            query = query.order_by(
+                PurchaseOrder.order_date.desc(), PurchaseOrder.id.desc()
+            )
+
         return query.paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
@@ -223,7 +249,9 @@ class PurchaseOrderService:
         return order
 
     @staticmethod
-    def change_status(id_order: int, new_status: str) -> PurchaseOrder:
+    def change_status(
+        id_order: int, new_status: str, received_qtys: list[float] | None = None
+    ) -> PurchaseOrder:
         """Cambia el estado de la orden respetando el ciclo de vida. Aplica a inventario si es recibida."""
         order = PurchaseOrderService.get_by_id(id_order)
         previous = order.to_dict()
@@ -232,7 +260,8 @@ class PurchaseOrderService:
         # Validaciones del flujo de estados
         valid_transitions = {
             "pendiente": ["confirmada", "cancelada"],
-            "confirmada": ["recibida", "cancelada"],
+            "confirmada": ["recibida", "recibida_parcial", "cancelada"],
+            "recibida_parcial": ["recibida", "recibida_parcial", "cancelada"],
             "recibida": [],  # Estado final
             "cancelada": [],  # Estado final
         }
@@ -242,25 +271,75 @@ class PurchaseOrderService:
                 f"No se puede cambiar el estado de '{current.capitalize()}' a '{new_status.capitalize()}'"
             )
 
-        order.status = new_status
+        # Si el estado es recibida o recibida_parcial, impactar el inventario
+        if new_status in ["recibida", "recibida_parcial"]:
+            is_all_received = True
 
-        # Si el estado es recibida, impactar el inventario
-        if new_status == "recibida":
+            # Si recibimos cantidades desde la UI, actualizar
+            if received_qtys is not None:
+                if len(received_qtys) != len(order.items):
+                    raise ValidationError(
+                        "Las cantidades recibidas no coinciden con los ítems."
+                    )
+
+                for idx, item in enumerate(order.items):
+                    added_qty = received_qtys[idx]
+
+                    if added_qty < 0:
+                        raise ValidationError(
+                            "Las cantidades recibidas no pueden ser negativas."
+                        )
+
+                    # No recibir más de lo pendiente
+                    if added_qty > item.pending_quantity:
+                        added_qty = item.pending_quantity
+
+                    if added_qty > 0:
+                        raw_material = item.raw_material
+                        current_stock = float(raw_material.stock)
+
+                        raw_material.stock = current_stock + added_qty
+                        item.received_quantity = (
+                            float(item.received_quantity) + added_qty
+                        )
+
+                        movement = RawMaterialMovement(
+                            raw_material_id=raw_material.id,
+                            movement_type="ENTRADA",
+                            quantity=added_qty,
+                            reference=f"Compra OC-{order.id}",
+                        )
+                        db.session.add(movement)
+            else:
+                # Si no se pasó arreglo, puede que sea recibida_parcial confirmada como completa por error,
+                # pero asume que quiere marcar todo lo que falta como recibido (para compatibilidad).
+                for item in order.items:
+                    added_qty = item.pending_quantity
+                    if added_qty > 0:
+                        raw_material = item.raw_material
+                        raw_material.stock = float(raw_material.stock) + added_qty
+                        item.received_quantity = (
+                            float(item.received_quantity) + added_qty
+                        )
+
+                        movement = RawMaterialMovement(
+                            raw_material_id=raw_material.id,
+                            movement_type="ENTRADA",
+                            quantity=added_qty,
+                            reference=f"Compra OC-{order.id}",
+                        )
+                        db.session.add(movement)
+
+            # Recalculo final si falta por recibir
             for item in order.items:
-                raw_material = item.raw_material
-                # Convertir Decimal a float, sumar y actualizar
-                current_stock = float(raw_material.stock)
-                added_qty = float(item.quantity)
-                raw_material.stock = current_stock + added_qty
+                if item.pending_quantity > 0:
+                    is_all_received = False
+                    break
 
-                # Registrar el movimiento
-                movement = RawMaterialMovement(
-                    raw_material_id=raw_material.id,
-                    movement_type="ENTRADA",
-                    quantity=added_qty,
-                    reference=f"Compra OC-{order.id}",
-                )
-                db.session.add(movement)
+            order.status = "recibida" if is_all_received else "recibida_parcial"
+            new_status = order.status
+        else:
+            order.status = new_status
 
         db.session.commit()
         PurchaseOrderService._log_audit(
