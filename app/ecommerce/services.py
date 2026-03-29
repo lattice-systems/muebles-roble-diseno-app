@@ -168,6 +168,71 @@ class EcommerceService:
         return [EcommerceService._serialize_product(product) for product in products]
 
     @staticmethod
+    def get_filtered_products(
+        *,
+        search_term: str = "",
+        type_slug: str = "",
+        sort_by: str = "default",
+        limit: int = 16,
+    ) -> dict[str, object]:
+        """Filtra y ordena productos para la vista de catálogo."""
+        products = EcommerceService.get_all_products()
+        total_products = len(products)
+
+        normalized_search = (search_term or "").strip().lower()
+        normalized_type = (type_slug or "").strip().lower()
+
+        if normalized_type:
+            products = [
+                p
+                for p in products
+                if str(p.get("type_slug", "")).strip().lower() == normalized_type
+            ]
+
+        if normalized_search:
+            filtered_products = []
+            for product in products:
+                tags = " ".join(product.get("tags", []) or [])
+                searchable = " ".join(
+                    [
+                        str(product.get("title", "")),
+                        str(product.get("subtitle", "")),
+                        str(product.get("category", "")),
+                        tags,
+                    ]
+                ).lower()
+                if normalized_search in searchable:
+                    filtered_products.append(product)
+            products = filtered_products
+
+        if sort_by == "price_asc":
+            products = sorted(products, key=lambda p: float(p.get("price", 0)))
+        elif sort_by == "price_desc":
+            products = sorted(
+                products, key=lambda p: float(p.get("price", 0)), reverse=True
+            )
+        elif sort_by == "name_asc":
+            products = sorted(products, key=lambda p: str(p.get("title", "")).lower())
+        else:
+            sort_by = "default"
+
+        filtered_total = len(products)
+
+        safe_limit = 16
+        if isinstance(limit, int):
+            safe_limit = max(1, min(limit, 48))
+
+        return {
+            "products": products[:safe_limit],
+            "total_products": total_products,
+            "filtered_total": filtered_total,
+            "limit": safe_limit,
+            "search_term": search_term,
+            "type_slug": type_slug,
+            "sort_by": sort_by,
+        }
+
+    @staticmethod
     def get_product_by_id(product_id: int) -> dict[str, object] | None:
         product = (
             EcommerceService._query_products().filter(Product.id == product_id).first()
