@@ -123,6 +123,51 @@ def create_customer():
         return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500
 
 
+@sales_bp.route("/pos/customers/<int:customer_id>", methods=["GET"])
+@auth_required()
+def get_customer(customer_id):
+    """Retorna los datos del cliente en JSON para los modales de ver/editar."""
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return jsonify({"error": "Cliente no encontrado."}), 404
+    return jsonify(customer.to_dict())
+
+
+@sales_bp.route("/pos/customers/<int:customer_id>", methods=["PUT"])
+@auth_required()
+def update_customer_data(customer_id):
+    """Actualiza los datos de un cliente existente."""
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return jsonify({"error": "Cliente no encontrado."}), 404
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No se recibieron datos."}), 400
+
+        customer.first_name = data.get("first_name", customer.first_name)
+        customer.last_name = data.get("last_name", customer.last_name)
+        customer.email = data.get("email", customer.email)
+        customer.phone = data.get("phone", customer.phone)
+        customer.requires_freight = data.get("requires_freight", False)
+        customer.zip_code = data.get("zip_code", customer.zip_code)
+        customer.state = data.get("state", customer.state)
+        customer.city = data.get("city", customer.city)
+        customer.street = data.get("street", customer.street)
+        customer.neighborhood = data.get("neighborhood", customer.neighborhood)
+        customer.exterior_number = data.get("exterior_number", customer.exterior_number)
+        customer.interior_number = data.get("interior_number", customer.interior_number)
+
+        from app.extensions import db
+        db.session.commit()
+        return jsonify({"success": True, "customer": customer.to_dict()})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error al actualizar: {str(e)}"}), 500
+
+
 @sales_bp.route("/pos/cart", methods=["GET"])
 @auth_required()
 def get_cart():
