@@ -263,7 +263,7 @@ class SaleService:
         change = float(amount_given - float(sale.total))
         db.session.commit()
 
-        return {"success": True, "change": change, "total": float(sale.total)}
+        return {"success": True, "change": change, "total": float(sale.total), "sale_id": sale.id}
 
 
 class SaleItemService:

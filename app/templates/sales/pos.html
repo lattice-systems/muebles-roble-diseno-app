@@ -836,6 +836,13 @@ POS – Venta Física | Furniture Store
           if (res.ok) {
             setModalVisible(checkoutModal, false);
             showGlobalAlert("success", `Cobro registrado. Cambio a entregar: $${data.change.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`);
+              
+            // Abrir popup de ticket
+            if (data.sale_id) {
+              const ticketUrl = `{{ url_for('sales.pos') }}`.replace('/pos', `/sales/${data.sale_id}/ticket`);
+              window.open(ticketUrl, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no,status=no');
+            }
+
             setTimeout(() => window.location.reload(), 3000);
           } else {
             checkoutErrorMessage.textContent = data.error || "Ocurrio un error en el pago.";

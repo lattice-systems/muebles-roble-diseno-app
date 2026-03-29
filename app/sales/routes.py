@@ -260,3 +260,19 @@ def lookup_cp(cp):
         "municipio": result["municipio"],
         "colonias": result["colonias"],
     })
+
+
+@sales_bp.route("/sales/<int:sale_id>/ticket", methods=["GET"])
+@auth_required()
+def ticket(sale_id):
+    """Renderiza el ticket térmico para imprimir."""
+    from app.models.sale import Sale
+    from app.models.sale_item import SaleItem
+    from app.models.payment import Payment
+
+    sale = Sale.query.get_or_404(sale_id)
+    items = SaleItem.query.filter_by(sale_id=sale.id).all()
+    payment = Payment.query.filter_by(id_sale=sale.id).first()
+    
+    return render_template("sales/ticket.html", sale=sale, items=items, payment=payment)
+
