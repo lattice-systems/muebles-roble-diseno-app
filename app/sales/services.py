@@ -105,7 +105,8 @@ class SaleService:
             Customer.query.filter(
                 Customer.status == True,  # noqa: E712
                 or_(
-                    Customer.full_name.ilike(search),
+                    Customer.first_name.ilike(search),
+                    Customer.last_name.ilike(search),
                     Customer.email.ilike(search),
                 ),
             )
@@ -119,15 +120,39 @@ class SaleService:
         """
         Crea un nuevo cliente.
         """
+        if not data.get("first_name") or not data.get("last_name") or not data.get("email") or not data.get("phone"):
+            raise ValueError("Nombre, apellidos, correo y teléfono son obligatorios.")
+
         existing = Customer.query.filter_by(email=data.get("email")).first()
         if existing:
             raise ValueError("El correo electrónico ya está registrado.")
 
+        requires_freight = data.get("requires_freight", False)
+
+        if requires_freight:
+            required_freight = ["zip_code", "state", "city", "street", "neighborhood", "exterior_number"]
+            # To give friendly error messages:
+            es_names = {
+                "zip_code": "Código Postal", "state": "Estado", "city": "Ciudad",
+                "street": "Calle", "neighborhood": "Colonia", "exterior_number": "Num Exterior"
+            }
+            for field in required_freight:
+                if not data.get(field) or not str(data.get(field)).strip():
+                    raise ValueError(f"Falta el campo obligatorio de flete: {es_names[field]}")
+
         customer = Customer(
-            full_name=data.get("full_name"),
-            email=data.get("email"),
-            phone=data.get("phone", ""),
-            address=data.get("address", ""),
+            first_name=data.get("first_name").strip(),
+            last_name=data.get("last_name").strip(),
+            email=data.get("email").strip(),
+            phone=data.get("phone").strip(),
+            requires_freight=requires_freight,
+            zip_code=data.get("zip_code"),
+            state=data.get("state"),
+            city=data.get("city"),
+            street=data.get("street"),
+            neighborhood=data.get("neighborhood"),
+            exterior_number=data.get("exterior_number"),
+            interior_number=data.get("interior_number"),
             status=True,
         )
         db.session.add(customer)

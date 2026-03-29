@@ -107,8 +107,8 @@ def create_customer():
     """
     try:
         data = request.get_json()
-        if not data or not data.get("full_name") or not data.get("email"):
-            return jsonify({"error": "Nombre completo y correo son obligatorios."}), 400
+        if not data or not data.get("first_name") or not data.get("last_name") or not data.get("email") or not data.get("phone"):
+            return jsonify({"error": "Nombre, apellidos, correo y teléfono son obligatorios."}), 400
 
         customer = SaleService.create_customer(data)
         return jsonify({"success": True, "customer": customer.to_dict()})
