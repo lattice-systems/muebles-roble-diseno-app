@@ -1,0 +1,325 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Editar Orden de Compra
+{% endblock title %}
+{% block content %}
+  <div class="max-w-5xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Editar Orden de Compra #{{ order.id }}</h1>
+      <p class="text-body">Edita la orden mientras se encuentra en estado pendiente.</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <form id="editPurchaseForm"
+            method="post"
+            action="{{ url_for('purchases.edit_order', id_order=order.id) }}"
+            class="flex flex-col gap-4 2xl:gap-6">
+        {{ form.hidden_tag() }}
+        <!-- Cabecera de la Orden -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 2xl:gap-4 items-start">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.supplier_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.supplier_id.label.text }}</label>
+            {{ form.supplier_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.supplier_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.order_date.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.order_date.label.text }}</label>
+            {{ form.order_date(type="date", class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.order_date.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.status.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.status.label.text }}</label>
+            {{ form.status(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", disabled="disabled") }}
+            <input type="hidden" name="status" value="{{ form.status.data }}">
+            {% for error in form.status.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        <!-- Template Oculto para Materias Primas -->
+        <select id="rawMaterialSelectTemplate" class="hidden">
+          <option value="" disabled selected>Seleccione material...</option>
+          {% for rm_id, rm_name in raw_materials_choices %}<option value="{{ rm_id }}">{{ rm_name }}</option>{% endfor %}
+        </select>
+        <!-- Detalle de Ítems -->
+        <div class="flex flex-col gap-2 pt-4 border-t border-default-medium">
+          <div class="flex items-center justify-between pb-2">
+            <h2 class="text-sm 2xl:text-base font-semibold text-heading">Detalle de Artículos</h2>
+            <button type="button"
+                    id="addItemBtn"
+                    class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none gap-0.5">
+              <svg class="w-4 h-4 me-1 -ms-0.5"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   width="24"
+                   height="24"
+                   fill="none"
+                   viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
+              </svg>
+              Añadir Ítem
+            </button>
+          </div>
+          <div class="relative w-full overflow-x-auto bg-neutral-primary-soft border border-default-medium rounded-base shadow-sm">
+            <table class="w-full text-left text-xs 2xl:text-sm text-body">
+              <thead class="text-xs 2xl:text-sm text-heading bg-neutral-secondary-medium border-b border-default-medium">
+                <tr>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/3">Materia Prima</th>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Cantidad</th>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Precio Unitario</th>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Subtotal</th>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-12 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody">
+                {% if order and order.items %}
+                  {% for item in order.items %}
+                    <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                      <td class="px-3 py-2 2xl:px-4">
+                        <select name="raw_material_id[]"
+                                required
+                                class="block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                          {% for rm_id, rm_name in raw_materials_choices %}
+                            <option value="{{ rm_id }}"
+                                    {% if rm_id == item.raw_material_id %}selected{% endif %}>{{ rm_name }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+                      <td class="px-3 py-2 2xl:px-4">
+                        <input type="number"
+                               step="0.001"
+                               min="0.001"
+                               name="quantity[]"
+                               value="{{ item.quantity }}"
+                               required
+                               class="item-qty block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                      </td>
+                      <td class="px-3 py-2 2xl:px-4">
+                        <input type="number"
+                               step="0.01"
+                               min="0.01"
+                               name="unit_price[]"
+                               value="{{ item.unit_price }}"
+                               required
+                               class="item-price block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                      </td>
+                      <td class="px-3 py-2 2xl:px-4 font-medium text-heading item-subtotal whitespace-nowrap">
+                        ${{ "%.2f"|format(item.subtotal) }}
+                      </td>
+                      <td class="px-3 py-2 2xl:px-4 text-center">
+                        <button type="button"
+                                class="remove-btn inline-flex items-center justify-center text-fg-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-danger-subtle rounded-base w-8 h-8 focus:outline-none"
+                                title="Eliminar ítem">
+                          <svg class="w-5 h-5 mx-auto"
+                               aria-hidden="true"
+                               xmlns="http://www.w3.org/2000/svg"
+                               width="24"
+                               height="24"
+                               fill="none"
+                               viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+              </tbody>
+              <tfoot class="bg-neutral-secondary-medium border-t border-default-medium">
+                <tr>
+                  <th scope="row"
+                      colspan="3"
+                      class="px-3 py-3 2xl:px-4 2xl:py-4 text-right font-semibold text-heading text-sm">
+                    Total Orden:
+                  </th>
+                  <th class="px-3 py-3 2xl:px-4 2xl:py-4 font-bold text-heading text-sm 2xl:text-base"
+                      id="orderTotalLabel">${{ "%.2f"|format(order.total) }}</th>
+                  <th></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p id="itemsError"
+             class="text-xs 2xl:text-sm text-fg-danger-strong hidden">
+            Debe agregar al menos un ítem a la orden con valores válidos.
+          </p>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-4">
+          <a href="{{ url_for('purchases.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Cancelar
+          </a>
+          <button id="openConfirmEditModalBtn"
+                  type="button"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Actualizar Orden de Compra
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
+{% block modals %}
+  <div id="confirmEditPurchaseModal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="confirmEditPurchaseModal">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828l8.586-8.586Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estás seguro que deseas sobreescribir esta orden de compra con los datos ingresados?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button id="confirmEditSubmitBtn"
+                    type="button"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Sí, actualizar
+            </button>
+            <button data-modal-hide="confirmEditPurchaseModal"
+                    type="button"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const form = document.getElementById("editPurchaseForm");
+          const modalElement = document.getElementById("confirmEditPurchaseModal");
+          const openModalBtn = document.getElementById("openConfirmEditModalBtn");
+          const confirmSubmitBtn = document.getElementById("confirmEditSubmitBtn");
+
+          const tbody = document.getElementById("itemsTableBody");
+          const addItemBtn = document.getElementById("addItemBtn");
+          const selectTemplate = document.getElementById("rawMaterialSelectTemplate").innerHTML;
+          const orderTotalLabel = document.getElementById("orderTotalLabel");
+          const itemsError = document.getElementById("itemsError");
+
+          if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) return;
+          const modal = new Modal(modalElement);
+
+          const calculateTotal = () => {
+              let total = 0;
+              const rows = tbody.querySelectorAll("tr");
+              rows.forEach(row => {
+                  const qty = parseFloat(row.querySelector(".item-qty").value) || 0;
+                  const price = parseFloat(row.querySelector(".item-price").value) || 0;
+                  const subtotal = qty * price;
+                  row.querySelector(".item-subtotal").textContent = `$${subtotal.toFixed(2)}`;
+                  total += subtotal;
+              });
+              orderTotalLabel.textContent = `$${total.toFixed(2)}`;
+          };
+
+          const addRow = () => {
+              const tr = document.createElement("tr");
+              tr.className = "bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium";
+
+              tr.innerHTML = `
+                  <td class="px-3 py-2 2xl:px-4">
+                      <select name="raw_material_id[]" required class="block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                          ${selectTemplate}
+                      </select>
+                  </td>
+                  <td class="px-3 py-2 2xl:px-4">
+                      <input type="number" step="0.001" min="0.001" name="quantity[]" required class="item-qty block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" placeholder="0.000">
+                  </td>
+                  <td class="px-3 py-2 2xl:px-4">
+                      <input type="number" step="0.01" min="0.01" name="unit_price[]" required class="item-price block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" placeholder="0.00">
+                  </td>
+                  <td class="px-3 py-2 2xl:px-4 font-medium text-heading item-subtotal whitespace-nowrap">
+                      $0.00
+                  </td>
+                  <td class="px-3 py-2 2xl:px-4 text-center">
+                      <button type="button" class="remove-btn inline-flex items-center justify-center text-fg-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-danger-subtle rounded-base w-8 h-8 focus:outline-none" title="Eliminar ítem">
+                          <svg class="w-5 h-5 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" /></svg>
+                      </button>
+                  </td>
+              `;
+
+              const qtyInput = tr.querySelector(".item-qty");
+              const priceInput = tr.querySelector(".item-price");
+              const removeBtn = tr.querySelector(".remove-btn");
+
+              qtyInput.addEventListener("input", calculateTotal);
+              priceInput.addEventListener("input", calculateTotal);
+
+              removeBtn.addEventListener("click", () => {
+                  tr.remove();
+                  calculateTotal();
+              });
+
+              tbody.appendChild(tr);
+          };
+
+          addItemBtn.addEventListener("click", addRow);
+
+          // Attach listeners to existing rows rendered by Jinja
+          document.querySelectorAll("#itemsTableBody tr").forEach(tr => {
+              const qtyInput = tr.querySelector(".item-qty");
+              const priceInput = tr.querySelector(".item-price");
+              const removeBtn = tr.querySelector(".remove-btn");
+
+              if (qtyInput) qtyInput.addEventListener("input", calculateTotal);
+              if (priceInput) priceInput.addEventListener("input", calculateTotal);
+              if (removeBtn) removeBtn.addEventListener("click", () => {
+                  tr.remove();
+                  calculateTotal();
+              });
+          });
+
+          // Validate logic
+          openModalBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  form.reportValidity();
+                  return;
+              }
+              const rows = tbody.querySelectorAll("tr");
+              if (rows.length === 0) {
+                  itemsError.classList.remove("hidden");
+                  return;
+              }
+              itemsError.classList.add("hidden");
+              modal.show();
+          });
+
+          confirmSubmitBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  modal.hide();
+                  form.reportValidity();
+                  return;
+              }
+              form.requestSubmit();
+          });
+      });
+  </script>
+{% endblock modals %}
