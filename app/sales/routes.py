@@ -8,11 +8,11 @@ from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_security import auth_required, current_user
 
 from . import sales_bp
-from .services import SaleService, SaleItemService
+from .services import SaleService
 from .copomex_service import CopomexService
 from .freight_config import calculate_freight
 from .email_service import send_purchase_email
-from app.exceptions import NotFoundError
+from app.models.customer import Customer
 
 
 @sales_bp.route("/pos", methods=["GET"])
@@ -20,36 +20,24 @@ from app.exceptions import NotFoundError
 def pos():
     """
     Vista principal del POS.
-
-    Muestra la cuadrícula de productos y el panel de carrito.
-    Si no existe una venta activa en sesión, auto-abre una nueva.
-
-    Returns:
-        HTML: Página del POS con productos paginados y carrito activo.
+    La venta se mantiene entera en sesión.
     """
     search_term = request.args.get("q", "")
     page = request.args.get("page", 1, type=int)
 
-    # Auto-abrir venta si no existe una activa en sesión
-    sale = None
-    sale_id = session.get("active_sale_id")
-    if sale_id:
-        try:
-            sale = SaleService.get_active_sale(sale_id)
-        except NotFoundError:
-            session.pop("active_sale_id", None)
-            sale_id = None
-
-    if not sale:
-        # Crear cabecera automáticamente al entrar al POS
-        sale = SaleService.open_sale(employee_id=current_user.id)
-        session["active_sale_id"] = sale.id
+    # Recuperar cliente de la sesión
+    pos_customer = None
+    pos_customer_id = session.get("pos_customer_id")
+    if pos_customer_id:
+        pos_customer = Customer.query.get(pos_customer_id)
+        if not pos_customer:
+            session.pop("pos_customer_id", None)
 
     pagination = SaleService.get_products(search_term=search_term, page=page)
 
     return render_template(
         "sales/pos.html",
-        sale=sale,
+        pos_customer=pos_customer,
         products=pagination.items,
         pagination=pagination,
         search_term=search_term,
@@ -60,30 +48,21 @@ def pos():
 @auth_required()
 def open_sale():
     """
-    Abre manualmente una nueva cabecera de venta y redirige al POS.
+    Asigna o quita el cliente del POS.
 
-    POST: Recibe customer_id (opcional) y crea la venta.
-
-    Returns:
-        Redirect: Redirige a la vista principal del POS.
+    Solo guarda el customer_id en la sesión, NO crea registros en BD.
+    Si ya hay una venta activa con items, también actualiza su customer_id.
     """
     customer_id_raw = request.form.get("customer_id")
     customer_id = (
         int(customer_id_raw) if customer_id_raw and customer_id_raw.isdigit() else None
     )
 
-    # Cerrar venta activa anterior si la hay
-    session.pop("active_sale_id", None)
-
-    try:
-        sale = SaleService.open_sale(
-            employee_id=current_user.id,
-            customer_id=customer_id,
-        )
-        session["active_sale_id"] = sale.id
-        flash("Nueva venta abierta exitosamente", "success")
-    except Exception as e:
-        flash(str(e), "error")
+    # Guardar/quitar cliente en sesión
+    if customer_id:
+        session["pos_customer_id"] = customer_id
+    else:
+        session.pop("pos_customer_id", None)
 
     return redirect(url_for("sales.pos"))
 
@@ -174,92 +153,128 @@ def update_customer_data(customer_id):
 @sales_bp.route("/pos/cart", methods=["GET"])
 @auth_required()
 def get_cart():
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        # Aún así calcular flete si hay cliente en sesión
-        customer_id = session.get("pos_customer_id")
-        customer = Customer.query.get(customer_id) if customer_id else None
-        freight = calculate_freight(customer, Decimal("0"))
-        return jsonify({"items": [], "total": 0, **freight})
-    try:
-        sale = SaleService.get_active_sale(sale_id)
-        items = SaleItemService.get_cart_items(sale.id)
-        subtotal = sum(item.get("subtotal", 0) for item in items)
+    cart = session.get("pos_cart", [])
+    subtotal = sum(item.get("subtotal", 0) for item in cart)
 
-        # Calcular flete según el cliente asociado
-        customer_id = session.get("pos_customer_id") or (sale.id_customer if sale else None)
-        customer = Customer.query.get(customer_id) if customer_id else None
-        freight = calculate_freight(customer, Decimal(str(subtotal)))
+    # Calcular flete según el cliente en sesión
+    customer_id = session.get("pos_customer_id")
+    customer = Customer.query.get(customer_id) if customer_id else None
+    freight = calculate_freight(customer, Decimal(str(subtotal)))
 
-        total_with_freight = subtotal + freight["cost"]
-        return jsonify({"items": items, "total": total_with_freight, "products_total": subtotal, **freight})
-    except NotFoundError:
-        return jsonify({"items": [], "total": 0, "cost": 0, "zone": None, "free": False, "reason": ""})
+    total_with_freight = subtotal + freight["cost"]
+    return jsonify({
+        "items": cart, 
+        "total": total_with_freight, 
+        "products_total": subtotal, 
+        **freight
+    })
 
 
 @sales_bp.route("/pos/items", methods=["POST"])
 @auth_required()
 def add_item():
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        return jsonify({"error": "No hay venta activa"}), 400
     try:
         data = request.get_json()
-        product_id = data.get("product_id")
-        if not product_id:
-            return jsonify({"error": "Falta el ID del producto"}), 400
+        product_id = int(data.get("product_id"))
+        quantity = int(data.get("quantity", 1))
 
-        quantity = data.get("quantity", 1)
-        SaleItemService.add_item_to_sale(sale_id, int(product_id), int(quantity))
+        from app.models.product import Product
+        from app.models.product_inventory import ProductInventory
+
+        product = Product.query.filter_by(id=product_id, status=True).first()
+        if not product:
+            return jsonify({"error": "El producto no existe o está inactivo."}), 400
+
+        inventory = ProductInventory.query.filter_by(product_id=product.id).first()
+        available_stock = inventory.stock if inventory else 0
+
+        cart = session.get("pos_cart", [])
+        existing = next((i for i in cart if i["product_id"] == product_id), None)
+        current_qty = existing["quantity"] if existing else 0
+        new_qty = current_qty + quantity
+
+        if new_qty > available_stock:
+            return jsonify({
+                "error": f"Stock insuficiente para '{product.name}'. Disponible: {available_stock}, solicitado: {new_qty}."
+            }), 400
+
+        if existing:
+            existing["quantity"] = new_qty
+            existing["subtotal"] = float(product.price) * new_qty
+        else:
+            cart.append({
+                "id": product_id,
+                "product_id": product_id,
+                "name": product.name,
+                "sku": product.sku,
+                "price": float(product.price),
+                "quantity": quantity,
+                "subtotal": float(product.price) * quantity,
+            })
+
+        session["pos_cart"] = cart
         return jsonify({"success": True})
-    except (NotFoundError, ValueError) as e:
+    except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
 
 
 @sales_bp.route("/pos/items/<int:item_id>", methods=["PUT"])
 @auth_required()
 def update_item(item_id):
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        return jsonify({"error": "No hay venta activa"}), 400
     try:
         data = request.get_json()
-        quantity = data.get("quantity")
-        if quantity is None:
-            return jsonify({"error": "Falta la cantidad"}), 400
+        quantity = int(data.get("quantity", 0))
+        if quantity < 1:
+            return jsonify({"error": "La cantidad debe ser mayor a 0."}), 400
 
-        SaleItemService.update_item_quantity(sale_id, item_id, int(quantity))
+        cart = session.get("pos_cart", [])
+        existing = next((i for i in cart if i["id"] == item_id), None)
+        if not existing:
+            return jsonify({"error": "Detalle no encontrado en el carrito."}), 404
+
+        from app.models.product_inventory import ProductInventory
+        inventory = ProductInventory.query.filter_by(product_id=item_id).first()
+        available_stock = inventory.stock if inventory else 0
+
+        if quantity > available_stock:
+            return jsonify({
+                "error": f"Stock insuficiente. Disponible: {available_stock}, solicitado: {quantity}."
+            }), 400
+
+        existing["quantity"] = quantity
+        existing["subtotal"] = existing["price"] * quantity
+        session.modified = True
         return jsonify({"success": True})
-    except (NotFoundError, ValueError) as e:
+    except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
 
 
 @sales_bp.route("/pos/items/<int:item_id>", methods=["DELETE"])
 @auth_required()
 def remove_item(item_id):
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        return jsonify({"error": "No hay venta activa"}), 400
-    try:
-        SaleItemService.remove_item_from_sale(sale_id, item_id)
-        return jsonify({"success": True})
-    except (NotFoundError, ValueError) as e:
-        return jsonify({"error": str(e)}), 400
+    cart = session.get("pos_cart", [])
+    cart = [i for i in cart if i["id"] != item_id]
+    session["pos_cart"] = cart
+    return jsonify({"success": True})
 
+@sales_bp.route("/pos/cart/clear", methods=["DELETE"])
+@auth_required()
+def clear_cart():
+    session.pop("pos_cart", None)
+    return jsonify({"success": True})
 
-@sales_bp.route("/pos/stock/<int:product_id>", methods=["GET"])
+@sales_bp.route("/pos/checkout", methods=["POST"])
 @auth_required()
 def checkout():
-    sale_id = session.get("active_sale_id")
-    if not sale_id:
-        return jsonify({"error": "No hay venta activa"}), 400
+    cart = session.get("pos_cart", [])
+    if not cart:
+        return jsonify({"error": "El carrito está vacio no hay nada que cobrar."}), 400
+
+    customer_id = session.get("pos_customer_id")
+    if not customer_id:
+        return jsonify({"error": "Debes asignar un cliente antes de confirmar el cobro."}), 400
 
     try:
-        # Validar que la venta tenga cliente asignado
-        sale = SaleService.get_active_sale(sale_id)
-        if not sale.id_customer:
-            return jsonify({"error": "Debes asignar un cliente antes de confirmar el cobro."}), 400
-
         data = request.get_json()
         amount_given = float(data.get("amount_given", 0))
         payment_method_id = int(data.get("payment_method_id", 0))
@@ -267,15 +282,21 @@ def checkout():
         if payment_method_id <= 0:
             return jsonify({"error": "Método de pago inválido"}), 400
 
-        # Calcular flete para incluirlo en el total
-        customer = Customer.query.get(sale.id_customer)
-        cart_subtotal = sum(item.price * item.quantity for item in sale.items)
+        customer = Customer.query.get(customer_id)
+        cart_subtotal = sum(Decimal(str(item["subtotal"])) for item in cart)
         freight = calculate_freight(customer, cart_subtotal)
         freight_cost = Decimal(str(freight["cost"]))
 
-        result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id, freight_cost=freight_cost)
+        result = SaleService.checkout_session_sale(
+            employee_id=current_user.id,
+            customer_id=customer_id,
+            cart_items=cart,
+            amount_given=amount_given,
+            payment_method_id=payment_method_id,
+            freight_cost=freight_cost
+        )
 
-        # Enviar email de confirmación al cliente (asíncrono)
+        # Enviar email de confirmación
         from app.models.payment import Payment as PaymentModel
         from app.models.sale import Sale as SaleModel
         from app.models.sale_item import SaleItem as SaleItemModel
@@ -284,15 +305,16 @@ def checkout():
         completed_payment = PaymentModel.query.filter_by(id_sale=result["sale_id"]).first()
         send_purchase_email(completed_sale, completed_items, completed_payment, freight)
 
-        # Limpiar carrito y cliente de sesión
-        session.pop("active_sale_id", None)
+        session.pop("pos_cart", None)
         session.pop("pos_customer_id", None)
 
         return jsonify(result)
-    except (NotFoundError, ValueError) as e:
+    except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Error interno del servidor. Revisa el log."}), 500
 
 
 @sales_bp.route("/pos/payment-methods", methods=["GET"])
