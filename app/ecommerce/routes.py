@@ -1,9 +1,33 @@
 """Rutas iniciales para e-commerce."""
 
-from flask import abort, render_template, request
+from urllib.parse import urlparse
+
+from flask import abort, redirect, render_template, request, url_for
 
 from . import ecommerce_bp
 from .services import EcommerceService
+
+
+def _resolve_redirect_target(default_endpoint: str = "ecommerce.cart"):
+    """Obtiene un destino de redirección seguro dentro del mismo sitio."""
+    requested_target = (request.form.get("next") or request.referrer or "").strip()
+    if not requested_target:
+        return redirect(url_for(default_endpoint))
+
+    parsed_url = urlparse(requested_target)
+    if parsed_url.scheme and parsed_url.netloc and parsed_url.netloc != request.host:
+        return redirect(url_for(default_endpoint))
+
+    if parsed_url.scheme in {"http", "https"}:
+        safe_target = parsed_url.path or "/"
+        if parsed_url.query:
+            safe_target = f"{safe_target}?{parsed_url.query}"
+        return redirect(safe_target)
+
+    if requested_target.startswith("/"):
+        return redirect(requested_target)
+
+    return redirect(url_for(default_endpoint))
 
 
 @ecommerce_bp.context_processor
@@ -136,6 +160,39 @@ def cart():
     """Página del carrito de compras."""
     cart_data = EcommerceService.get_cart()
     return render_template("store/cart.html", cart=cart_data, active_section="")
+
+
+@ecommerce_bp.route("/cart/add/<int:product_id>", methods=["POST"])
+def add_to_cart(product_id: int):
+    """Agrega un producto al carrito de sesión."""
+    quantity = request.form.get("quantity", 1, type=int) or 1
+    EcommerceService.add_product_to_cart(product_id=product_id, quantity=quantity)
+    return _resolve_redirect_target(default_endpoint="ecommerce.products")
+
+
+@ecommerce_bp.route("/cart/update/<int:product_id>", methods=["POST"])
+def update_cart_item(product_id: int):
+    """Actualiza la cantidad de un producto dentro del carrito."""
+    quantity = request.form.get("quantity", 1, type=int)
+    safe_quantity = quantity if quantity is not None else 1
+    EcommerceService.update_product_quantity(
+        product_id=product_id, quantity=safe_quantity
+    )
+    return _resolve_redirect_target(default_endpoint="ecommerce.cart")
+
+
+@ecommerce_bp.route("/cart/remove/<int:product_id>", methods=["POST"])
+def remove_from_cart(product_id: int):
+    """Elimina un producto del carrito de sesión."""
+    EcommerceService.remove_product_from_cart(product_id=product_id)
+    return _resolve_redirect_target(default_endpoint="ecommerce.cart")
+
+
+@ecommerce_bp.route("/cart/clear", methods=["POST"])
+def clear_cart():
+    """Vacía todo el carrito de sesión."""
+    EcommerceService.clear_cart()
+    return _resolve_redirect_target(default_endpoint="ecommerce.cart")
 
 
 @ecommerce_bp.route("/checkout")
