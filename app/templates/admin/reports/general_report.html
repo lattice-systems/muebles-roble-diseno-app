@@ -1,0 +1,111 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Reporte general
+{% endblock title %}
+
+{% block content %}
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-heading text-base 2xl:text-lg font-medium">Reporte general</h1>
+        <p class="text-body">Periodo: {{ report.date_from }} a {{ report.date_to }}</p>
+      </div>
+
+      <a href="{{ url_for('reports.index') }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium rounded-base text-sm px-4 py-2">
+        Volver
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-4 shadow-xs">
+        <p class="text-body text-xs uppercase">Ventas</p>
+        <p class="text-heading text-xl font-semibold">${{ "{:,.2f}".format(report.summary.sales_total|float) }}</p>
+      </div>
+
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-4 shadow-xs">
+        <p class="text-body text-xs uppercase">Utilidad estimada</p>
+        <p class="text-heading text-xl font-semibold">${{ "{:,.2f}".format(report.summary.estimated_profit_total|float) }}</p>
+      </div>
+
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-4 shadow-xs">
+        <p class="text-body text-xs uppercase">Transacciones</p>
+        <p class="text-heading text-xl font-semibold">{{ report.summary.transactions_count }}</p>
+      </div>
+
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-4 shadow-xs">
+        <p class="text-body text-xs uppercase">Órdenes finalizadas</p>
+        <p class="text-heading text-xl font-semibold">{{ report.summary.completed_production_orders }}</p>
+      </div>
+
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-4 shadow-xs">
+        <p class="text-body text-xs uppercase">MP consumidas</p>
+        <p class="text-heading text-xl font-semibold">{{ report.summary.raw_materials_consumed }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">
+        <div class="px-5 py-4 border-b border-default-medium">
+          <h2 class="text-heading text-sm font-medium">Métodos de pago</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-body">
+            <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+              <tr>
+                <th class="px-6 py-4">Método</th>
+                <th class="px-6 py-4">Monto</th>
+                <th class="px-6 py-4">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in report.sales.payment_methods %}
+                <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
+                  <td class="px-6 py-4 text-heading font-medium">{{ item.method }}</td>
+                  <td class="px-6 py-4">${{ "%.2f"|format(item.amount|float) }}</td>
+                  <td class="px-6 py-4">{{ item.count }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3" class="px-6 py-8 text-center text-body">No hay datos.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">
+        <div class="px-5 py-4 border-b border-default-medium">
+          <h2 class="text-heading text-sm font-medium">Top productos</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-body">
+            <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+              <tr>
+                <th class="px-6 py-4">Producto</th>
+                <th class="px-6 py-4">Cantidad</th>
+                <th class="px-6 py-4">Ingresos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in report.top_products["items"] %}
+                <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
+                  <td class="px-6 py-4 text-heading font-medium">{{ item.product_name }}</td>
+                  <td class="px-6 py-4">{{ item.quantity_sold }}</td>
+                  <td class="px-6 py-4">${{ "%.2f"|format(item.revenue|float) }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3" class="px-6 py-8 text-center text-body">No hay datos.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

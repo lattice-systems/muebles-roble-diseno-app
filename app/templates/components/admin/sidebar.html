@@ -126,14 +126,12 @@
       icon_sales,
       "dropdown-sales") }}
       {{ sidebar_dropdown("Análisis",
-            [
-            {"label": "Costos", "href": "#", "icon": icon_costs},
-            {"label": "Reportes", "href": "#", "icon": icon_reports},
-            ],
-            icon_analysis,
-            "dropdown-analysis") }}
-      {{ sidebar_link("Productos", url_for('products.index') , icon_products) }}
-      {{ sidebar_link("Control", "#", icon_control) }}
+      [
+      {"label": "Costos", "href": url_for('costs.index'), "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
+      {"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports, "active": request.endpoint and request.endpoint.startswith('reports.')},
+      ],
+      icon_analysis,
+      "dropdown-analysis") }}
     </ul>
   </div>
   <div class="border-t p-2 2xl:p-2.5 border-default pt-3 2xl:pt-4">

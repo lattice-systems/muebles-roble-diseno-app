@@ -11,6 +11,7 @@ from .product import Product
 from .product_color import ProductColor
 from .product_inventory import ProductInventory
 from .production_order import ProductionOrder
+from .production_order_material import ProductionOrderMaterial
 from .purchase_order import PurchaseOrder
 from .purchase_order_item import PurchaseOrderItem
 from .raw_material import RawMaterial
@@ -38,6 +39,7 @@ __all__ = [
     "ProductColor",
     "ProductInventory",
     "ProductionOrder",
+    "ProductionOrderMaterial",
     "PurchaseOrder",
     "PurchaseOrderItem",
     "RawMaterial",
