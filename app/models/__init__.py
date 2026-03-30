@@ -6,6 +6,7 @@ from .customer import Customer
 from .furniture_type import FurnitureType
 from .order import Order
 from .order_item import OrderItem
+from .payment import Payment
 from .payment_method import PaymentMethod
 from .product import Product
 from .product_color import ProductColor
@@ -34,6 +35,7 @@ __all__ = [
     "FurnitureType",
     "Order",
     "OrderItem",
+    "Payment",
     "PaymentMethod",
     "Product",
     "ProductColor",
