@@ -11,6 +11,7 @@ from . import sales_bp
 from .services import SaleService, SaleItemService
 from .copomex_service import CopomexService
 from .freight_config import calculate_freight
+from .email_service import send_purchase_email
 from app.exceptions import NotFoundError
 from app.models.customer import Customer
 
@@ -283,6 +284,15 @@ def checkout():
         freight_cost = Decimal(str(freight["cost"]))
 
         result = SaleService.checkout_sale(sale_id, amount_given, payment_method_id, freight_cost=freight_cost)
+
+        # Enviar email de confirmación al cliente (asíncrono)
+        from app.models.payment import Payment as PaymentModel
+        from app.models.sale import Sale as SaleModel
+        from app.models.sale_item import SaleItem as SaleItemModel
+        completed_sale = SaleModel.query.get(result["sale_id"])
+        completed_items = SaleItemModel.query.filter_by(sale_id=result["sale_id"]).all()
+        completed_payment = PaymentModel.query.filter_by(id_sale=result["sale_id"]).first()
+        send_purchase_email(completed_sale, completed_items, completed_payment, freight)
 
         # Limpiar carrito y cliente de sesión
         session.pop("active_sale_id", None)
