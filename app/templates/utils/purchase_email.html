@@ -105,7 +105,11 @@
                 </tr>
                 <!-- Items -->
                 {% for item in items %}
-                <tr style="{% if loop.index is odd %}background-color:#ffffff;{% else %}background-color:#fafbfc;{% endif %}">
+                {% if loop.index is odd %}
+                <tr style="background-color:#ffffff;">
+                {% else %}
+                <tr style="background-color:#fafbfc;">
+                {% endif %}
                   <td style="padding: 10px 12px; font-size:13px; color:#374151; border-bottom: 1px solid #f1f5f9;">
                     <strong>{{ item.name }}</strong>
                     <br><span style="font-size:11px; color:#9ca3af;">SKU: {{ item.sku }}</span>
@@ -139,9 +143,11 @@
                         <td style="padding:4px 0; color:#6b7280; font-size:13px;">
                           Envío ({{ freight_zone }}):
                         </td>
-                        <td style="padding:4px 0; font-size:13px; font-weight:600; text-align:right;{% if freight_free %} color:#059669;{% else %} color:#374151;{% endif %}">
-                          {% if freight_free %}GRATIS{% else %}${{ "%.2f"|format(freight_cost) }}{% endif %}
-                        </td>
+                        {% if freight_free %}
+                        <td style="padding:4px 0; font-size:13px; font-weight:600; text-align:right; color:#059669;">GRATIS</td>
+                        {% else %}
+                        <td style="padding:4px 0; font-size:13px; font-weight:600; text-align:right; color:#374151;">${{ "%.2f"|format(freight_cost) }}</td>
+                        {% endif %}
                       </tr>
                       {% endif %}
                       <tr>
