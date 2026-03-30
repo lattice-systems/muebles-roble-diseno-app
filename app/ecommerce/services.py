@@ -43,7 +43,15 @@ class EcommerceService:
                     "title": cat.title,
                     "subtitle": cat.subtitle or "",
                     "image_url": cat.image_url or "#",
-                    "href": f"/products?type={cat.slug}" if cat.slug else "#",
+                    "href": (
+                        url_for(
+                            "ecommerce.products",
+                            type=cat.slug,
+                            _anchor="products-results",
+                        )
+                        if cat.slug
+                        else url_for("ecommerce.products")
+                    ),
                     "alt": cat.title,
                     "slug": cat.slug,
                 }
