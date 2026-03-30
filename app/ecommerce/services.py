@@ -37,12 +37,16 @@ class EcommerceService:
         )
         result = []
         for cat in categories:
+            image_url = (cat.image_url or "").strip()
+            if not image_url:
+                continue
+
             result.append(
                 {
                     "id": cat.id,
                     "title": cat.title,
                     "subtitle": cat.subtitle or "",
-                    "image_url": cat.image_url or "#",
+                    "image_url": image_url,
                     "href": (
                         url_for(
                             "ecommerce.products",

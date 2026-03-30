@@ -5,7 +5,7 @@ Este documento define la lista oficial de categorias y subcategorias para la pag
 ## 1. Salas
 - Sofas
 - Sillones individuales
-- Loveseats
+- Sofas de dos plazas
 
 ## 2. Comedores
 - Mesas de comedor
