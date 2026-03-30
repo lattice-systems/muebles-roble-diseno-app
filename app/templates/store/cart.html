@@ -114,19 +114,19 @@
             <span class="text-sky-900 text-xl font-medium">MX {{ "{:,.2f}".format(cart.total) }}</span>
           </div>
           <a href="{{ url_for('ecommerce.checkout') }}"
-             class="w-full text-center max-w-50 py-3 px-6 rounded-full border border-heading text-heading text-xl hover:bg-heading hover:text-white transition-colors duration-300">
+             class="w-full text-center py-3 px-6 rounded-full border border-heading text-heading text-xl hover:bg-heading hover:text-white transition-colors duration-300">
             Pagar
           </a>
         {% else %}
           <p class="w-full text-center text-body-subtle mb-8">Agrega productos al carrito para continuar.</p>
-          <span class="w-full text-center max-w-50 py-3 px-6 rounded-full border border-gray-300 text-gray-400 bg-gray-100 text-xl cursor-not-allowed">
+          <span class="w-full text-center py-3 px-6 rounded-full border border-gray-300 text-gray-400 bg-gray-100 text-xl cursor-not-allowed">
             Pagar
           </span>
         {% endif %}
         {% if cart.cart_items %}
           <form method="post"
                 action="{{ url_for('ecommerce.clear_cart') }}"
-                class="w-full mt-4 max-w-50">
+                class="w-full mt-4">
             <input type="hidden"
                    name="csrf_token"
                    value="{{ csrf_token() if csrf_token else '' }}">
