@@ -49,9 +49,26 @@
       {% endif %}
       <!-- Hover Overlay -->
       <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        <button class="bg-neutral-primary text-sky-900 font-semibold py-3 px-10 mb-4 hover:bg-sky-900 hover:text-neutral-primary transition-colors cursor-pointer pointer-events-auto">
-          Añadir al carrito
-        </button>
+        <form method="post"
+              action="{{ url_for('ecommerce.add_to_cart', product_id=product.id) }}"
+              class="pointer-events-auto mb-4">
+          <input type="hidden"
+                 name="csrf_token"
+                 value="{{ csrf_token() if csrf_token else '' }}">
+          <input type="hidden"
+                 name="next"
+                 value="{{ request.full_path if request.query_string else request.path }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit"
+                  class="bg-neutral-primary text-sky-900 font-semibold py-3 px-10 hover:bg-sky-900 hover:text-neutral-primary transition-colors cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                  {% if product.stock is defined and product.stock == 0 %}disabled{% endif %}>
+            {% if product.stock is defined and product.stock == 0 %}
+              Sin stock
+            {% else %}
+              Añadir al carrito
+            {% endif %}
+          </button>
+        </form>
         <div class="flex gap-4 text-white text-sm font-semibold pointer-events-auto">
           <button type="button"
                   class="js-share-product flex items-center gap-1 hover:text-slate-200"

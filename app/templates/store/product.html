@@ -33,7 +33,7 @@
           <img id="product-main-image"
                src="{{ product.images[0] }}"
                alt="{{ product.title }}"
-               class="w-full h-[460px] object-cover">
+               class="w-full h-115 object-cover">
         </div>
       </div>
       <div class="flex flex-col">
@@ -108,10 +108,35 @@
             <p class="text-sm text-body">No hay colores registrados para este producto.</p>
           {% endif %}
         </div>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <button class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors">
-            Añadir al carrito
-          </button>
+        <div class="mt-8 flex flex-wrap gap-3 items-center">
+          <form method="post"
+                action="{{ url_for('ecommerce.add_to_cart', product_id=product.id) }}"
+                class="flex flex-wrap items-center gap-3">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() if csrf_token else '' }}">
+            <input type="hidden"
+                   name="next"
+                   value="{{ request.full_path if request.query_string else request.path }}">
+            <label for="quantity" class="text-sm font-medium text-heading">Cantidad</label>
+            <input id="quantity"
+                   name="quantity"
+                   type="number"
+                   min="1"
+                   max="{{ product.stock if product.stock is defined and product.stock > 0 else 1 }}"
+                   value="1"
+                   class="h-11 w-20 rounded-lg border border-slate-300 px-3 text-center focus:ring-sky-900 focus:border-sky-900"
+                   {% if not product.in_stock %}disabled{% endif %}>
+            <button type="submit"
+                    class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300"
+                    {% if not product.in_stock %}disabled{% endif %}>
+              {% if product.in_stock %}
+                Añadir al carrito
+              {% else %}
+                Sin stock
+              {% endif %}
+            </button>
+          </form>
           <button type="button"
                   class="js-share-product h-11 px-6 rounded-lg border border-slate-300 text-heading font-semibold hover:bg-slate-100 transition-colors"
                   data-share-title="{{ product.title }}"

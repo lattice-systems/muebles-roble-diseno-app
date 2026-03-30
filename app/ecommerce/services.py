@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from math import ceil
 
-from flask import url_for
+from flask import session, url_for
 from markupsafe import escape
 from sqlalchemy.orm import joinedload
 
@@ -27,6 +27,7 @@ class EcommerceService:
         "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=400",
         "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=400",
     ]
+    IVA_RATE = 0.16
 
     @staticmethod
     def get_product_categories() -> list[dict[str, str]]:
@@ -395,26 +396,161 @@ class EcommerceService:
         return EcommerceService._serialize_product(product)
 
     @staticmethod
+    def _normalize_quantity(quantity: object, *, minimum: int = 1) -> int:
+        try:
+            parsed_quantity = int(quantity)
+        except (TypeError, ValueError):
+            return minimum
+        return max(minimum, parsed_quantity)
+
+    @staticmethod
+    def _get_cart_store() -> dict[int, int]:
+        raw_cart = session.get("ecommerce_cart", {})
+        if not isinstance(raw_cart, dict):
+            return {}
+
+        normalized_cart: dict[int, int] = {}
+        for product_id, quantity in raw_cart.items():
+            try:
+                parsed_product_id = int(product_id)
+                parsed_quantity = int(quantity)
+            except (TypeError, ValueError):
+                continue
+
+            if parsed_quantity > 0:
+                normalized_cart[parsed_product_id] = parsed_quantity
+
+        return normalized_cart
+
+    @staticmethod
+    def _save_cart_store(cart_store: dict[int, int]) -> None:
+        session["ecommerce_cart"] = {
+            str(product_id): quantity for product_id, quantity in cart_store.items()
+        }
+        session.modified = True
+
+    @staticmethod
+    def _get_stock_for_product(product_data: dict[str, object]) -> int:
+        raw_stock = product_data.get("stock", 0)
+        try:
+            stock = int(raw_stock)
+        except (TypeError, ValueError):
+            stock = 0
+        return max(0, stock)
+
+    @staticmethod
+    def add_product_to_cart(product_id: int, quantity: int = 1) -> dict[str, object]:
+        product = EcommerceService.get_product_by_id(product_id)
+        if not product:
+            return EcommerceService.get_cart()
+
+        max_stock = EcommerceService._get_stock_for_product(product)
+        if max_stock <= 0:
+            return EcommerceService.get_cart()
+
+        safe_quantity = EcommerceService._normalize_quantity(quantity)
+        cart_store = EcommerceService._get_cart_store()
+        current_quantity = cart_store.get(product_id, 0)
+        cart_store[product_id] = min(current_quantity + safe_quantity, max_stock)
+
+        EcommerceService._save_cart_store(cart_store)
+        return EcommerceService.get_cart()
+
+    @staticmethod
+    def update_product_quantity(product_id: int, quantity: int) -> dict[str, object]:
+        cart_store = EcommerceService._get_cart_store()
+        if product_id not in cart_store:
+            return EcommerceService.get_cart()
+
+        if quantity <= 0:
+            cart_store.pop(product_id, None)
+            EcommerceService._save_cart_store(cart_store)
+            return EcommerceService.get_cart()
+
+        product = EcommerceService.get_product_by_id(product_id)
+        if not product:
+            cart_store.pop(product_id, None)
+            EcommerceService._save_cart_store(cart_store)
+            return EcommerceService.get_cart()
+
+        max_stock = EcommerceService._get_stock_for_product(product)
+        if max_stock <= 0:
+            cart_store.pop(product_id, None)
+            EcommerceService._save_cart_store(cart_store)
+            return EcommerceService.get_cart()
+
+        cart_store[product_id] = min(
+            EcommerceService._normalize_quantity(quantity), max_stock
+        )
+        EcommerceService._save_cart_store(cart_store)
+        return EcommerceService.get_cart()
+
+    @staticmethod
+    def remove_product_from_cart(product_id: int) -> dict[str, object]:
+        cart_store = EcommerceService._get_cart_store()
+        if product_id in cart_store:
+            cart_store.pop(product_id, None)
+            EcommerceService._save_cart_store(cart_store)
+        return EcommerceService.get_cart()
+
+    @staticmethod
+    def clear_cart() -> dict[str, object]:
+        session.pop("ecommerce_cart", None)
+        session.modified = True
+        return EcommerceService.get_cart()
+
+    @staticmethod
     def get_cart() -> dict:
-        """Obtiene un carrito mock para las vistas de carrito y checkout."""
-        products = EcommerceService.get_featured_products()
-        product1 = products[0] if len(products) > 0 else None
-        product2 = products[1] if len(products) > 1 else product1
+        """Obtiene el carrito de sesión para vistas de carrito y checkout."""
+        cart_store = EcommerceService._get_cart_store()
+        if not cart_store:
+            return {
+                "cart_items": [],
+                "subtotal": 0.0,
+                "iva": 0.0,
+                "total": 0.0,
+                "total_items": 0,
+                "iva_rate": EcommerceService.IVA_RATE,
+            }
 
-        if not product1:
-            return {"cart_items": [], "subtotal": 0, "total": 0}
+        cart_items: list[dict[str, object]] = []
+        normalized_store: dict[int, int] = {}
 
-        cart_items = [
-            {"product": product1, "quantity": 1, "subtotal": product1["price"] * 1}
-        ]
-        if product2 and product2["id"] != product1["id"]:
+        for product_id, requested_quantity in cart_store.items():
+            product = EcommerceService.get_product_by_id(product_id)
+            if not product:
+                continue
+
+            stock = EcommerceService._get_stock_for_product(product)
+            if stock <= 0:
+                continue
+
+            safe_quantity = min(requested_quantity, stock)
+            normalized_store[product_id] = safe_quantity
+            price = float(product.get("price", 0) or 0)
+            subtotal = round(price * safe_quantity, 2)
+
             cart_items.append(
-                {"product": product2, "quantity": 1, "subtotal": product2["price"] * 1}
+                {
+                    "product": product,
+                    "quantity": safe_quantity,
+                    "subtotal": subtotal,
+                }
             )
 
-        subtotal = sum(item["subtotal"] for item in cart_items)
+        if normalized_store != cart_store:
+            EcommerceService._save_cart_store(normalized_store)
+
+        total_amount = round(sum(float(item["subtotal"]) for item in cart_items), 2)
+        subtotal_amount = round(total_amount / (1 + EcommerceService.IVA_RATE), 2)
+        iva_amount = round(total_amount - subtotal_amount, 2)
+        total_items = sum(int(item["quantity"]) for item in cart_items)
+
         return {
             "cart_items": cart_items,
-            "subtotal": subtotal,
-            "total": subtotal,
+            "subtotal": subtotal_amount,
+            "iva": iva_amount,
+            "total": total_amount,
+            "total_items": total_items,
+            "iva_rate": EcommerceService.IVA_RATE,
         }
