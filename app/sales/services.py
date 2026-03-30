@@ -13,6 +13,7 @@ from app.exceptions import NotFoundError
 from app.extensions import db
 from app.models.audit_log import AuditLog
 from app.models.customer import Customer
+from app.models.payment import Payment
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_inventory import ProductInventory
@@ -258,6 +259,9 @@ class SaleService:
         sale.payment_method_id = payment_method_id
         sale.active = False
 
+        payment = Payment(payment_type="SALE", id_sale=sale.id, amount=amount_given)
+        db.session.add(payment)
+
         change = float(amount_given - float(total_with_freight))
         db.session.commit()
 
@@ -269,6 +273,91 @@ class SaleService:
             "sale_id": sale.id,
         }
 
+    @staticmethod
+    def checkout_session_sale(
+        employee_id: int,
+        customer_id: int,
+        cart_items: list[dict],
+        amount_given: float,
+        payment_method_id: int,
+        freight_cost: Decimal = Decimal("0"),
+    ) -> dict:
+        if not cart_items:
+            raise ValueError("El carrito está vacío no hay nada que cobrar.")
+
+        calculated_total = sum(Decimal(str(item["price"])) * item["quantity"] for item in cart_items)
+        # Sumar flete al total
+        total_with_freight = calculated_total + freight_cost
+        
+        if amount_given < float(total_with_freight):
+            raise ValueError(
+                f"Monto insuficiente. Faltan ${(float(total_with_freight) - amount_given):,.2f}"
+            )
+
+        # Crear cabecera de la venta
+        sale = Sale(
+            id_employee=employee_id,
+            id_customer=customer_id,
+            active=False,
+            total=total_with_freight,
+            sale_date=datetime.now(),
+            payment_method_id=payment_method_id,
+        )
+        db.session.add(sale)
+        db.session.flush()
+
+        # Auditoria para la cabecera
+        audit = AuditLog(
+            table_name="sales",
+            action="INSERT",
+            user_id=employee_id,
+            timestamp=datetime.now(),
+            previous_data=None,
+            new_data=sale.to_dict(),
+        )
+        db.session.add(audit)
+        
+        # Procesar items y reducir stock
+        from app.models.product_inventory import ProductInventory
+        from app.models.product import Product
+        
+        for item in cart_items:
+            product = Product.query.get(item["product_id"])
+            if not product:
+                db.session.rollback()
+                raise ValueError(f"El producto con ID {item['product_id']} no existe.")
+                
+            inv = ProductInventory.query.filter_by(product_id=product.id).first()
+            if inv:
+                inv.stock -= item["quantity"]
+                if inv.stock < 0:
+                    db.session.rollback()
+                    raise ValueError(f"Inventario negativo detectado para el artículo {product.name}")
+            else:
+                db.session.rollback()
+                raise ValueError(f"El producto {product.name} no tiene inventario.")
+                
+            new_item = SaleItem(
+                sale_id=sale.id,
+                product_id=product.id,
+                quantity=item["quantity"],
+                price=item["price"],
+            )
+            db.session.add(new_item)
+            
+        payment = Payment(payment_type="SALE", id_sale=sale.id, amount=amount_given)
+        db.session.add(payment)
+
+        change = float(amount_given - float(total_with_freight))
+        db.session.commit()
+
+        return {
+            "success": True,
+            "change": change,
+            "total": float(total_with_freight),
+            "freight_cost": float(freight_cost),
+            "sale_id": sale.id,
+        }
 
 class SaleItemService:
     """Servicio para gestionar los detalles de venta (carrito) del POS."""
