@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket de Venta #{{ sale.id }}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos optimizados para impresión térmica (aprox 80mm = 302px) */
+        @media print {
+            @page {
+                margin: 0;
+                size: 80mm max-content;
+            }
+            body {
+                width: 80mm;
+                margin: 0;
+                padding: 4mm;
+                font-family: monospace, sans-serif;
+                font-size: 12px;
+                color: #000;
+                background-color: #fff;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        body {
+            /* Vista previa en pantalla simulando el ticket */
+            font-family: monospace, sans-serif;
+            font-size: 12px;
+            color: #000;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .ticket-container {
+            width: 80mm;
+            background-color: #fff;
+            padding: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #000;
+            line-height: 1.2;
+        }
+
+        .border-dashed {
+            border-bottom: 1px dashed #000;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 2px 0;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        
+        /* Ocultar scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-container" id="ticketContent">
+        <!-- Encabezado del Negocio -->
+        <div class="text-center mb-4">
+            <!-- Logo monocromático para ticket -->
+            <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}" 
+                 alt="Roble y Diseño" 
+                 class="mx-auto mb-2" 
+                 style="max-width: 140px; filter: grayscale(100%) contrast(1.2);">
+            
+            <h1 class="font-bold text-lg leading-tight uppercase">Roble y Diseño</h1>
+            <p class="text-xs mt-1">Mueblería Fina S.A. de C.V.</p>
+            <p class="text-xs">RFC: RODI890214XYZ</p>
+            <p class="text-xs">Av. Lázaro Cárdenas #1234, Col. Centro</p>
+            <p class="text-xs">Monterrey, N.L. C.P. 64000</p>
+            <p class="text-xs">Tel: (81) 1234-5678</p>
+        </div>
+
+        <div class="border-dashed mb-2 pb-2 text-xs">
+            <p><strong>Folio:</strong> {{ "%06d" | format(sale.id) }}</p>
+            <p><strong>Fecha:</strong> {{ sale.sale_date.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+            <p><strong>Cajero:</strong> {{ sale.employee.full_name if sale.employee else "N/A" }}</p>
+            <p><strong>Cliente:</strong> {{ sale.customer.full_name if sale.customer else "Mostrador" }}</p>
+        </div>
+
+        <!-- Detalles de Compra -->
+        <div class="border-dashed mb-2 pb-2">
+            <table class="text-xs">
+                <thead>
+                    <tr class="border-dashed border-b">
+                        <th class="w-8">Cant</th>
+                        <th>Concepto</th>
+                        <th class="text-right w-16">Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="align-top text-center">{{ item.quantity }}</td>
+                        <td class="align-top pr-1">
+                            {{ item.product.name }}
+                            <br><span style="font-size: 10px;">{{ item.product.sku }} - ${{ "%.2f"|format(item.price) }}</span>
+                        </td>
+                        <td class="align-top text-right">${{ "%.2f"|format(item.quantity * item.price) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totales -->
+        <div class="border-dashed mb-4 pb-2">
+            {% set p_total = products_total|default(sale.total|float) %}
+            {% set subtotal = p_total / 1.16 %}
+            {% set iva = p_total - subtotal %}
+            {% set f_cost = freight.cost|default(0)|float %}
+            {% set grand_total = p_total + f_cost %}
+            <table class="text-xs">
+                <tr>
+                    <td class="w-1/2">Subtotal:</td>
+                    <td class="text-right">${{ "%.2f"|format(subtotal) }}</td>
+                </tr>
+                <tr>
+                    <td>IVA (16%):</td>
+                    <td class="text-right">${{ "%.2f"|format(iva) }}</td>
+                </tr>
+                {% if freight and freight.zone %}
+                <tr>
+                    <td>Envío ({{ freight.zone }}):</td>
+                    <td class="text-right">
+                        {% if freight.free %}GRATIS{% else %}${{ "%.2f"|format(f_cost) }}{% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                <tr class="font-bold text-sm">
+                    <td class="pt-1">TOTAL:</td>
+                    <td class="pt-1 text-right">${{ "%.2f"|format(grand_total) }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Pago -->
+        <div class="border-dashed mb-4 pb-2 text-xs">
+            {% set p_amount = (payment.amount|float) if payment else grand_total %}
+            {% set p_change = (p_amount - grand_total) if payment and p_amount >= grand_total else 0 %}
+            <p><strong>Método de pago:</strong> {{ sale.payment_method.name if sale.payment_method else "Efectivo" }}</p>
+            <p><strong>Recibido:</strong> ${{ "%.2f"|format(p_amount) }}</p>
+            <p><strong>Cambio:</strong> ${{ "%.2f"|format(p_change) }}</p>
+        </div>
+
+        <!-- Despedida -->
+        <div class="text-center text-xs">
+            <p class="font-bold mb-1">¡Gracias por su compra!</p>
+            <p>Cualquier cambio o devolución requiere este ticket original. Vigencia de 30 días.</p>
+            <p class="mt-2" style="font-size: 10px;">ID Transacción: {{ sale.id }}</p>
+        </div>
+    </div>
+
+    <!-- Botón de imprimir para la vista web (oculto al imprimir) -->
+    <div class="fixed bottom-4 right-4 no-print flex flex-col gap-2">
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Imprimir Ticket
+        </button>
+        <button onclick="window.close()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded shadow-lg">
+            Cerrar
+        </button>
+    </div>
+
+    <script>
+        // Auto-print al cargar
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500); // 500ms delay para asegurar render de estilos y fuentes
+        };
+
+        // Cerrar ventana si se cancela la impresión (opcional, algunos prefieren dejarla abierta)
+        // window.onafterprint = function() {
+        //    window.close();
+        // };
+    </script>
+</body>
+</html>
