@@ -36,8 +36,8 @@
               <th class="py-4 px-6 rounded-l-lg">Producto</th>
               <th class="py-4 px-6">Precio</th>
               <th class="py-4 px-6 text-center">Cantidad</th>
-              <th class="py-4 px-6 rounded-r-lg">Subtotal</th>
-              <th class="py-4 px-6"></th>
+              <th class="py-4 px-6">Subtotal</th>
+              <th class="py-4 px-6 rounded-r-lg"></th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +132,7 @@
                    value="{{ csrf_token() if csrf_token else '' }}">
             <input type="hidden" name="next" value="{{ url_for('ecommerce.cart') }}">
             <button type="submit"
-                    class="w-full text-center py-2 px-4 rounded-full border border-rose-600 text-rose-700 hover:bg-rose-600 hover:text-white transition-colors text-sm font-medium">
+                    class="w-full text-center py-2 px-4 rounded-full border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white transition-colors text-sm font-medium">
               Vaciar carrito
             </button>
           </form>
