@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_security import SQLAlchemyUserDatastore, auth_required
 from pymongo import MongoClient
 
@@ -64,37 +64,41 @@ def create_app():
 
     from .costs import costs_bp
 
-    app.register_blueprint(costs_bp, url_prefix="/costs")
+    app.register_blueprint(costs_bp, url_prefix="/admin/costs")
 
     from .reports import reports_bp
-    
-    app.register_blueprint(reports_bp, url_prefix="/reports")
 
-    app.register_blueprint(colors_bp, url_prefix="/colors")
+    app.register_blueprint(reports_bp, url_prefix="/admin/reports")
+
+    app.register_blueprint(colors_bp, url_prefix="/admin/catalogs/colors")
 
     from .catalogs.roles import roles_bp
 
-    app.register_blueprint(roles_bp, url_prefix="/roles")
+    app.register_blueprint(roles_bp, url_prefix="/admin/catalogs/roles")
 
     from .catalogs.wood_types import woods_types_bp
 
-    app.register_blueprint(woods_types_bp, url_prefix="/wood-types")
+    app.register_blueprint(woods_types_bp, url_prefix="/admin/catalogs/wood-types")
 
     from .catalogs.unit_of_measures import unit_of_measures_bp
 
-    app.register_blueprint(unit_of_measures_bp, url_prefix="/unit-of-measures")
+    app.register_blueprint(
+        unit_of_measures_bp, url_prefix="/admin/catalogs/unit-of-measures"
+    )
 
     from .catalogs.payment_method import payment_method_bp
 
-    app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
+    app.register_blueprint(
+        payment_method_bp, url_prefix="/admin/catalogs/payment-methods"
+    )
 
     from .suppliers.raw_materials import raw_materials_bp
 
-    app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
+    app.register_blueprint(raw_materials_bp, url_prefix="/admin/raw-materials")
 
     from .products import products_bp
 
-    app.register_blueprint(products_bp, url_prefix="/products")
+    app.register_blueprint(products_bp, url_prefix="/admin/products")
 
     @app.route("/admin")
     @auth_required()
@@ -103,9 +107,16 @@ def create_app():
 
         return render_template("layouts/admin.html")
 
+    @app.route("/admin/catalogs")
+    @auth_required()
+    def catalogs_index():
+        return redirect(url_for("colors.list_colors"))
+
     from .catalogs.furniture_type import furniture_type_bp
 
-    app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+    app.register_blueprint(
+        furniture_type_bp, url_prefix="/admin/catalogs/furniture-types"
+    )
 
     from .ecommerce import ecommerce_bp
 
