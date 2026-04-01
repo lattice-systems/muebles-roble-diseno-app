@@ -537,17 +537,33 @@
                 {% endif %}
               </div>
               <div>
-                <label for="edit-hex-{{ color.id_color }}"
-                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                <label for="edit-hex-{{ color.id_color }}" class="block mb-1.5 text-sm font-medium text-gray-900">
                   Código Hexadecimal <span class="text-red-500">*</span>
                 </label>
-                <input type="text"
-                       name="hex_code"
-                       id="edit-hex-{{ color.id_color }}"
-                       value="{{ color.hex_code }}"
-                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-                       placeholder="#FFFFFF"
-                       required>
+                <div class="relative w-full">
+                  <div class="absolute inset-y-0 start-0 flex items-center ps-3">
+                    <label for="edit-colorpicker-{{ color.id_color }}" 
+                           class="w-6 h-6 rounded-full cursor-pointer shadow-sm border border-gray-300 relative overflow-hidden transition-transform hover:scale-110 ring-2 ring-transparent focus-within:ring-brand-medium" 
+                           style="background-color: {{ color.hex_code if color.hex_code else '#FFFFFF' }};" 
+                           id="edit-colorpreview-{{ color.id_color }}">
+                      <input type="color"
+                             id="edit-colorpicker-{{ color.id_color }}"
+                             value="{{ color.hex_code if color.hex_code else '#FFFFFF' }}"
+                             oninput="document.getElementById('edit-hex-{{ color.id_color }}').value = this.value.toUpperCase(); document.getElementById('edit-colorpreview-{{ color.id_color }}').style.backgroundColor = this.value;"
+                             class="absolute -left-2 -top-2 opacity-0 cursor-pointer w-10 h-10"
+                             title="Elegir color">
+                    </label>
+                  </div>
+                  <input type="text"
+                         name="hex_code"
+                         id="edit-hex-{{ color.id_color }}"
+                         value="{{ color.hex_code }}"
+                         oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/)) { document.getElementById('edit-colorpicker-{{ color.id_color }}').value = this.value; document.getElementById('edit-colorpreview-{{ color.id_color }}').style.backgroundColor = this.value; }"
+                         class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full ps-12 p-2.5 placeholder-gray-400 uppercase font-mono transition-colors"
+                         placeholder="#FFFFFF"
+                         maxlength="7"
+                         required>
+                </div>
                 {% if show_edit_modal == color.id_color and edit_form and edit_form.hex_code.errors %}
                   <p class="mt-1.5 text-xs text-red-600">{{ edit_form.hex_code.errors[0] }}</p>
                 {% endif %}
@@ -635,16 +651,32 @@
               {% endif %}
             </div>
             <div>
-              <label for="create-hex"
-                     class="block mb-1.5 text-sm font-medium text-gray-900">
+              <label for="create-hex" class="block mb-1.5 text-sm font-medium text-gray-900">
                 Código Hexadecimal <span class="text-red-500">*</span>
               </label>
-              <input type="text"
-                     name="hex_code"
-                     id="create-hex"
-                     class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-                     placeholder="#FFFFFF"
-                     required>
+              <div class="relative w-full">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3">
+                  <label for="create-colorpicker" 
+                         class="w-6 h-6 rounded-full cursor-pointer shadow-sm border border-gray-300 relative overflow-hidden transition-transform hover:scale-110 ring-2 ring-transparent focus-within:ring-brand-medium" 
+                         style="background-color: #000000;" 
+                         id="create-colorpreview">
+                    <input type="color"
+                           id="create-colorpicker"
+                           value="#000000"
+                           oninput="document.getElementById('create-hex').value = this.value.toUpperCase(); document.getElementById('create-colorpreview').style.backgroundColor = this.value;"
+                           class="absolute -left-2 -top-2 opacity-0 cursor-pointer w-10 h-10"
+                           title="Elegir color">
+                  </label>
+                </div>
+                <input type="text"
+                       name="hex_code"
+                       id="create-hex"
+                       oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/)) { document.getElementById('create-colorpicker').value = this.value; document.getElementById('create-colorpreview').style.backgroundColor = this.value; }"
+                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full ps-12 p-2.5 placeholder-gray-400 uppercase font-mono transition-colors"
+                       placeholder="#FFFFFF"
+                       maxlength="7"
+                       required>
+              </div>
               {% if show_create_modal and form and form.hex_code.errors %}
                 <p class="mt-1.5 text-xs text-red-600">{{ form.hex_code.errors[0] }}</p>
               {% endif %}
