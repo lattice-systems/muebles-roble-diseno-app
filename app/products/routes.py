@@ -252,7 +252,7 @@ def bulk_action_products():
 
         for product in products:
             furniture_type = (
-                product.furniture_type.name if product.furniture_type else ""
+                product.furniture_type.title if product.furniture_type else ""
             )
             stock = (
                 product.inventory_records[0].stock if product.inventory_records else 0
