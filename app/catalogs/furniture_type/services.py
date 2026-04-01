@@ -2,6 +2,8 @@
 Servicios de lógica de negocio para tipo de mueble.
 """
 
+import re
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
 from app.extensions import db
@@ -11,6 +13,29 @@ from app.exceptions import ConflictError, ValidationError, NotFoundError
 
 class FurnitureTypeService:
     """Servicio para operaciones de negocio relacionadas con tipo de mueble."""
+
+    @staticmethod
+    def _slugify(value: str) -> str:
+        text = value.lower().strip()
+        text = re.sub(r"[^a-z0-9\s-]", "", text)
+        text = re.sub(r"[\s-]+", "-", text)
+        return text.strip("-")
+
+    @staticmethod
+    def _build_unique_slug(base_slug: str, exclude_id: int | None = None) -> str:
+        slug = base_slug or "categoria"
+        counter = 2
+
+        while True:
+            query = FurnitureType.query.filter(FurnitureType.slug == slug)
+            if exclude_id is not None:
+                query = query.filter(FurnitureType.id != exclude_id)
+
+            if query.first() is None:
+                return slug
+
+            slug = f"{base_slug}-{counter}"
+            counter += 1
 
     @staticmethod
     def get_all(
@@ -26,9 +51,7 @@ class FurnitureTypeService:
 
         if search_term:
             search = f"%{search_term}%"
-            query = query.filter(
-                or_(FurnitureType.name.ilike(search))
-            )
+            query = query.filter(or_(FurnitureType.title.ilike(search)))
 
         if status_filter == "active":
             query = query.filter_by(status=True)
@@ -44,19 +67,22 @@ class FurnitureTypeService:
         """
         Crea un nuevo tipo de mueble en el catálogo.
         """
-        name = data.get("name")
+        title = (data.get("title") or "").strip()
 
-        if not name or not name.strip():
-            raise ValidationError("El nombre del tipo de mueble es requerido")
+        if not title:
+            raise ValidationError("El titulo del tipo de mueble es requerido")
 
-        name = name.strip()
-
-        existing = FurnitureType.query.filter_by(name=name).first()
+        existing = FurnitureType.query.filter_by(title=title).first()
         if existing:
-            raise ConflictError(f"Ya existe un tipo de mueble con el nombre '{name}'")
+            raise ConflictError(f"Ya existe un tipo de mueble con el titulo '{title}'")
+
+        base_slug = FurnitureTypeService._slugify(title)
+        slug = FurnitureTypeService._build_unique_slug(base_slug)
 
         furniture_type = FurnitureType(
-            name=name, status=data.get("status", True)
+            title=title,
+            slug=slug,
+            status=data.get("status", True),
         )
         db.session.add(furniture_type)
 
@@ -64,7 +90,7 @@ class FurnitureTypeService:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            raise ConflictError(f"Ya existe un tipo de mueble con el nombre '{name}'")
+            raise ConflictError(f"Ya existe un tipo de mueble con el titulo '{title}'")
 
         return furniture_type.to_dict()
 
@@ -87,19 +113,25 @@ class FurnitureTypeService:
         """
         furniture_type = FurnitureTypeService.get_by_id(id_furniture_type)
 
-        name = data.get("name")
-        if not name or not name.strip():
-            raise ValidationError("El nombre del mueble es requerido")
-
-        name = name.strip()
+        title = (data.get("title") or "").strip()
+        if not title:
+            raise ValidationError("El titulo del mueble es requerido")
 
         existing = FurnitureType.query.filter(
-            FurnitureType.name == name, FurnitureType.id != id_furniture_type
+            FurnitureType.title == title,
+            FurnitureType.id != id_furniture_type,
         ).first()
         if existing:
-            raise ConflictError(f"Ya existe un tipo de mueble con el nombre '{name}'")
+            raise ConflictError(f"Ya existe un tipo de mueble con el titulo '{title}'")
 
-        furniture_type.name = name
+        base_slug = FurnitureTypeService._slugify(title)
+        slug = FurnitureTypeService._build_unique_slug(
+            base_slug,
+            exclude_id=id_furniture_type,
+        )
+
+        furniture_type.title = title
+        furniture_type.slug = slug
         if "status" in data:
             furniture_type.status = data["status"]
 
@@ -108,7 +140,7 @@ class FurnitureTypeService:
         except IntegrityError:
             db.session.rollback()
             raise ConflictError(
-                f"Error de integridad al actualizar el tipo de mueble '{name}'"
+                f"Error de integridad al actualizar el tipo de mueble '{title}'"
             )
 
         return furniture_type.to_dict()

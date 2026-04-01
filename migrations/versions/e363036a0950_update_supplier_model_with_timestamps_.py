@@ -1,7 +1,7 @@
 """Update supplier model with timestamps and unique constraints
 
 Revision ID: e363036a0950
-Revises: 86938400748c
+Revises: 81483d6d4264
 Create Date: 2026-03-22 03:04:46.026239
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "e363036a0950"
-down_revision = "86938400748c"
+down_revision = "81483d6d4264"
 branch_labels = None
 depends_on = None
 

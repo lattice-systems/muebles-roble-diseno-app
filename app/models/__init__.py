@@ -6,11 +6,13 @@ from .customer import Customer
 from .furniture_type import FurnitureType
 from .order import Order
 from .order_item import OrderItem
+from .payment import Payment
 from .payment_method import PaymentMethod
 from .product import Product
 from .product_color import ProductColor
 from .product_inventory import ProductInventory
 from .production_order import ProductionOrder
+from .production_order_material import ProductionOrderMaterial
 from .purchase_order import PurchaseOrder
 from .purchase_order_item import PurchaseOrderItem
 from .raw_material import RawMaterial
@@ -22,6 +24,8 @@ from .supplier import Supplier
 from .unit_of_measure import UnitOfMeasure
 from .user import User
 from .wood_type import WoodType
+from .material_category import MaterialCategory
+from .product_image import ProductImage
 
 __all__ = [
     "AuditLog",
@@ -32,11 +36,13 @@ __all__ = [
     "FurnitureType",
     "Order",
     "OrderItem",
+    "Payment",
     "PaymentMethod",
     "Product",
     "ProductColor",
     "ProductInventory",
     "ProductionOrder",
+    "ProductionOrderMaterial",
     "PurchaseOrder",
     "PurchaseOrderItem",
     "RawMaterial",
@@ -48,4 +54,6 @@ __all__ = [
     "UnitOfMeasure",
     "User",
     "WoodType",
+    "MaterialCategory",
+    "ProductImage",
 ]

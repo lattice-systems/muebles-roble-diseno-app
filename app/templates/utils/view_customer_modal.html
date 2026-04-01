@@ -1,0 +1,118 @@
+<!-- Modal Ver Cliente (solo lectura) -->
+<div id="viewCustomerModal" tabindex="-1" aria-hidden="true"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
+                <h3 class="text-xl font-bold text-heading dark:text-white">
+                    Detalle del Cliente
+                </h3>
+                <button type="button" id="closeViewCustomerModal"
+                    class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors">
+                    <svg class="w-3 h-3 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Cerrar</span>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-4 md:p-5 space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-heading dark:text-white">Nombre(s)</label>
+                        <p id="viewCustomerFirstName"
+                            class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                            —</p>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-heading dark:text-white">Apellidos</label>
+                        <p id="viewCustomerLastName"
+                            class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                            —</p>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-heading dark:text-white">Correo Electrónico</label>
+                        <p id="viewCustomerEmail"
+                            class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                            —</p>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-sm font-medium text-heading dark:text-white">Teléfono</label>
+                        <p id="viewCustomerPhone"
+                            class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                            —</p>
+                    </div>
+                </div>
+
+                <!-- Dirección (solo se muestra si requiere flete) -->
+                <div id="viewCustomerFreightSection" class="hidden">
+                    <div class="border-t border-default pt-4 mt-2">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-4 h-4 text-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M17.8 13.938h-.011a7 7 0 1 0-11.58.006h-.003l.004.007a7 7 0 0 0 2.526 2.725L12 19l3.264-2.324a7 7 0 0 0 2.536-2.738Z" />
+                            </svg>
+                            <h4 class="text-sm font-bold text-heading dark:text-white">Dirección de envío</h4>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Código Postal</label>
+                                <p id="viewCustomerZipCode"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Estado</label>
+                                <p id="viewCustomerState"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Ciudad</label>
+                                <p id="viewCustomerCity"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Colonia</label>
+                                <p id="viewCustomerNeighborhood"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block mb-1 text-sm font-medium text-heading">Calle</label>
+                                <p id="viewCustomerStreet"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Núm. Exterior</label>
+                                <p id="viewCustomerExtNum"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-heading">Núm. Interior</label>
+                                <p id="viewCustomerIntNum"
+                                    class="bg-neutral-secondary-soft border border-default-medium text-heading text-sm rounded-base block w-full p-2.5">
+                                    —</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="button" id="closeViewCustomerModalBtn"
+                        class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

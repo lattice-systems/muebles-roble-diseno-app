@@ -117,7 +117,9 @@ class CostService:
         }
 
     @staticmethod
-    def _build_margin_status(margin_value: Decimal, margin_percentage: Decimal | None) -> dict:
+    def _build_margin_status(
+        margin_value: Decimal, margin_percentage: Decimal | None
+    ) -> dict:
         if margin_percentage is None:
             return {"key": "no-data", "label": "Sin producción finalizada"}
 
@@ -145,7 +147,11 @@ class CostService:
         margin_value = None
         margin_percentage = None
 
-        if latest_production and latest_production.quantity and latest_production.quantity > 0:
+        if (
+            latest_production
+            and latest_production.quantity
+            and latest_production.quantity > 0
+        ):
             unit_cost = CostService._round_money(
                 total_cost / CostService._to_decimal(latest_production.quantity)
             )
@@ -167,7 +173,9 @@ class CostService:
             "product_id": product.id,
             "product_name": product.name,
             "sku": product.sku,
-            "recipe_version": recipe_data["bom"].version if recipe_data["bom"] else "Sin receta",
+            "recipe_version": (
+                recipe_data["bom"].version if recipe_data["bom"] else "Sin receta"
+            ),
             "material_cost": CostService._round_money(material_cost),
             "total_cost": CostService._round_money(total_cost),
             "sale_price": CostService._round_money(sale_price),
@@ -177,7 +185,9 @@ class CostService:
                 if latest_production and latest_production.scheduled_date
                 else None
             ),
-            "latest_production_quantity": latest_production.quantity if latest_production else None,
+            "latest_production_quantity": (
+                latest_production.quantity if latest_production else None
+            ),
             "unit_cost": unit_cost,
             "margin_value": margin_value,
             "margin_percentage": margin_percentage,
@@ -201,7 +211,9 @@ class CostService:
         return query.paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
-    def get_cost_rows(search_term: str | None = None, page: int = 1, per_page: int = 10) -> dict:
+    def get_cost_rows(
+        search_term: str | None = None, page: int = 1, per_page: int = 10
+    ) -> dict:
         pagination = CostService.get_all(
             search_term=search_term,
             page=page,

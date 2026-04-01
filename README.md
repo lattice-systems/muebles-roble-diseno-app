@@ -109,6 +109,15 @@ Variables clave para 2FA con recuperación por correo (Brevo):
 
 ---
 
+## 🔌 Integraciones y APIs Externas
+
+El proyecto hace uso de servicios externos para enriquecer sus funcionalidades:
+
+* **Brevo (SMTP / Envío de Correos):** Se utiliza la plataforma de Brevo como puente SMTP seguro para el envío de correos electrónicos transaccionales institucionales (ej. códigos de autenticación 2FA, recuperación de contraseñas y correos de confirmación / tickets de compra).
+* **COPOMEX API:** Se integra esta API de códigos postales mexicanos dentro del módulo de ventas (POS y E-Commerce). Permite buscar códigos postales para autocompletar asentamientos y, principalmente, automatizar el cálculo logístico del costo de flete (envío) según la zona o colonia de destino del cliente.
+
+---
+
 ## ▶️ Ejecutar el Proyecto
 
 Si usas Flask CLI:

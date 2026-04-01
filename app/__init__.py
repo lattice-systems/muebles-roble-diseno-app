@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_security import SQLAlchemyUserDatastore, auth_required
+from pymongo import MongoClient
 
 from config import Config
 from .exceptions import register_error_handlers
@@ -28,6 +29,9 @@ def create_app():
     csrf.init_app(app)
     mail.init_app(app)
 
+    # Mongo client
+    app.extensions["mongo_client"] = MongoClient(app.config["MONGO_URI"])
+
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401
     from .models import Role, User
@@ -54,9 +58,17 @@ def create_app():
 
     app.register_blueprint(suppliers_bp, url_prefix="/admin/suppliers")
 
+    from .purchases import purchases_bp
+
+    app.register_blueprint(purchases_bp, url_prefix="/admin/purchases")
+
     from .costs import costs_bp
-    
+
     app.register_blueprint(costs_bp, url_prefix="/costs")
+
+    from .reports import reports_bp
+
+    app.register_blueprint(reports_bp, url_prefix="/reports")
 
     app.register_blueprint(colors_bp, url_prefix="/colors")
 
@@ -76,6 +88,14 @@ def create_app():
 
     app.register_blueprint(payment_method_bp, url_prefix="/payment-methods")
 
+    from .suppliers.raw_materials import raw_materials_bp
+
+    app.register_blueprint(raw_materials_bp, url_prefix="/raw-materials")
+
+    from .products import products_bp
+
+    app.register_blueprint(products_bp, url_prefix="/products")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
@@ -86,5 +106,13 @@ def create_app():
     from .catalogs.furniture_type import furniture_type_bp
 
     app.register_blueprint(furniture_type_bp, url_prefix="/furniture-types")
+
+    from .ecommerce import ecommerce_bp
+
+    app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
+
+    from .sales import sales_bp
+
+    app.register_blueprint(sales_bp, url_prefix="/sales")
 
     return app

@@ -28,6 +28,13 @@ class Product(db.Model):
     sale_items = db.relationship("SaleItem", back_populates="product", lazy=True)
     order_items = db.relationship("OrderItem", back_populates="product", lazy=True)
 
+    images = db.relationship(
+        "ProductImage",
+        back_populates="product",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,

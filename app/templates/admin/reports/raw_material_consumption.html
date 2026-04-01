@@ -1,0 +1,61 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Consumo de materia prima
+{% endblock title %}
+
+{% block content %}
+  {% set items = report["items"] %}
+
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-heading text-base 2xl:text-lg font-medium">Consumo de materia prima</h1>
+        <p class="text-body">Periodo: {{ report.date_from }} a {{ report.date_to }}</p>
+      </div>
+
+      <a href="{{ url_for('reports.index') }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium rounded-base text-sm px-4 py-2">
+        Volver
+      </a>
+    </div>
+
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Materia Prima</th>
+              <th class="px-6 py-4">Unidad</th>
+              <th class="px-6 py-4">Cantidad Usada</th>
+              <th class="px-6 py-4">Merma Estimada</th>
+              <th class="px-6 py-4">Productos Relacionados</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft align-top">
+                <td class="px-6 py-4 text-heading font-medium">{{ item.raw_material_name }}</td>
+                <td class="px-6 py-4">{{ item.unit }}</td>
+                <td class="px-6 py-4">{{ "%.2f"|format(item.quantity_used|float) }}</td>
+                <td class="px-6 py-4">{{ "%.2f"|format(item.estimated_waste|float) }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col gap-1">
+                    {% for product in item.products %}
+                      <span class="text-xs text-body">
+                        {{ product.product_name }} ({{ product.produced_quantity }})
+                      </span>
+                    {% endfor %}
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-body">No hay consumo registrado en el rango.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

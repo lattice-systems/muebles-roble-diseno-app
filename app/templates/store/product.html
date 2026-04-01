@@ -1,0 +1,176 @@
+{% extends "layouts/store.html" %}
+{% from "macros/ecommerce.html" import product_card, outline_button %}
+{% block title %}
+  {{ product.title }} | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <div class="bg-gray-100 py-6">
+    <div class="max-w-7xl mx-auto px-6 flex items-center gap-3 text-sm">
+      <a href="{{ url_for('ecommerce.home') }}"
+         class="text-body hover:text-sky-900 transition-colors">Inicio</a>
+      <span class="text-body">/</span>
+      <a href="{{ url_for('ecommerce.products') }}"
+         class="text-body hover:text-sky-900 transition-colors">Productos</a>
+      <span class="text-body">/</span>
+      <span class="text-heading font-semibold truncate">{{ product.title }}</span>
+    </div>
+  </div>
+  <section class="max-w-7xl mx-auto px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div class="flex flex-col-reverse md:flex-row gap-4">
+        <div class="flex md:flex-col gap-3 md:w-24 overflow-x-auto md:overflow-visible">
+          {% for img in product.images[:4] %}
+            <button type="button"
+                    class="product-thumb h-20 w-20 shrink-0 rounded-lg overflow-hidden border-2 {% if loop.first %}border-sky-900{% else %}border-transparent{% endif %} bg-white hover:border-sky-700 transition-colors"
+                    data-image-src="{{ img }}">
+              <img src="{{ img }}"
+                   alt="Foto {{ loop.index }} de {{ product.title }}"
+                   class="h-full w-full object-cover">
+            </button>
+          {% endfor %}
+        </div>
+        <div class="flex-1 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
+          <img id="product-main-image"
+               src="{{ product.images[0] }}"
+               alt="{{ product.title }}"
+               class="w-full h-115 object-cover">
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-3xl md:text-4xl font-bold text-heading leading-tight">{{ product.title }}</h1>
+            <p class="text-body mt-2">{{ product.subtitle }}</p>
+          </div>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {% if product.in_stock %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+            {% if product.in_stock %}
+              Disponible
+            {% else %}
+              Sin stock
+            {% endif %}
+          </span>
+        </div>
+        <div class="mt-6 flex items-end gap-4">
+          <p class="text-3xl font-bold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
+          {% if product.original_price %}
+            <p class="text-base text-body line-through pb-1">MX {{ "{:,.2f}".format(product.original_price) }}</p>
+          {% endif %}
+        </div>
+        <p class="mt-6 text-sm text-heading leading-relaxed">
+          {{ product.description or "Este producto no tiene descripción registrada por el momento." }}
+        </p>
+        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">SKU</p>
+              <p class="text-sm font-semibold text-heading mt-1">{{ product.sku or "N/A" }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Categoría</p>
+              <p class="text-sm font-semibold text-heading mt-1">{{ product.category or "General" }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Disponibilidad</p>
+              <p class="text-sm font-semibold mt-1 {% if product.in_stock %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                {% if product.in_stock %}
+                  En stock ({{ product.stock }} piezas)
+                {% else %}
+                  Agotado temporalmente
+                {% endif %}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Envío</p>
+              <p class="text-sm font-semibold text-heading mt-1">
+                {% if product.in_stock %}
+                  Entrega estimada 3-5 días
+                {% else %}
+                  Reabastecimiento próximamente
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6">
+          <h3 class="text-sm font-semibold text-heading mb-2">Colores</h3>
+          {% if product.color_palette %}
+            <div class="flex flex-wrap gap-2">
+              {% for color in product.color_palette %}
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-sky-700 hover:text-sky-900 transition-colors">
+                  <span class="w-3 h-3 rounded-full border border-slate-300"
+                        style="background-color: {{ color.hex or '#D1D5DB' }}"></span>
+                  {{ color.name }}
+                </button>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-sm text-body">No hay colores registrados para este producto.</p>
+          {% endif %}
+        </div>
+        <div class="mt-8 flex flex-wrap gap-3 items-center">
+          <form method="post"
+                action="{{ url_for('ecommerce.add_to_cart', product_id=product.id) }}"
+                class="flex flex-wrap items-center gap-3">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() if csrf_token else '' }}">
+            <input type="hidden"
+                   name="next"
+                   value="{{ request.full_path if request.query_string else request.path }}">
+            <label for="quantity" class="text-sm font-medium text-heading">Cantidad</label>
+            <input id="quantity"
+                   name="quantity"
+                   type="number"
+                   min="1"
+                   max="{{ product.stock if product.stock is defined and product.stock > 0 else 1 }}"
+                   value="1"
+                   class="h-11 w-20 rounded-lg border border-slate-300 px-3 text-center focus:ring-sky-900 focus:border-sky-900"
+                   {% if not product.in_stock %}disabled{% endif %}>
+            <button type="submit"
+                    class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300"
+                    {% if not product.in_stock %}disabled{% endif %}>
+              {% if product.in_stock %}
+                Añadir al carrito
+              {% else %}
+                Sin stock
+              {% endif %}
+            </button>
+          </form>
+          <button type="button"
+                  class="js-share-product h-11 px-6 rounded-lg border border-slate-300 text-heading font-semibold hover:bg-slate-100 transition-colors"
+                  data-share-title="{{ product.title }}"
+                  data-share-url="{{ url_for('ecommerce.product', product_id=product.id) }}">
+            Compartir producto
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="bg-white border-t border-gray-100 py-16">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl text-heading font-medium text-center mb-10">Productos Relacionados</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 justify-items-center">
+        {% for rel in related_products %}{{ product_card(rel) }}{% endfor %}
+      </div>
+      <div class="text-center">{{ outline_button("Mostrar Más") }}</div>
+    </div>
+  </div>
+  <script>
+      (() => {
+          const thumbs = document.querySelectorAll(".product-thumb");
+          const mainImage = document.getElementById("product-main-image");
+          if (!thumbs.length || !mainImage) return;
+
+          thumbs.forEach((thumb) => {
+              thumb.addEventListener("click", () => {
+                  mainImage.src = thumb.dataset.imageSrc;
+                  thumbs.forEach((item) => item.classList.remove("border-sky-900"));
+                  thumbs.forEach((item) => item.classList.add("border-transparent"));
+                  thumb.classList.remove("border-transparent");
+                  thumb.classList.add("border-sky-900");
+              });
+          });
+      })();
+  </script>
+{% endblock content %}

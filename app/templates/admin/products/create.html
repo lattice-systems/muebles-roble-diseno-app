@@ -1,0 +1,319 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Crear producto
+{% endblock title %}
+{% block content %}
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-heading text-base 2xl:text-lg font-medium">Crear producto</h1>
+      <p class="text-body">Registra un nuevo producto terminado en el sistema</p>
+    </div>
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <form id="createProductForm"
+            method="post"
+            enctype="multipart/form-data"
+            action="{{ url_for('products.create') }}"
+            class="flex flex-col gap-2.5 2xl:gap-4">
+        {{ form.hidden_tag() }}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.sku.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.sku.label.text }}</label>
+            {{ form.sku(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. PROD-001") }}
+            {% for error in form.sku.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.name.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.name.label.text }}</label>
+            {{ form.name(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. Silla Roble Premium") }}
+            {% for error in form.name.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.furniture_type_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.furniture_type_id.label.text }}</label>
+            {{ form.furniture_type_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.furniture_type_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.price.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.price.label.text }}</label>
+            {{ form.price(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. 2499.99") }}
+            {% for error in form.price.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.description.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.description.label.text }}</label>
+          {{ form.description(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", rows="4", placeholder="Describe el producto terminado") }}
+          {% for error in form.description.errors %}
+            <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.color_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.color_id.label.text }}</label>
+            {{ form.color_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.color_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-2.5 2xl:gap-4">
+            <div class="flex flex-col gap-1">
+              <label for="{{ form.stock.id }}"
+                     class="text-xs 2xl:text-sm font-medium text-heading">{{ form.stock.label.text }}</label>
+              {{ form.stock(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej. 15") }}
+              {% for error in form.stock.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-xs 2xl:text-sm text-heading">
+                {{ form.status(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+                {{ form.status.label.text }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs 2xl:text-sm font-medium text-heading">Imágenes (máximo 4)</label>
+          <div id="images-dropzone" class="flex items-center justify-center w-full">
+            <div id="images-dropzone-box"
+                 class="flex flex-col items-center justify-center w-full h-64 bg-neutral-secondary-medium border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium transition-colors">
+              <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                <svg class="w-8 h-8 mb-4"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2" />
+                </svg>
+                <p class="mb-2 text-sm">
+                  <span class="font-semibold">Haz clic para subir</span> o arrastra y suelta
+                </p>
+                <p class="text-xs">PNG, JPG, JPEG o GIF</p>
+                <p class="text-xs mt-1">Máximo 4 imágenes</p>
+                <button type="button"
+                        onclick="document.getElementById('{{ form.images.id }}').click()"
+                        class="mt-4 inline-flex items-center text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none">
+                  <svg class="w-4 h-4 me-1.5"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       width="24"
+                       height="24"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                  </svg>
+                  Browse file
+                </button>
+              </div>
+            </div>
+            {{ form.images(id=form.images.id, class_="hidden", multiple=true, accept="image/*") }}
+          </div>
+          <div id="{{ form.images.id }}-preview" class="flex flex-wrap gap-3 mt-2"></div>
+          {% for error in form.images.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
+          <a href="{{ url_for('products.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver
+          </a>
+          <button id="openConfirmCreateProductModalBtn"
+                  type="button"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Crear producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
+{% block modals %}
+  <div id="confirmCreateProductModal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="confirmCreateProductModal">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estás seguro de que deseas crear este producto?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button id="confirmCreateProductSubmitBtn"
+                    type="button"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Sí, crear
+            </button>
+            <button data-modal-hide="confirmCreateProductModal"
+                    type="button"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const form = document.getElementById("createProductForm");
+          const modalElement = document.getElementById("confirmCreateProductModal");
+          const openModalBtn = document.getElementById("openConfirmCreateProductModalBtn");
+          const confirmSubmitBtn = document.getElementById("confirmCreateProductSubmitBtn");
+
+          const imagesInput = document.getElementById("{{ form.images.id }}");
+          const previewContainer = document.getElementById("{{ form.images.id }}-preview");
+          const dropzone = document.getElementById("images-dropzone-box");
+
+          if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
+              return;
+          }
+
+          const modal = new Modal(modalElement);
+
+          function renderImagePreview(files) {
+              if (!previewContainer) return;
+              previewContainer.innerHTML = "";
+
+              Array.from(files).forEach((file, index) => {
+                  if (!file.type.startsWith("image/")) return;
+
+                  const reader = new FileReader();
+
+                  reader.onload = function(e) {
+                      const wrapper = document.createElement("div");
+                      wrapper.className = "relative w-24 h-24 rounded-base border border-default-medium overflow-hidden bg-neutral-secondary-medium";
+
+                      const img = document.createElement("img");
+                      img.src = e.target.result;
+                      img.alt = file.name;
+                      img.className = "w-full h-full object-cover";
+
+                      const removeBtn = document.createElement("button");
+                      removeBtn.type = "button";
+                      removeBtn.innerHTML = "×";
+                      removeBtn.className = "absolute top-1 right-1 bg-danger text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow";
+
+                      removeBtn.addEventListener("click", function() {
+                          removeImage(index);
+                      });
+
+                      wrapper.appendChild(img);
+                      wrapper.appendChild(removeBtn);
+                      previewContainer.appendChild(wrapper);
+                  };
+
+                  reader.readAsDataURL(file);
+              });
+          }
+
+          function removeImage(indexToRemove) {
+              const dt = new DataTransfer();
+
+              Array.from(imagesInput.files).forEach((file, index) => {
+                  if (index !== indexToRemove) {
+                      dt.items.add(file);
+                  }
+              });
+
+              imagesInput.files = dt.files;
+              renderImagePreview(imagesInput.files);
+          }
+
+          function handleFiles(fileList) {
+              const files = Array.from(fileList).filter(file => file.type.startsWith("image/"));
+
+              if (files.length > 4) {
+                  alert("Solo puedes subir un máximo de 4 imágenes.");
+                  if (imagesInput) imagesInput.value = "";
+                  if (previewContainer) previewContainer.innerHTML = "";
+                  return;
+              }
+
+              const dt = new DataTransfer();
+              files.forEach(file => dt.items.add(file));
+              imagesInput.files = dt.files;
+
+              renderImagePreview(imagesInput.files);
+          }
+
+          if (imagesInput) {
+              imagesInput.addEventListener("change", function() {
+                  handleFiles(this.files);
+              });
+          }
+
+          if (dropzone) {
+              ["dragenter", "dragover"].forEach(eventName => {
+                  dropzone.addEventListener(eventName, function(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dropzone.classList.add("bg-neutral-tertiary-medium");
+                  });
+              });
+
+              ["dragleave", "dragend"].forEach(eventName => {
+                  dropzone.addEventListener(eventName, function(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dropzone.classList.remove("bg-neutral-tertiary-medium");
+                  });
+              });
+
+              dropzone.addEventListener("drop", function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  dropzone.classList.remove("bg-neutral-tertiary-medium");
+
+                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleFiles(e.dataTransfer.files);
+                  }
+              });
+          }
+
+          openModalBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  form.reportValidity();
+                  return;
+              }
+              modal.show();
+          });
+
+          confirmSubmitBtn.addEventListener("click", function() {
+              if (!form.checkValidity()) {
+                  modal.hide();
+                  form.reportValidity();
+                  return;
+              }
+              form.requestSubmit();
+          });
+      });
+  </script>
+{% endblock modals %}

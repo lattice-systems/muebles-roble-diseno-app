@@ -1,0 +1,177 @@
+{% extends "layouts/store.html" %}
+{% from "macros/ecommerce.html" import product_card %}
+{% block title %}
+  Productos | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <!-- Hero Section -->
+  <div class="relative bg-slate-200 py-20 flex flex-col items-center justify-center">
+    <div class="absolute inset-0 overflow-hidden bg-gray-600">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=2000"
+           alt="Productos Hero"
+           class="w-full h-full object-cover opacity-60 mix-blend-multiply" />
+    </div>
+    <div class="relative z-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Nuestros Productos</h1>
+      <nav class="flex justify-center items-center space-x-2 text-sm text-gray-200 font-medium">
+        <a href="{{ url_for('ecommerce.home') }}"
+           class="hover:text-white transition-colors">Inicio</a>
+        <span>
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
+        <span class="text-white font-normal">Productos</span>
+      </nav>
+    </div>
+  </div>
+  <!-- Filter Bar -->
+  <div class="bg-gray-100 py-4 px-6 md:px-12 shadow-sm">
+    <form method="get"
+          id="products-filter-form"
+          action="{{ url_for('ecommerce.products', _anchor='products-results') }}"
+          class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+      <div class="md:col-span-6">
+        <label for="product-search" class="block text-sm text-heading mb-2">Buscar</label>
+        <div class="flex items-center gap-2">
+          <input type="text"
+                 id="product-search"
+                 name="q"
+                 value="{{ filters.q }}"
+                 placeholder="Buscar productos..."
+                 class="h-10 w-full px-4 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900" />
+          <button type="submit"
+                  class="h-10 px-5 rounded bg-sky-900 text-white font-medium hover:bg-sky-800 transition-colors">
+            Buscar
+          </button>
+          <a href="{{ url_for('ecommerce.products', _anchor='products-results') }}"
+             class="h-10 px-5 rounded border border-gray-300 text-heading font-medium hover:bg-gray-200 transition-colors inline-flex items-center">
+            Limpiar
+          </a>
+        </div>
+      </div>
+      <div class="md:col-span-2">
+        <label for="type-filter" class="block text-sm text-heading mb-2">Categoría</label>
+        <div class="flex items-center gap-3 w-full">
+          <select name="type"
+                  id="type-filter"
+                  class="js-auto-submit-filter h-10 px-4 w-full border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 bg-white">
+            <option value="">Todas</option>
+            {% for category in categories %}
+              <option value="{{ category.slug }}"
+                      {% if filters.type == category.slug %}selected{% endif %}>{{ category.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="md:col-span-3">
+        <label for="sort-filter" class="block text-sm text-heading mb-2">Orden</label>
+        <div class="flex items-center gap-3 w-full">
+          <select name="sort"
+                  id="sort-filter"
+                  class="js-auto-submit-filter h-10 px-4 w-full border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 bg-white">
+            <option value="default" {% if filters.sort == 'default' %}selected{% endif %}>Defecto</option>
+            <option value="price_asc"
+                    {% if filters.sort == 'price_asc' %}selected{% endif %}>Precio: menor a mayor</option>
+            <option value="price_desc"
+                    {% if filters.sort == 'price_desc' %}selected{% endif %}>Precio: mayor a menor</option>
+            <option value="name_asc"
+                    {% if filters.sort == 'name_asc' %}selected{% endif %}>Nombre: A a Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="md:col-span-1">
+        <label for="limit-filter" class="block text-sm text-heading mb-2">Mostrar</label>
+        <div class="flex items-center gap-3 w-full">
+          <select name="limit"
+                  id="limit-filter"
+                  class="js-auto-submit-filter h-10 px-4 w-full border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 bg-white">
+            {% for option in limit_options %}
+              <option value="{{ option }}"
+                      {% if filters.limit == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="md:col-span-12">
+        Mostrando {{ pagination.start_item }}–{{ pagination.end_item }} de {{ filtered_total }} resultados
+        {% if filtered_total != total_products %}
+          <span class="text-xs text-gray-500">({{ total_products }} totales)</span>
+        {% endif %}
+      </div>
+      <noscript>
+        <div class="md:col-span-12 flex justify-end">
+          <button type="submit"
+                  class="h-10 px-5 rounded bg-sky-900 text-white font-medium hover:bg-sky-800 transition-colors">
+            Aplicar filtros
+          </button>
+        </div>
+      </noscript>
+    </form>
+  </div>
+  <!-- Products Grid -->
+  <section id="products-results"
+           class="py-16 px-6 max-w-7xl mx-auto min-h-screen"
+           style="scroll-margin-top: 6rem">
+    {% if products %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 justify-items-center w-full">
+        {% for product in products %}<div class="block w-full h-full max-w-sm">{{ product_card(product) }}</div>{% endfor %}
+      </div>
+      {% if pagination.total_pages > 1 %}
+        <nav class="flex flex-wrap items-center justify-center gap-2"
+             aria-label="Paginación de productos">
+          <a href="{{ url_for('ecommerce.products', q=filters.q, type=filters.type, sort=filters.sort, limit=filters.limit, page=1, _anchor='products-results') }}"
+             class="px-3 py-2 text-sm rounded border border-gray-300 {% if pagination.page == 1 %}pointer-events-none opacity-50{% else %}hover:bg-gray-100{% endif %}">
+            Inicio
+          </a>
+          <a href="{{ url_for('ecommerce.products', q=filters.q, type=filters.type, sort=filters.sort, limit=filters.limit, page=pagination.prev_page, _anchor='products-results') }}"
+             class="px-3 py-2 text-sm rounded border border-gray-300 {% if not pagination.has_prev %}pointer-events-none opacity-50{% else %}hover:bg-gray-100{% endif %}">
+            Anterior
+          </a>
+          {% for page_number in pagination.page_numbers %}
+            <a href="{{ url_for('ecommerce.products', q=filters.q, type=filters.type, sort=filters.sort, limit=filters.limit, page=page_number, _anchor='products-results') }}"
+               class="px-3 py-2 text-sm rounded border {% if page_number == pagination.page %}border-sky-900 bg-sky-900 text-white{% else %}border-gray-300 hover:bg-gray-100{% endif %}">
+              {{ page_number }}
+            </a>
+          {% endfor %}
+          <a href="{{ url_for('ecommerce.products', q=filters.q, type=filters.type, sort=filters.sort, limit=filters.limit, page=pagination.next_page, _anchor='products-results') }}"
+             class="px-3 py-2 text-sm rounded border border-gray-300 {% if not pagination.has_next %}pointer-events-none opacity-50{% else %}hover:bg-gray-100{% endif %}">
+            Siguiente
+          </a>
+          <a href="{{ url_for('ecommerce.products', q=filters.q, type=filters.type, sort=filters.sort, limit=filters.limit, page=pagination.total_pages, _anchor='products-results') }}"
+             class="px-3 py-2 text-sm rounded border border-gray-300 {% if pagination.page == pagination.total_pages %}pointer-events-none opacity-50{% else %}hover:bg-gray-100{% endif %}">
+            Final
+          </a>
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="rounded border border-dashed border-gray-300 p-10 text-center bg-white">
+        <h3 class="text-xl font-semibold text-heading mb-2">No encontramos productos</h3>
+        <p class="text-body">Intenta ajustar los filtros o cambiar el término de búsqueda.</p>
+      </div>
+    {% endif %}
+  </section>
+  <script>
+      (() => {
+          const form = document.getElementById("products-filter-form");
+          const resultsSection = document.getElementById("products-results");
+          if (!form) return;
+
+          const controls = form.querySelectorAll(".js-auto-submit-filter");
+          controls.forEach((control) => {
+              control.addEventListener("change", () => {
+                  form.requestSubmit();
+              });
+          });
+
+          if (window.location.hash === "#products-results" && resultsSection) {
+              requestAnimationFrame(() => {
+                  resultsSection.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                  });
+              });
+          }
+      })();
+  </script>
+{% endblock content %}

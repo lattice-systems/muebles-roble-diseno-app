@@ -64,16 +64,34 @@
 {% set icon_reports = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m8-2h3m-3 3h3m-4 3v6m4-3H8M19 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1ZM8 12v6h8v-6H8Z" />
 ' %}
-<aside class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col">
-  <div class="justify-center border-b border-default p-2 pb-3 2xl:p-2.5 2xl:pb-4 flex items-center w-full">
-    <a href="https://flowbite.com/"
-       class="flex items-center space-x-2 rtl:space-x-reverse">
+<aside id="adminSidebar"
+       class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col transition-all duration-300 ease-in-out">
+  <div class="sidebar-header-container justify-between border-b border-default p-2 pb-3 2xl:p-2.5 2xl:pb-4 flex items-center w-full">
+    <a href="{{ url_for('index_admin') }}"
+       class="sidebar-logo-link flex items-center space-x-2 rtl:space-x-reverse">
       <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           data-expanded-src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+           data-collapsed-src="{{ url_for('static', filename='src/images/icono-roble-disenio.png') }}"
            alt="Logo Roble Diseño"
            width="200"
            height="80"
-           class="w-full h-auto max-w-40 2xl:max-w-none">
+           class="sidebar-logo-image w-full h-auto max-w-40 2xl:max-w-none transition-all duration-300 ease-in-out">
     </a>
+    <button id="sidebarCompactToggle"
+            type="button"
+            class="sidebar-toggle-btn inline-flex items-center justify-center w-8 h-8 rounded-md text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
+            aria-label="Compactar sidebar"
+            title="Compactar sidebar">
+      <svg class="w-5 h-5"
+           aria-hidden="true"
+           xmlns="http://www.w3.org/2000/svg"
+           width="24"
+           height="24"
+           fill="none"
+           viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2m0-14h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7m4-14v14" />
+      </svg>
+    </button>
   </div>
   <div class="py-4 2xl:py-5 overflow-y-auto flex-1">
     <ul class="space-y-1.5 2xl:space-y-2 font-medium">
@@ -88,8 +106,8 @@
       {{ sidebar_dropdown("Abastecimiento",
             [
             {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
-      {"label": "Compras", "href": "#", "icon": icon_purchases},
-      {"label": "Materia prima", "href": "#", "icon": icon_materials}
+      {"label": "Compras", "href": url_for('purchases.index') , "icon": icon_purchases, "active": request.endpoint and request.endpoint.startswith('purchases.')},
+      {"label": "Materia prima", "href": url_for('raw_materials.list_raw_materials'), "icon": icon_materials, "active": request.endpoint and request.endpoint.startswith('raw_materials.')}
       ],
       icon_supplies,
       "dropdown-supplies") }}
@@ -102,24 +120,24 @@
             "dropdown-production") }}
       {{ sidebar_dropdown("Ventas",
             [
-            {"label": "Venta POS", "href": "#", "icon": icon_pos},
-            {"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub},
-            ],
-            icon_sales,
-            "dropdown-sales") }}
+            {"label": "POS", "href": url_for('sales.pos') , "icon": icon_pos, "active": request.endpoint and request.endpoint.startswith('sales.')},
+      {"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub},
+      ],
+      icon_sales,
+      "dropdown-sales") }}
       {{ sidebar_dropdown("Análisis",
-            [
-            {"label": "Costos", "href": "#", "icon": icon_costs},
-            {"label": "Reportes", "href": "#", "icon": icon_reports},
-            ],
-            icon_analysis,
-            "dropdown-analysis") }}
-      {{ sidebar_link("Productos", "#", icon_products) }}
+      [
+      {"label": "Costos", "href": url_for('costs.index'), "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
+      {"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports, "active": request.endpoint and request.endpoint.startswith('reports.')},
+      ],
+      icon_analysis,
+      "dropdown-analysis") }}
+      {{ sidebar_link("Productos", url_for('products.index') , icon_products) }}
       {{ sidebar_link("Control", "#", icon_control) }}
     </ul>
   </div>
   <div class="border-t p-2 2xl:p-2.5 border-default pt-3 2xl:pt-4">
-    <div class="flex items-center gap-2 2xl:gap-2.5 p-1.5 2xl:p-2 cursor-pointer hover:bg-neutral-tertiary rounded-base"
+    <div class="sidebar-profile-trigger flex items-center gap-2 2xl:gap-2.5 p-1.5 2xl:p-2 cursor-pointer hover:bg-neutral-tertiary rounded-base"
          id="sidebarAvatarButton"
          type="button"
          data-dropdown-toggle="sidebarUserDropdown"
@@ -127,7 +145,7 @@
       <div class="w-9 h-9 2xl:w-10 2xl:h-10 rounded-full cursor-pointer relative inline-flex items-center justify-center overflow-hidden bg-neutral-tertiary">
         <span class="font-medium text-sm 2xl:text-base text-body">{{ current_user.full_name[0:1].upper() }}{{ current_user.full_name.split()[-1] [0:1].upper() if ' ' in current_user.full_name else '' }}</span>
       </div>
-      <div class="font-medium text-heading min-w-0">
+      <div class="sidebar-profile-meta font-medium text-heading min-w-0">
         <div class="text-sm 2xl:text-base truncate">{{ current_user.full_name }}</div>
         <div class="text-xs 2xl:text-sm font-normal text-body truncate">{{ current_user.email }}</div>
       </div>
@@ -166,9 +184,137 @@
     </div>
   </div>
 </aside>
+<style>
+    #adminSidebar.sidebar-collapsed {
+        width: 68px;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-item-label,
+    #adminSidebar.sidebar-collapsed .sidebar-item-chevron,
+    #adminSidebar.sidebar-collapsed .sidebar-profile-meta {
+        display: none;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-subitem-link,
+    #adminSidebar.sidebar-collapsed ul[id^="dropdown-"] {
+        display: none !important;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-logo-link {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        justify-content: center;
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        display: flex;
+    }
+
+    #adminSidebar.sidebar-collapsed:hover .sidebar-logo-link {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    #adminSidebar.sidebar-collapsed:hover .sidebar-toggle-btn {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-logo-image {
+        max-width: 30px;
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-item-link {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        min-height: 40px;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-profile-trigger {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-header-container {
+        position: relative;
+        justify-content: center;
+        min-height: 48px;
+    }
+
+    #adminSidebar.sidebar-collapsed .sidebar-toggle-btn {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: inline-flex;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+</style>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        const sidebar = document.getElementById("adminSidebar");
+        const compactToggle = document.getElementById("sidebarCompactToggle");
+        const sidebarLogoLink = sidebar ? sidebar.querySelector(".sidebar-logo-link") : null;
+        const sidebarLogoImage = sidebar ? sidebar.querySelector(".sidebar-logo-image") : null;
+        const collapsedStorageKey = "admin-sidebar-collapsed";
         const dropdownButtons = document.querySelectorAll("button[data-collapse-toggle]");
+
+        const applySidebarState = (collapsed) => {
+            if (!sidebar) {
+                return;
+            }
+
+            sidebar.classList.toggle("sidebar-collapsed", collapsed);
+            sidebar.setAttribute("aria-expanded", collapsed ? "false" : "true");
+
+            if (sidebarLogoImage) {
+                const expandedSrc = sidebarLogoImage.getAttribute("data-expanded-src");
+                const collapsedSrc = sidebarLogoImage.getAttribute("data-collapsed-src");
+                sidebarLogoImage.src = collapsed ? collapsedSrc : expandedSrc;
+            }
+
+            if (compactToggle) {
+                compactToggle.setAttribute("aria-label", collapsed ? "Expandir sidebar" : "Compactar sidebar");
+                compactToggle.setAttribute("title", collapsed ? "Expandir sidebar" : "Compactar sidebar");
+            }
+        };
+
+        if (sidebar) {
+            const savedState = localStorage.getItem(collapsedStorageKey);
+            applySidebarState(savedState === "1");
+        }
+
+        if (compactToggle) {
+            compactToggle.addEventListener("click", function() {
+                const nextCollapsed = !sidebar.classList.contains("sidebar-collapsed");
+                applySidebarState(nextCollapsed);
+                localStorage.setItem(collapsedStorageKey, nextCollapsed ? "1" : "0");
+            });
+        }
+
+        if (sidebarLogoLink) {
+            sidebarLogoLink.addEventListener("click", function(event) {
+                if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
+                    event.preventDefault();
+                    applySidebarState(false);
+                    localStorage.setItem(collapsedStorageKey, "0");
+                }
+            });
+        }
 
         const syncChevron = (button) => {
             const targetId = button.getAttribute("data-collapse-toggle");
@@ -187,6 +333,20 @@
         };
 
         dropdownButtons.forEach((button) => {
+            const labelNode = button.querySelector(".sidebar-item-label");
+            if (labelNode && labelNode.textContent) {
+                button.setAttribute("title", labelNode.textContent.trim());
+            }
+
+            button.addEventListener("click", function(event) {
+                if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
+                    event.preventDefault();
+                    applySidebarState(false);
+                    localStorage.setItem(collapsedStorageKey, "0");
+                    return;
+                }
+            });
+
             syncChevron(button);
             button.addEventListener("click", function() {
                 // Flowbite actualiza la visibilidad durante el click; sincronizamos al siguiente tick.

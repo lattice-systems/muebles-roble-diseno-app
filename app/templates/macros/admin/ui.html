@@ -32,7 +32,8 @@
 {% macro sidebar_link(label, href="#", icon=none, active=false) %}
   <li>
     <a href="{{ href }}"
-       class="flex items-center px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}">
+       title="{{ label }}"
+       class="sidebar-item-link flex items-center px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}">
       {% if icon %}
         <svg class="shrink-0 w-4 h-4 2xl:w-5 2xl:h-5 transition duration-75 group-hover:text-fg-brand"
              aria-hidden="true"
@@ -44,7 +45,7 @@
           {{ icon | safe }}
         </svg>
       {% endif %}
-      <span class="{% if icon %}ms-2 2xl:ms-3{% endif %} flex-1 whitespace-nowrap">{{ label }}</span>
+      <span class="sidebar-item-label {% if icon %}ms-2 2xl:ms-3{% endif %} flex-1 whitespace-nowrap">{{ label }}</span>
     </a>
   </li>
 {% endmacro %}
@@ -57,7 +58,8 @@
   {% endfor %}
   <li>
     <button type="button"
-            class="flex items-center w-full justify-between px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if ns.has_active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}"
+            title="{{ label }}"
+            class="sidebar-item-link flex items-center w-full justify-between px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if ns.has_active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}"
             aria-controls="{{ dropdown_id }}"
             data-collapse-toggle="{{ dropdown_id }}">
       {% if icon %}
@@ -71,9 +73,9 @@
           {{ icon | safe }}
         </svg>
       {% endif %}
-      <span class="flex-1 {% if icon %}ms-2 2xl:ms-3{% endif %} text-left rtl:text-right whitespace-nowrap">{{ label }}</span>
-       <svg class="w-4 h-4 2xl:w-5 2xl:h-5 transition-transform duration-200 {% if ns.has_active %}rotate-180{% endif %}"
-         data-dropdown-chevron="true"
+      <span class="sidebar-item-label flex-1 {% if icon %}ms-2 2xl:ms-3{% endif %} text-left rtl:text-right whitespace-nowrap">{{ label }}</span>
+      <svg class="sidebar-item-chevron w-4 h-4 2xl:w-5 2xl:h-5 transition-transform duration-200 {% if ns.has_active %}rotate-180{% endif %}"
+           data-dropdown-chevron="true"
            aria-hidden="true"
            xmlns="http://www.w3.org/2000/svg"
            width="24"
@@ -83,11 +85,12 @@
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
       </svg>
     </button>
-    <ul id="{{ dropdown_id }}" class="{% if not ns.has_active %}hidden {% endif %}py-1.5 2xl:py-2 space-y-1 2xl:space-y-2">
+    <ul id="{{ dropdown_id }}"
+        class="{% if not ns.has_active %}hidden {% endif %}py-1.5 2xl:py-2 space-y-1 2xl:space-y-2">
       {% for item in items %}
         <li>
           <a href="{{ item.href }}"
-             class="pl-8 2xl:pl-10 flex items-center px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if item.active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}">
+             class="sidebar-subitem-link pl-8 2xl:pl-10 flex items-center px-1.5 2xl:px-2 py-1.5 rounded-base text-sm 2xl:text-base group {% if item.active %}bg-neutral-tertiary text-fg-brand{% else %}text-body hover:bg-neutral-tertiary hover:text-fg-brand{% endif %}">
             {% if item.icon %}
               <svg class="shrink-0 w-4 h-4 transition duration-75 group-hover:text-fg-brand"
                    aria-hidden="true"
@@ -98,7 +101,7 @@
                    viewBox="0 0 24 24">
                 {{ item.icon | safe }}
               </svg>
-              <span class="ms-1.5 2xl:ms-2">{{ item.label }}</span>
+              <span class="sidebar-item-label ms-1.5 2xl:ms-2">{{ item.label }}</span>
             {% else %}
               {{ item.label }}
             {% endif %}

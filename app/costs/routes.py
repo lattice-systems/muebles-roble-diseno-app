@@ -86,11 +86,16 @@ def export_cost_csv(product_id: int):
 
     if latest_production:
         writer.writerow(["Orden producción", latest_production.id])
-        writer.writerow([
-            "Fecha producción",
-            latest_production.scheduled_date.isoformat()
-            if latest_production.scheduled_date else ""
-        ])
+        writer.writerow(
+            [
+                "Fecha producción",
+                (
+                    latest_production.scheduled_date.isoformat()
+                    if latest_production.scheduled_date
+                    else ""
+                ),
+            ]
+        )
         writer.writerow(["Cantidad producida", latest_production.quantity])
         writer.writerow(["Estado producción", latest_production.status])
     else:

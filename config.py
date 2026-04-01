@@ -17,6 +17,9 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+    MONGO_DBNAME = os.getenv("MONGO_DBNAME", "roble_reports")
 
     # SECRET_KEY is required for session management and CSRF protection
     SECRET_KEY = os.getenv("SECRET_KEY")
