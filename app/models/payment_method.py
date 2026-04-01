@@ -1,9 +1,10 @@
 from sqlalchemy.orm import synonym
 
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class PaymentMethod(db.Model):
+class PaymentMethod(AuditMixin, db.Model):
     """Modelo para la tabla payment_methods."""
 
     __tablename__ = "payment_methods"
@@ -17,15 +18,6 @@ class PaymentMethod(db.Model):
     active = synonym("status")
     available_pos = db.Column(db.Boolean, nullable=False, default=True)
     available_ecommerce = db.Column(db.Boolean, nullable=False, default=True)
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
-    updated_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
-    )
 
     sales = db.relationship("Sale", back_populates="payment_method", lazy=True)
     orders = db.relationship("Order", back_populates="payment_method", lazy=True)
@@ -41,6 +33,5 @@ class PaymentMethod(db.Model):
             "active": self.active,
             "available_pos": self.available_pos,
             "available_ecommerce": self.available_ecommerce,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            **self._audit_dict(),
         }
