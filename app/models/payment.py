@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Payment(db.Model):
+class Payment(AuditMixin, db.Model):
     """Modelo para la tabla payments."""
 
     __tablename__ = "payments"
@@ -29,4 +30,5 @@ class Payment(db.Model):
             "payment_date": self.payment_date.isoformat()
             if self.payment_date
             else None,
+            **self._audit_dict(),
         }

@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Order(db.Model):
+class Order(AuditMixin, db.Model):
     """Modelo para la tabla orders."""
 
     __tablename__ = "orders"
@@ -29,4 +30,5 @@ class Order(db.Model):
             "status": self.status,
             "total": float(self.total) if self.total is not None else None,
             "payment_method_id": self.payment_method_id,
+            **self._audit_dict(),
         }
