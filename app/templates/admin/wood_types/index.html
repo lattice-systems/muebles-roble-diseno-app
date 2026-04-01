@@ -115,7 +115,11 @@
               <ul class="py-1 text-sm text-gray-700"
                   aria-labelledby="actionsDropdownButton">
                 <li>
-                  <a href="#" class="block py-2 px-4 hover:bg-gray-100">Exportar</a>
+                  <button type="button"
+                          id="bulkExportBtn"
+                          class="block w-full text-left py-2 px-4 hover:bg-gray-100">
+                    Exportar seleccionados
+                  </button>
                 </li>
               </ul>
               <div class="py-1">
@@ -337,6 +341,14 @@
     {{ form.hidden_tag() }}
     <input type="hidden" name="ids" id="bulkActivateIds" value="">
   </form>
+  <!-- Hidden form for bulk export -->
+  <form id="bulkExportForm"
+        method="post"
+        action="{{ url_for('woods_types.bulk_export') }}"
+        class="hidden">
+    {{ form.hidden_tag() }}
+    <input type="hidden" name="ids" id="bulkExportIds" value="">
+  </form>
   <script>
       document.addEventListener("DOMContentLoaded", function() {
           const checkAll = document.getElementById("checkbox-all");
@@ -443,6 +455,17 @@
                   document.getElementById("bulkActivateIds").value = ids.join(",");
                   document.getElementById("bulkActivateForm").submit();
               });
+          });
+
+          // Bulk export
+          document.getElementById("bulkExportBtn").addEventListener("click", function() {
+              const ids = getCheckedIds();
+              if (ids.length === 0) {
+                  showWarningModal("Selecciona al menos un registro para exportar.");
+                  return;
+              }
+              document.getElementById("bulkExportIds").value = ids.join(",");
+              document.getElementById("bulkExportForm").submit();
           });
       });
   </script>
