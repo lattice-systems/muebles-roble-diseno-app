@@ -10,7 +10,7 @@ class RawMaterial(db.Model):
     name = db.Column(db.String(150), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
 
-    category_id = db.Column(                   
+    category_id = db.Column(
         db.Integer,
         db.ForeignKey("material_categories.id"),
         nullable=False
@@ -47,6 +47,12 @@ class RawMaterial(db.Model):
 
     bom_items = db.relationship(
         "BomItem",
+        back_populates="raw_material",
+        lazy=True
+    )
+
+    production_order_materials = db.relationship(
+        "ProductionOrderMaterial",
         back_populates="raw_material",
         lazy=True
     )
