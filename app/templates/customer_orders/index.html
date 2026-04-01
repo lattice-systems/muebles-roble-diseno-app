@@ -1,0 +1,256 @@
+{% extends "layouts/admin.html" %}
+{% block title %}Órdenes de Cliente | Furniture Store{% endblock title %}
+{% block content %}
+<div class="flex flex-col gap-2.5 2xl:gap-4">
+  <div class="flex flex-col justify-center gap-1">
+    <h1 class="text-heading text-base 2xl:text-lg font-medium">Órdenes de Cliente</h1>
+    <p class="text-body">Gestiona y da seguimiento a todas las órdenes generadas desde el POS.</p>
+  </div>
+
+  <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+
+    {# ── Barra superior ── #}
+    <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">
+
+      {# Buscador #}
+      <div class="flex w-full max-w-96 items-center gap-2">
+        <form class="w-full" method="get" action="{{ url_for('customer_orders.index') }}" id="searchForm">
+          <input type="hidden" name="status" value="{{ filters.status }}">
+          <input type="hidden" name="date_from" value="{{ filters.date_from }}">
+          <input type="hidden" name="date_to" value="{{ filters.date_to }}">
+          <label for="order-search" class="sr-only">Buscar</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+              <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+              </svg>
+            </div>
+            <input type="text" id="order-search" name="customer" value="{{ filters.customer }}"
+              class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+              placeholder="Buscar por cliente o folio..." onkeypress="if(event.key === 'Enter') this.form.submit();">
+          </div>
+        </form>
+        {% if filters.customer %}
+        <button type="button"
+          onclick="document.getElementById('order-search').value = ''; document.getElementById('searchForm').submit();"
+          class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
+          Limpiar
+        </button>
+        {% endif %}
+      </div>
+
+      {# Controles derecha: Filtrar + Acciones (fecha) #}
+      <div class="flex flex-row gap-2.5 2xl:gap-3">
+
+        {# Dropdown: Filtrar por Estado #}
+        <button id="filterStatusDropdownButton" data-dropdown-toggle="filterStatusDropdown"
+          class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+          type="button">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+              d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" />
+          </svg>
+          Estado{% if filters.status %}: {{ filters.status|replace('_',' ')|title }}{% endif %}
+          <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 9-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="filterStatusDropdown"
+          class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
+          <ul class="p-2 text-xs 2xl:text-sm text-body font-medium" aria-labelledby="filterStatusDropdownButton">
+            <li>
+              <a href="{{ url_for('customer_orders.index', customer=filters.customer, date_from=filters.date_from, date_to=filters.date_to) }}"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded {{ 'text-fg-brand font-semibold' if not filters.status }}">Todos</a>
+            </li>
+            {% for s in valid_statuses %}
+            <li>
+              <a href="{{ url_for('customer_orders.index', status=s, customer=filters.customer, date_from=filters.date_from, date_to=filters.date_to) }}"
+                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded {{ 'text-fg-brand font-semibold' if filters.status == s }}">
+                {{ s|replace('_',' ')|title }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        {# Dropdown: Fecha #}
+        <button id="filterDateDropdownButton" data-dropdown-toggle="filterDateDropdown"
+          class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+          type="button">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z" />
+          </svg>
+          Fecha
+          <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 9-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="filterDateDropdown"
+          class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-56 p-3">
+          <h6 class="mb-2 text-xs 2xl:text-sm font-medium text-heading">Rango de fecha</h6>
+          <div class="flex flex-col gap-2">
+            <div>
+              <label class="block mb-1 text-xs text-body">Desde</label>
+              <input type="date" id="filterDateFrom" value="{{ filters.date_from }}"
+                class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            </div>
+            <div>
+              <label class="block mb-1 text-xs text-body">Hasta</label>
+              <input type="date" id="filterDateTo" value="{{ filters.date_to }}"
+                class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            </div>
+            <button type="button" id="btnApplyDates"
+              class="w-full inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+              Aplicar fechas
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>{# /barra superior #}
+
+    {# ── Tabla ── #}
+    <div class="overflow-hidden rounded-b-base">
+    <div class="relative w-full overflow-x-auto bg-neutral-primary-soft shadow-xs">
+      <table class="w-full min-w-4xl table-auto text-xs 2xl:text-sm text-left rtl:text-right text-body">
+        <thead
+          class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
+          <tr>
+            <th scope="col" class="px-6 py-3 font-medium">#Orden</th>
+            <th scope="col" class="px-6 py-3 font-medium">Cliente</th>
+            <th scope="col" class="px-6 py-3 font-medium">Fecha</th>
+            <th scope="col" class="px-6 py-3 font-medium">Entrega Est.</th>
+            <th scope="col" class="px-6 py-3 font-medium">Estado</th>
+            <th scope="col" class="px-6 py-3 font-medium">Origen</th>
+            <th scope="col" class="px-6 py-3 font-medium">Total</th>
+            <th scope="col" class="px-6 py-3 font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+            <th scope="row" class="px-6 py-4 font-mono font-medium text-heading whitespace-nowrap">
+              #{{ "%04d"|format(order.id) }}
+            </th>
+            <td class="px-6 py-4">
+              <span class="block font-medium text-heading truncate" title="{{ order.customer.full_name }}">{{
+                order.customer.full_name }}</span>
+              <span class="block truncate text-body" title="{{ order.customer.email }}">{{ order.customer.email
+                }}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ order.order_date.strftime('%d/%m/%Y') if order.order_date else '—' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ order.estimated_delivery_date.strftime('%d/%m/%Y') if order.estimated_delivery_date else '—' }}
+            </td>
+            <td class="px-6 py-4">
+              {% if order.status == 'pendiente' %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
+              {% elif order.status == 'en_produccion' %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">Producción</span>
+              {% elif order.status == 'terminado' %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
+              {% elif order.status == 'entregado' %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default text-heading text-xs font-medium rounded bg-neutral-primary-soft">Entregado</span>
+              {% elif order.status == 'cancelado' %}
+              <span
+                class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              {{ {'pos':'POS','ecommerce':'E-commerce','manual':'Manual'}.get(order.source, order.source) }}
+            </td>
+            <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">
+              ${{ "%.2f"|format(order.total|float) }}
+            </td>
+            <td class="px-6 py-4">
+              <a href="{{ url_for('customer_orders.detail', order_id=order.id) }}"
+                class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                  height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Ver
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr class="bg-neutral-primary-soft border-b border-default">
+            <td colspan="8" class="px-6 py-8 text-center text-body">
+              No se encontraron órdenes{% if filters.customer or filters.status %} con los filtros aplicados{% endif %}.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {# ── Paginación (idéntica a usuarios) ── #}
+      {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
+      {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) <
+        pagination.total else pagination.total %} <nav
+        class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
+        aria-label="Table navigation">
+        <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
+          Mostrando <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
+          de <span class="font-semibold text-heading">{{ pagination.total }}</span>
+        </span>
+        <ul class="flex -space-x-px text-xs 2xl:text-sm">
+          <li>
+            <a href="{{ url_for('customer_orders.index', page=pagination.prev_num if pagination.has_prev else 1, customer=filters.customer, status=filters.status, date_from=filters.date_from, date_to=filters.date_to) }}"
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Anterior</a>
+          </li>
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li>
+            <a href="{{ url_for('customer_orders.index', page=p, customer=filters.customer, status=filters.status, date_from=filters.date_from, date_to=filters.date_to) }}"
+              {% if p==pagination.page %}aria-current="page"
+              class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none"
+              {% else %}
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none"
+              {% endif %}>{{ p }}</a>
+          </li>
+          {% else %}
+          <li>
+            <span
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
+          </li>
+          {% endif %}
+          {% endfor %}
+          <li>
+            <a href="{{ url_for('customer_orders.index', page=pagination.next_num if pagination.has_next else pagination.pages, customer=filters.customer, status=filters.status, date_from=filters.date_from, date_to=filters.date_to) }}"
+              class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Siguiente</a>
+          </li>
+        </ul>
+        </nav>
+    </div>{# /overflow-hidden rounded-b-base #}
+
+  </div>
+</div>
+
+<script>
+  document.getElementById('btnApplyDates')?.addEventListener('click', function () {
+    const params = new URLSearchParams(window.location.search);
+    const from = document.getElementById('filterDateFrom')?.value;
+    const to = document.getElementById('filterDateTo')?.value;
+    if (from) params.set('date_from', from); else params.delete('date_from');
+    if (to) params.set('date_to', to); else params.delete('date_to');
+    params.delete('page');
+    window.location.href = '{{ url_for("customer_orders.index") }}?' + params.toString();
+  });
+</script>
+{% endblock content %}
