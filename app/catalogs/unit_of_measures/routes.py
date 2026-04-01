@@ -2,7 +2,10 @@
 Rutas/Endpoints para el módulo de unidades de medida.
 """
 
-from flask import flash, redirect, render_template, request, url_for
+import csv
+from datetime import datetime
+from io import StringIO
+from flask import flash, redirect, render_template, request, url_for, make_response
 
 from . import unit_of_measures_bp
 from .forms import UnitOfMeasureForm
@@ -153,3 +156,36 @@ def bulk_deactivate_unit_of_measures():
             except Exception as e:
                 flash(f"Error al desactivar unidades de medida: {e}", "error")
     return redirect(url_for("unit_of_measures.list_unit_of_measures"))
+
+
+@unit_of_measures_bp.route("/bulk-export", methods=["POST"])
+def bulk_export():
+    """Exportar múltiples unidades de medida seleccionadas a CSV."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron registros", "error")
+        return redirect(url_for("unit_of_measures.list_unit_of_measures"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    units = UnitOfMeasureService.get_by_ids(ids)
+    if not units:
+        flash("No se encontraron registros para exportar", "error")
+        return redirect(url_for("unit_of_measures.list_unit_of_measures"))
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Nombre", "Abreviatura", "Tipo", "Estado"])
+    for u in units:
+        writer.writerow([
+            u.id_unit_of_measure,
+            u.name,
+            u.abbreviation,
+            u.type,
+            "Activo" if u.status else "Inactivo"
+        ])
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    response = make_response('\ufeff' + output.getvalue())
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="unidades_medida_{timestamp}.csv"'
+    return response
