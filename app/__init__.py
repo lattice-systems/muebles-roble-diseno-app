@@ -67,7 +67,7 @@ def create_app():
     app.register_blueprint(costs_bp, url_prefix="/costs")
 
     from .reports import reports_bp
-    
+
     app.register_blueprint(reports_bp, url_prefix="/reports")
 
     app.register_blueprint(colors_bp, url_prefix="/colors")
