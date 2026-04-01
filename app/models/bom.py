@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Bom(db.Model):
+class Bom(AuditMixin, db.Model):
     """Modelo para la tabla bom."""
 
     __tablename__ = "bom"
@@ -24,4 +25,5 @@ class Bom(db.Model):
             "product_id": self.product_id,
             "version": self.version,
             "description": self.description,
+            **self._audit_dict(),
         }

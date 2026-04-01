@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class RawMaterial(db.Model):
+class RawMaterial(AuditMixin, db.Model):
     """Modelo para materias primas."""
 
     __tablename__ = "raw_materials"
@@ -51,12 +52,6 @@ class RawMaterial(db.Model):
         lazy=True
     )
 
-    production_order_materials = db.relationship(
-        "ProductionOrderMaterial",
-        back_populates="raw_material",
-        lazy=True
-    )
-
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -72,4 +67,5 @@ class RawMaterial(db.Model):
             if self.estimated_cost is not None else None,
             "status": self.status,
             "supplier_id": self.supplier_id,
+            **self._audit_dict(),
         }

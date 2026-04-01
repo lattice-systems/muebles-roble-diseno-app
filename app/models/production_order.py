@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class ProductionOrder(db.Model):
+class ProductionOrder(AuditMixin, db.Model):
     """Modelo para la tabla production_orders."""
 
     __tablename__ = "production_orders"
@@ -13,12 +14,6 @@ class ProductionOrder(db.Model):
     scheduled_date = db.Column(db.Date, nullable=False)
 
     product = db.relationship("Product", back_populates="production_orders")
-    material_consumptions = db.relationship(
-        "ProductionOrderMaterial",
-        back_populates="production_order",
-        lazy=True,
-        cascade="all, delete-orphan"
-    )
 
     def to_dict(self) -> dict:
         return {
@@ -29,5 +24,5 @@ class ProductionOrder(db.Model):
             "scheduled_date": (
                 self.scheduled_date.isoformat() if self.scheduled_date else None
             ),
+            **self._audit_dict(),
         }
-    
