@@ -27,7 +27,7 @@ class User(AuditMixin, db.Model, UserMixin):
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
 
-    role = db.relationship("Role", back_populates="users")
+    role = db.relationship("Role", back_populates="users", foreign_keys=[role_id])
     audit_logs = db.relationship("AuditLog", back_populates="user", lazy=True)
 
     def to_dict(self) -> dict:
