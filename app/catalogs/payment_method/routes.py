@@ -2,7 +2,10 @@
 Rutas/Endpoints para el módulo de métodos de pago.
 """
 
-from flask import flash, redirect, render_template, request, url_for
+import csv
+from datetime import datetime
+from io import StringIO
+from flask import flash, redirect, render_template, request, url_for, make_response
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 
@@ -167,3 +170,42 @@ def bulk_activate():
     count = PaymentMethodService.bulk_activate(ids)
     flash(f"{count} método(s) de pago activado(s) exitosamente", "success")
     return redirect(url_for("payment_method.list_payment_method"))
+
+
+@payment_method_bp.route("/bulk-export", methods=["POST"])
+def bulk_export():
+    """Exportar múltiples métodos de pago seleccionados a CSV."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron métodos de pago", "error")
+        return redirect(url_for("payment_method.list_payment_method"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    payment_methods = PaymentMethodService.get_by_ids(ids)
+    if not payment_methods:
+        flash("No se encontraron registros para exportar", "error")
+        return redirect(url_for("payment_method.list_payment_method"))
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Nombre", "Tipo", "Estado", "POS", "Ecommerce", "Descripcion"])
+    for p in payment_methods:
+        writer.writerow([
+            p.id,
+            p.name,
+            p.type,
+            "Activo" if p.status else "Inactivo",
+            "Si" if p.available_pos else "No",
+            "Si" if p.available_ecommerce else "No",
+            p.description or ""
+        ])
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Prepend BOM so Excel properly recognizes UTF-8 formatting
+    csv_data = '\ufeff' + output.getvalue()
+
+    response = make_response(csv_data)
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="metodos_pago_{timestamp}.csv"'
+    return response

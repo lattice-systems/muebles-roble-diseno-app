@@ -76,6 +76,13 @@ class PaymentMethodService:
             )
         return payment_method
 
+    @staticmethod
+    def get_by_ids(ids: list[int]) -> list[PaymentMethod]:
+        """Obtiene multiples métodos de pago por IDs."""
+        if not ids:
+            return []
+        return PaymentMethod.query.filter(PaymentMethod.id.in_(ids)).all()
+
     # ------------------------------------------------------------------ #
     #  CREATE                                                             #
     # ------------------------------------------------------------------ #
