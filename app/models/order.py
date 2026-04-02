@@ -1,5 +1,4 @@
 from ..extensions import db
-from .audit_mixin import AuditMixin
 
 
 class Order(db.Model):
@@ -55,7 +54,13 @@ class Order(db.Model):
     )
 
     # Estados válidos
-    VALID_STATUSES = ("pendiente", "en_produccion", "terminado", "entregado", "cancelado")
+    VALID_STATUSES = (
+        "pendiente",
+        "en_produccion",
+        "terminado",
+        "entregado",
+        "cancelado",
+    )
     VALID_SOURCES = ("pos", "ecommerce", "manual")
 
     # Transiciones permitidas por estado
@@ -95,5 +100,4 @@ class Order(db.Model):
             "cancelled_by_id": self.cancelled_by_id,
             "cancelled_reason": self.cancelled_reason,
             "sale_id": self.sale_id,
-            **self._audit_dict(),
         }
