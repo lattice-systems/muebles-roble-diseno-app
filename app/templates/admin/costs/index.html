@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
 {% block title %}
   Admin - Costos
@@ -10,35 +11,8 @@
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">
-        <div class="flex w-full max-w-96 items-center gap-2">
-          <form class="w-full"
-                method="get"
-                action="{{ url_for('costs.index') }}"
-                id="searchForm">
-            <label for="input-group-1" class="sr-only">Buscar</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-body"
-                     aria-hidden="true"
-                     xmlns="http://www.w3.org/2000/svg"
-                     fill="none"
-                     viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
-                  </path>
-                </svg>
-              </div>
-              <input type="text"
-                     id="input-group-1"
-                     name="q"
-                     value="{{ search_term }}"
-                     class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-                     placeholder="Buscar por producto"
-                     onkeypress="if(event.key === 'Enter') this.form.submit();">
-            </div>
-          </form>
-        </div>
-      </div>
+      {% call table_header(url_for('costs.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por producto', search_label='Buscar') %}
+      {% endcall %}
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-body">
           <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
