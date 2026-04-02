@@ -253,18 +253,12 @@
                 </td>
                 {{ row_actions_cell_start("px-6 py-4 w-48 min-w-48 whitespace-nowrap") }}
                 {{ row_actions_group_start() }}
-                {% call row_actions_dropdown('actionsOrderDropdownButton-' ~ order.id, 'actionsOrderDropdown-' ~ order.id, 'Opciones') %}
-                  <li>
-                    <a href="{{ url_for('purchases.detail_order', id_order=order.id) }}"
-                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
-                  </li>
-                  {% if order.status == 'pendiente' %}
-                    <li>
-                      <a href="{{ url_for('purchases.edit_order', id_order=order.id) }}"
-                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
-                    </li>
-                  {% endif %}
-                {% endcall %}
+                <a href="{{ url_for('purchases.detail_order', id_order=order.id) }}"
+                   class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">Ver detalles</a>
+                {% if order.status == 'pendiente' %}
+                  <a href="{{ url_for('purchases.edit_order', id_order=order.id) }}"
+                     class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">Editar</a>
+                {% endif %}
                 {{ row_actions_group_end() }}
                 {{ row_actions_cell_end() }}
               </tr>
