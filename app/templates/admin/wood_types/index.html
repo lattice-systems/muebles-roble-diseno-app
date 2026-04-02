@@ -162,16 +162,12 @@
                 </td>
                 {{ row_actions_cell_start("px-6 py-4 w-72 min-w-72 whitespace-nowrap text-center") }}
                 {{ row_actions_group_start("flex flex-row flex-nowrap items-center justify-center gap-2.5 2xl:gap-3") }}
-                {% call row_actions_dropdown('actionsDropdownBtn-' ~ wood_type.id_wood_type, 'actionsDropdownList-' ~ wood_type.id_wood_type, 'Opciones') %}
-                  <li>
-                    <button type="button"
-                            data-modal-target="editModal-{{ wood_type.id_wood_type }}"
-                            data-modal-toggle="editModal-{{ wood_type.id_wood_type }}"
-                            class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                      Editar
-                    </button>
-                  </li>
-                {% endcall %}
+                <button type="button"
+                        data-modal-target="editModal-{{ wood_type.id_wood_type }}"
+                        data-modal-toggle="editModal-{{ wood_type.id_wood_type }}"
+                        class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                  Editar
+                </button>
                 <!-- Desactivar / Activar button -->
                 <form id="toggleForm-{{ wood_type.id_wood_type }}"
                       method="post"
