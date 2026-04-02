@@ -17,34 +17,51 @@
         {{ range_label }} <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
         {{ of_label }} <span class="font-semibold text-heading">{{ pagination.total }}</span>
       </span>
-      {% if pagination.pages > 1 %}
-        <ul class="flex -space-x-px text-xs 2xl:text-sm">
-          <li>
-            <a href="{{ url_for(endpoint, page=pagination.prev_num if pagination.has_prev else 1) ~ query_string }}"
+      <ul class="flex -space-x-px text-xs 2xl:text-sm">
+        <li>
+          {% if pagination.has_prev %}
+            <a href="{{ url_for(endpoint, page=pagination.prev_num) ~ query_string }}"
                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
               {{ previous_label }}
             </a>
-          </li>
-          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-            {% if p %}
-              <li>
+          {% else %}
+            <span aria-disabled="true"
+                  class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 opacity-50 cursor-not-allowed select-none">
+              {{ previous_label }}
+            </span>
+          {% endif %}
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            <li>
+              {% if p == pagination.page %}
+                <span aria-current="page"
+                      class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9 cursor-default select-none">{{ p }}</span>
+              {% else %}
                 <a href="{{ url_for(endpoint, page=p) ~ query_string }}"
-                   {% if p == pagination.page %}aria-current="page" class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% else %} class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% endif %}>{{ p }}</a>
-              </li>
-            {% else %}
-              <li>
-                <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
-              </li>
-            {% endif %}
-          {% endfor %}
-          <li>
-            <a href="{{ url_for(endpoint, page=pagination.next_num if pagination.has_next else pagination.pages) ~ query_string }}"
+                   class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none">{{ p }}</a>
+              {% endif %}
+            </li>
+          {% else %}
+            <li>
+              <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+        <li>
+          {% if pagination.has_next %}
+            <a href="{{ url_for(endpoint, page=pagination.next_num) ~ query_string }}"
                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
               {{ next_label }}
             </a>
-          </li>
-        </ul>
-      {% endif %}
+          {% else %}
+            <span aria-disabled="true"
+                  class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 opacity-50 cursor-not-allowed select-none">
+              {{ next_label }}
+            </span>
+          {% endif %}
+        </li>
+      </ul>
     </nav>
   {% endif %}
 {% endmacro %}
