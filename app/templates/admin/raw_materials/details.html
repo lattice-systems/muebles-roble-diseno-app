@@ -4,11 +4,9 @@
 {% endblock title %}
 {% block content %}
   <div class="max-w-4xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <!-- Header -->
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de materia prima</h1>
-      <p class="text-body">Consulta la información completa de la materia prima</p>
-    </div>
+    {% set admin_header_title = "Detalle de materia prima" %}
+    {% set admin_header_subtitle = "Consulta la información completa de la materia prima" %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <!-- Card -->
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">

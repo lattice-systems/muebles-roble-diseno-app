@@ -1,115 +1,126 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-Perfil - {{ user.full_name }}
+  Perfil - {{ user.full_name }}
 {% endblock title %}
-
 {% block content %}
-<div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-  <div class="flex flex-col gap-1">
-    <h1 class="text-heading text-base 2xl:text-lg font-medium">Mi Perfil</h1>
-    <p class="text-body">Visualiza tu información de usuario</p>
-  </div>
-
-  {% include "admin/components/alerts.html" %}
-
-  <!-- Card principal de perfil -->
-  <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
-    <div class="flex flex-col gap-2.5 2xl:gap-6">
-      <!-- Información del usuario -->
-      <div class="flex flex-col gap-2.5 2xl:gap-4">
-        <h2 class="text-heading font-medium">Información Básica</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-6">
-          <!-- Nombre -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs 2xl:text-sm font-medium text-body">Nombre Completo</label>
-            <p class="text-heading font-medium">{{ user.full_name }}</p>
-          </div>
-
-          <!-- Email -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs 2xl:text-sm font-medium text-body">Correo Electrónico</label>
-            <p class="text-heading font-medium">{{ user.email }}</p>
-          </div>
-
-          <!-- Rol -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs 2xl:text-sm font-medium text-body">Rol</label>
-            <p class="text-heading font-medium">{{ user.role.name if user.role else "Sin rol" }}</p>
-          </div>
-
-          <!-- Estado -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs 2xl:text-sm font-medium text-body">Estado</label>
-            {% if user.status %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft w-fit">
-              Activado
-            </span>
-            {% else %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft w-fit">
-              Desactivado
-            </span>
-            {% endif %}
-          </div>
-
-          <!-- Fecha de creación -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs 2xl:text-sm font-medium text-body">Fecha de Registro</label>
-            <p class="text-heading font-medium">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else "N/A" }}</p>
-          </div>
-        </div>
-      </div>
-
-      <hr class="border-default">
-
-      <!-- Información de 2FA -->
-      <div class="flex flex-col gap-2.5 2xl:gap-4">
-        <h2 class="text-heading font-medium">Autenticación de Dos Factores</h2>
-        
-        <div class="flex items-center gap-2.5 2xl:gap-4 p-3 2xl:p-4 bg-neutral-secondary-medium border border-default rounded-base">
-          <div class="flex-1 flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-              {% if has_2fa %}
-              <svg class="w-5 h-5 text-success-subtle" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              <span class="text-xs 2xl:text-sm font-medium text-heading">Autenticación de Dos Factores Activada</span>
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Mi Perfil" %}
+    {% set admin_header_subtitle = "Visualiza tu información de usuario" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <!-- Card principal de perfil -->
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <div class="flex flex-col gap-2.5 2xl:gap-6">
+        <!-- Información del usuario -->
+        <div class="flex flex-col gap-2.5 2xl:gap-4">
+          <h2 class="text-heading font-medium">Información Básica</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-6">
+            <!-- Nombre -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs 2xl:text-sm font-medium text-body">Nombre Completo</label>
+              <p class="text-heading font-medium">{{ user.full_name }}</p>
+            </div>
+            <!-- Email -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs 2xl:text-sm font-medium text-body">Correo Electrónico</label>
+              <p class="text-heading font-medium">{{ user.email }}</p>
+            </div>
+            <!-- Rol -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs 2xl:text-sm font-medium text-body">Rol</label>
+              <p class="text-heading font-medium">{{ user.role.name if user.role else "Sin rol" }}</p>
+            </div>
+            <!-- Estado -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs 2xl:text-sm font-medium text-body">Estado</label>
+              {% if user.status %}
+                <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft w-fit">
+                  Activado
+                </span>
               {% else %}
-              <svg class="w-5 h-5 text-warning" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V5.25z"/>
-              </svg>
-              <span class="text-xs 2xl:text-sm font-medium text-heading">Autenticación de Dos Factores No Configurada</span>
+                <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft w-fit">
+                  Desactivado
+                </span>
               {% endif %}
             </div>
-            {% if has_2fa %}
-            <p class="text-xs text-body">Método: <span class="font-medium text-heading">{% if user.tf_primary_method == "authenticator" %}Aplicación autenticadora{% else %}{{ user.tf_primary_method }}{% endif %}</span></p>
-            {% if user.tf_phone_number %}
-            <p class="text-xs text-body">Teléfono: <span class="font-medium text-heading">{{ user.tf_phone_number }}</span></p>
-            {% endif %}
+            <!-- Fecha de creación -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs 2xl:text-sm font-medium text-body">Fecha de Registro</label>
+              <p class="text-heading font-medium">{{ user.created_at.strftime("%d/%m/%Y %H:%M") if user.created_at else "N/A" }}</p>
+            </div>
+          </div>
+        </div>
+        <hr class="border-default">
+        <!-- Información de 2FA -->
+        <div class="flex flex-col gap-2.5 2xl:gap-4">
+          <h2 class="text-heading font-medium">Autenticación de Dos Factores</h2>
+          <div class="flex items-center gap-2.5 2xl:gap-4 p-3 2xl:p-4 bg-neutral-secondary-medium border border-default rounded-base">
+            <div class="flex-1 flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                {% if has_2fa %}
+                  <svg class="w-5 h-5 text-success-subtle"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="currentColor"
+                       viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  <span class="text-xs 2xl:text-sm font-medium text-heading">Autenticación de Dos Factores Activada</span>
+                {% else %}
+                  <svg class="w-5 h-5 text-warning"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V5.25z" />
+                  </svg>
+                  <span class="text-xs 2xl:text-sm font-medium text-heading">Autenticación de Dos Factores No Configurada</span>
+                {% endif %}
+              </div>
+              {% if has_2fa %}
+                <p class="text-xs text-body">
+                  Método: <span class="font-medium text-heading">
+                  {% if user.tf_primary_method == "authenticator" %}
+                    Aplicación autenticadora
+                  {% else %}
+                    {{ user.tf_primary_method }}
+                  {% endif %}
+                </span>
+              </p>
+              {% if user.tf_phone_number %}
+                <p class="text-xs text-body">
+                  Teléfono: <span class="font-medium text-heading">{{ user.tf_phone_number }}</span>
+                </p>
+              {% endif %}
             {% else %}
-            <p class="text-xs text-body">Configura la autenticación de dos factores para mejorar la seguridad de tu cuenta.</p>
+              <p class="text-xs text-body">Configura la autenticación de dos factores para mejorar la seguridad de tu cuenta.</p>
             {% endif %}
           </div>
-          <a href="{{ url_for('users.setup_2fa') }}" class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none">
+          <a href="{{ url_for('users.setup_2fa') }}"
+             class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none">
             {% if has_2fa %}
-            Modificar
+              Modificar
             {% else %}
-            Configurar
+              Configurar
             {% endif %}
           </a>
         </div>
       </div>
-
       <hr class="border-default">
-
       <!-- Acciones -->
       <div class="flex gap-2.5 2xl:gap-3 justify-end">
-        <a href="{{ url_for('users.index') }}" class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none">
+        <a href="{{ url_for('users.index') }}"
+           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none">
           Volver
         </a>
-        <a href="{{ url_for('users.edit_user', id_user=user.id) }}" class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none gap-1">
-          <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.3 4.7 2.29-2.29a2.118 2.118 0 0 1 2.997 0l2.997 2.997a2.118 2.118 0 0 1 0 2.997L19.3 9.7m-4.243-4.243L4.772 15.029a2.118 2.118 0 0 0-.578 1.341v2.128a2.118 2.118 0 0 0 2.118 2.118h2.128c.504 0 .989-.228 1.341-.579l10.275-10.275m-4.243-4.243 4.243 4.243"/>
+        <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
+           class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none gap-1">
+          <svg class="w-4 h-4"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.3 4.7 2.29-2.29a2.118 2.118 0 0 1 2.997 0l2.997 2.997a2.118 2.118 0 0 1 0 2.997L19.3 9.7m-4.243-4.243L4.772 15.029a2.118 2.118 0 0 0-.578 1.341v2.128a2.118 2.118 0 0 0 2.118 2.118h2.128c.504 0 .989-.228 1.341-.579l10.275-10.275m-4.243-4.243 4.243 4.243" />
           </svg>
           Editar
         </a>

@@ -4,10 +4,9 @@
 {% endblock title %}
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col justify-center gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Proveedores</h1>
-      <p class="text-body">Gestiona los proveedores de materia prima existentes o añade uno nuevo</p>
-    </div>
+    {% set admin_header_title = "Proveedores" %}
+    {% set admin_header_subtitle = "Gestiona los proveedores de materia prima existentes o añade uno nuevo" %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">

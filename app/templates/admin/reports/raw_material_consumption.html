@@ -2,23 +2,20 @@
 {% block title %}
   Admin - Consumo de materia prima
 {% endblock title %}
-
 {% block content %}
   {% set items = report["items"] %}
-
   <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between">
-      <div class="flex flex-col gap-1">
-        <h1 class="text-heading text-base 2xl:text-lg font-medium">Consumo de materia prima</h1>
-        <p class="text-body">Periodo: {{ report.date_from }} a {{ report.date_to }}</p>
+      <div>
+        {% set admin_header_title = "Consumo de materia prima" %}
+        {% set admin_header_subtitle = "Periodo: " ~ report.date_from ~ " a " ~ report.date_to %}
+        {% include "admin/components/page_header.html" %}
       </div>
-
       <a href="{{ url_for('reports.index') }}"
          class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium rounded-base text-sm px-4 py-2">
         Volver
       </a>
     </div>
-
     <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-body">
@@ -41,9 +38,7 @@
                 <td class="px-6 py-4">
                   <div class="flex flex-col gap-1">
                     {% for product in item.products %}
-                      <span class="text-xs text-body">
-                        {{ product.product_name }} ({{ product.produced_quantity }})
-                      </span>
+                      <span class="text-xs text-body">{{ product.product_name }} ({{ product.produced_quantity }})</span>
                     {% endfor %}
                   </div>
                 </td>

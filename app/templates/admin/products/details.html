@@ -4,10 +4,9 @@
 {% endblock title %}
 {% block content %}
   <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de producto</h1>
-      <p class="text-body">Consulta la información del producto seleccionado</p>
-    </div>
+    {% set admin_header_title = "Detalle de producto" %}
+    {% set admin_header_subtitle = "Consulta la información del producto seleccionado" %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
