@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_security import SQLAlchemyUserDatastore, auth_required
-from pymongo import MongoClient
 
 from config import Config
 from .exceptions import register_error_handlers
@@ -28,9 +27,6 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
-
-    # Mongo client
-    app.extensions["mongo_client"] = MongoClient(app.config["MONGO_URI"])
 
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401
