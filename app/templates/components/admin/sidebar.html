@@ -102,7 +102,7 @@
       {{ sidebar_dropdown("Adminsitración",
             [
             {"label": "Usuarios", "href": url_for('users.index') , "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
-      {"label": "Catalogos", "href": "#", "icon": icon_catalog},
+      {"label": "Catalogos", "href": url_for('colors.list_colors'), "icon": icon_catalog, "active": request.endpoint and request.endpoint.startswith('colors.')},
       ],
       icon_admin,
       "dropdown-admin") }}

@@ -110,6 +110,13 @@ class WoodTypeService:
         return wood_type
 
     @staticmethod
+    def get_by_ids(ids: list[int]) -> list[WoodType]:
+        """Obtiene multiples tipos de madera por IDs."""
+        if not ids:
+            return []
+        return WoodType.query.filter(WoodType.id.in_(ids)).all()
+
+    @staticmethod
     def update(id_wood_type: int, data: dict) -> dict:
         """
         Actualiza un tipo de madera existente.

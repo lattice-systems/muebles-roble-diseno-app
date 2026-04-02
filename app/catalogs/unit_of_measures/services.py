@@ -127,6 +127,13 @@ class UnitOfMeasureService:
         return unit_of_measure
 
     @staticmethod
+    def get_by_ids(ids: list[int]) -> list[UnitOfMeasure]:
+        """Obtiene multiples unidades de medida por IDs."""
+        if not ids:
+            return []
+        return UnitOfMeasure.query.filter(UnitOfMeasure.id_unit_of_measure.in_(ids)).all()
+
+    @staticmethod
     def update(id_unit_of_measure: int, data: dict) -> dict:
         """
         Actualiza una unidad de medida existente.

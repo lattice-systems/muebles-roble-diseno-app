@@ -55,7 +55,8 @@ class RawMaterial(AuditMixin, db.Model):
     production_order_materials = db.relationship(
         "ProductionOrderMaterial",
         back_populates="raw_material",
-        lazy=True
+        lazy=True,
+        cascade="all, delete-orphan"
     )
 
     def to_dict(self) -> dict:

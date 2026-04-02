@@ -107,6 +107,13 @@ class FurnitureTypeService:
         return furniture_type
 
     @staticmethod
+    def get_by_ids(ids: list[int]) -> list[FurnitureType]:
+        """Obtiene multiples tipos de muebles por IDs."""
+        if not ids:
+            return []
+        return FurnitureType.query.filter(FurnitureType.id.in_(ids)).all()
+
+    @staticmethod
     def update(id_furniture_type: int, data: dict) -> dict:
         """
         Actualiza un tipo de mueble existente con validaciones de negocio.
