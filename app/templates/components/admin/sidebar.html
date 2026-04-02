@@ -98,11 +98,11 @@
   </div>
   <div class="py-4 2xl:py-5 overflow-y-auto flex-1">
     <ul class="space-y-1.5 2xl:space-y-2 font-medium">
-      {{ sidebar_link("Dashboard", "#", icon_dashboard, request.endpoint == 'index_admin') }}
-      {{ sidebar_dropdown("Adminsitración",
+      {{ sidebar_link("Dashboard", url_for('index_admin') , icon_dashboard, request.endpoint == 'index_admin') }}
+      {{ sidebar_dropdown("Administración",
             [
             {"label": "Usuarios", "href": url_for('users.index') , "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
-      {"label": "Catalogos", "href": url_for('colors.list_colors'), "icon": icon_catalog, "active": request.endpoint and request.endpoint.startswith('colors.')},
+      {"label": "Catálogos", "href": url_for('catalogs_index'), "icon": icon_catalog, "active": request.endpoint and (request.endpoint.startswith('colors.') or request.endpoint.startswith('furniture_type.') or request.endpoint.startswith('woods_types.') or request.endpoint.startswith('unit_of_measures.') or request.endpoint.startswith('payment_method.'))},
       ],
       icon_admin,
       "dropdown-admin") }}
@@ -130,13 +130,13 @@
       icon_sales,
       "dropdown-sales") }}
       {{ sidebar_dropdown("Análisis",
-      [
-      {"label": "Costos", "href": url_for('costs.index'), "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
+            [
+            {"label": "Costos", "href": url_for('costs.index') , "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
       {"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports, "active": request.endpoint and request.endpoint.startswith('reports.')},
       ],
       icon_analysis,
       "dropdown-analysis") }}
-      {{ sidebar_link("Productos", url_for('products.index') , icon_products) }}
+      {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
       {{ sidebar_link("Control", "#", icon_control) }}
     </ul>
   </div>
