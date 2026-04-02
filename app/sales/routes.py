@@ -305,6 +305,17 @@ def checkout():
         completed_payment = PaymentModel.query.filter_by(id_sale=result["sale_id"]).first()
         send_purchase_email(completed_sale, completed_items, completed_payment, freight)
 
+        # Auto-crear Orden de Cliente (HU-14)
+        from app.customer_orders.services import CustomerOrderService
+        CustomerOrderService.create_from_pos(
+            customer_id=customer_id,
+            cart_items=cart,
+            payment_method_id=payment_method_id,
+            employee_id=current_user.id,
+            total=Decimal(str(result["total"])),
+            sale_id=result["sale_id"],
+        )
+
         session.pop("pos_cart", None)
         session.pop("pos_customer_id", None)
 

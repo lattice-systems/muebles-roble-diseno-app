@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class MaterialCategory(db.Model):
+class MaterialCategory(AuditMixin, db.Model):
     """Modelo para categorías de materia prima."""
 
     __tablename__ = "material_categories"
@@ -23,4 +24,5 @@ class MaterialCategory(db.Model):
             "name": self.name,
             "description": self.description,
             "status": self.status,
+            **self._audit_dict(),
         }

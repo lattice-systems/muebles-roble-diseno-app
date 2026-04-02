@@ -1,9 +1,10 @@
 from sqlalchemy.orm import synonym
 
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Supplier(db.Model):
+class Supplier(AuditMixin, db.Model):
     """Modelo para la tabla suppliers."""
 
     __tablename__ = "suppliers"
@@ -15,15 +16,6 @@ class Supplier(db.Model):
     address = db.Column(db.Text, nullable=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
-    updated_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
-    )
 
     raw_materials = db.relationship("RawMaterial", back_populates="supplier", lazy=True)
 
@@ -40,6 +32,5 @@ class Supplier(db.Model):
             "address": self.address,
             "status": self.status,
             "active": self.active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            **self._audit_dict(),
         }

@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class ProductInventory(db.Model):
+class ProductInventory(AuditMixin, db.Model):
     """Modelo para la tabla product_inventory."""
 
     __tablename__ = "product_inventory"
@@ -17,4 +18,9 @@ class ProductInventory(db.Model):
     )
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "product_id": self.product_id, "stock": self.stock}
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "stock": self.stock,
+            **self._audit_dict(),
+        }

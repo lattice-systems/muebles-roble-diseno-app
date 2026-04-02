@@ -1,9 +1,10 @@
 from sqlalchemy.orm import synonym
 
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class WoodType(db.Model):
+class WoodType(AuditMixin, db.Model):
     """Modelo para la tabla wood_types."""
 
     __tablename__ = "wood_types"
@@ -14,15 +15,6 @@ class WoodType(db.Model):
     description = db.Column(db.Text, nullable=True)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
-    updated_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
-    )
 
     def to_dict(self) -> dict:
         return {
@@ -32,6 +24,5 @@ class WoodType(db.Model):
             "description": self.description,
             "status": self.status,
             "active": self.active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            **self._audit_dict(),
         }

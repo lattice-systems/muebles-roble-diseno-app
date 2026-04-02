@@ -3,9 +3,10 @@ Modelo para la tabla sales (cabecera de venta POS).
 """
 
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Sale(db.Model):
+class Sale(AuditMixin, db.Model):
     """
     Modelo para la tabla sales.
 
@@ -56,4 +57,5 @@ class Sale(db.Model):
             "id_customer": self.id_customer,
             "id_employee": self.id_employee,
             "payment_method_id": self.payment_method_id,
+            **self._audit_dict(),
         }

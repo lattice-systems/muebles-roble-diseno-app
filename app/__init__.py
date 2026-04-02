@@ -1,6 +1,5 @@
 from flask import Flask, redirect, url_for
 from flask_security import SQLAlchemyUserDatastore, auth_required
-from pymongo import MongoClient
 
 from config import Config
 from .exceptions import register_error_handlers
@@ -28,9 +27,6 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
-
-    # Mongo client
-    app.extensions["mongo_client"] = MongoClient(app.config["MONGO_URI"])
 
     # Import models to register them with SQLAlchemy
     from . import models  # noqa: F401
@@ -125,5 +121,9 @@ def create_app():
     from .sales import sales_bp
 
     app.register_blueprint(sales_bp, url_prefix="/sales")
+
+    from .customer_orders import customer_orders_bp
+
+    app.register_blueprint(customer_orders_bp, url_prefix="/customer-orders")
 
     return app

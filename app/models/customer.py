@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Customer(db.Model):
+class Customer(AuditMixin, db.Model):
     """Modelo para la tabla customers."""
 
     __tablename__ = "customers"
@@ -11,7 +12,7 @@ class Customer(db.Model):
     last_name = db.Column(db.String(75), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     phone = db.Column(db.String(30), nullable=False)
-    
+
     # Freight fields
     requires_freight = db.Column(db.Boolean, nullable=False, default=False)
     zip_code = db.Column(db.String(10), nullable=True)
@@ -21,11 +22,8 @@ class Customer(db.Model):
     neighborhood = db.Column(db.String(150), nullable=True)
     exterior_number = db.Column(db.String(20), nullable=True)
     interior_number = db.Column(db.String(20), nullable=True)
-    
+
     status = db.Column(db.Boolean, nullable=False, default=True)
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
 
     orders = db.relationship("Order", back_populates="customer", lazy=True)
 
@@ -50,5 +48,5 @@ class Customer(db.Model):
             "exterior_number": self.exterior_number,
             "interior_number": self.interior_number,
             "status": self.status,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            **self._audit_dict(),
         }

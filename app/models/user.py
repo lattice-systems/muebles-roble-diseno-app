@@ -4,9 +4,10 @@ from flask_security import UserMixin
 from sqlalchemy.orm import synonym
 
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class User(db.Model, UserMixin):
+class User(AuditMixin, db.Model, UserMixin):
     """Modelo para la tabla users."""
 
     __tablename__ = "users"
@@ -25,11 +26,8 @@ class User(db.Model, UserMixin):
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
 
-    role = db.relationship("Role", back_populates="users")
+    role = db.relationship("Role", back_populates="users", foreign_keys=[role_id])
     audit_logs = db.relationship("AuditLog", back_populates="user", lazy=True)
 
     def to_dict(self) -> dict:
@@ -40,5 +38,5 @@ class User(db.Model, UserMixin):
             "role_id": self.role_id,
             "status": self.status,
             "fs_uniquifier": self.fs_uniquifier,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            **self._audit_dict(),
         }

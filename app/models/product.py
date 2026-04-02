@@ -1,7 +1,8 @@
 from ..extensions import db
+from .audit_mixin import AuditMixin
 
 
-class Product(db.Model):
+class Product(AuditMixin, db.Model):
     """Modelo para la tabla products."""
 
     __tablename__ = "products"
@@ -44,4 +45,5 @@ class Product(db.Model):
             "description": self.description,
             "price": float(self.price) if self.price is not None else None,
             "status": self.status,
+            **self._audit_dict(),
         }

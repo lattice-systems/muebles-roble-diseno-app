@@ -2,7 +2,10 @@
 Rutas/Endpoints para el módulo de colores.
 """
 
-from flask import flash, redirect, render_template, request, url_for
+import csv
+from datetime import datetime
+from io import StringIO
+from flask import flash, redirect, render_template, request, url_for, make_response
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 
@@ -163,3 +166,40 @@ def bulk_activate():
     count = ColorService.bulk_activate(ids)
     flash(f"{count} color(es) activado(s) exitosamente", "success")
     return redirect(url_for("colors.list_colors"))
+
+
+@colors_bp.route("/bulk-export", methods=["POST"])
+def bulk_export():
+    """Exportar múltiples colores seleccionados a CSV."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron colores", "error")
+        return redirect(url_for("colors.list_colors"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    colors = ColorService.get_by_ids(ids)
+    if not colors:
+        flash("No se encontraron colores para exportar", "error")
+        return redirect(url_for("colors.list_colors"))
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Nombre", "Codigo Hexadecimal", "Estado", "Descripcion"])
+    for c in colors:
+        writer.writerow([
+            c.id,
+            c.name,
+            c.hex_code or "",
+            "Activo" if c.status else "Inactivo",
+            c.description or ""
+        ])
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Prepend BOM so Excel properly recognizes UTF-8 formatting
+    csv_data = '\ufeff' + output.getvalue()
+
+    response = make_response(csv_data)
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="colores_{timestamp}.csv"'
+    return response
