@@ -1,6 +1,7 @@
 {% extends "layouts/admin.html" %}
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
 {% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
 {% block title %}
   Metodos de Pago - Furniture Store
@@ -181,9 +182,9 @@
                 </td>
                 <td class="px-6 py-4">
                   {% if payment_method.status %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Activo</span>
+                    {{ status_badge('Activo', 'success') }}
                   {% else %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
+                    {{ status_badge('Inactivo', 'danger') }}
                   {% endif %}
                 </td>
                 {{ row_actions_cell_start("px-6 py-4 w-72 min-w-72 whitespace-nowrap text-center") }}

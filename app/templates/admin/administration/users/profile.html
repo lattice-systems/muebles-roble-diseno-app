@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
 {% block title %}
   Perfil - {{ user.full_name }}
 {% endblock title %}
@@ -34,13 +35,9 @@
             <div class="flex flex-col gap-2">
               <label class="text-xs 2xl:text-sm font-medium text-body">Estado</label>
               {% if user.status %}
-                <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft w-fit">
-                  Activado
-                </span>
+                {{ status_badge('Activado', 'success', 'w-fit') }}
               {% else %}
-                <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft w-fit">
-                  Desactivado
-                </span>
+                {{ status_badge('Desactivado', 'danger', 'w-fit') }}
               {% endif %}
             </div>
             <!-- Fecha de creación -->

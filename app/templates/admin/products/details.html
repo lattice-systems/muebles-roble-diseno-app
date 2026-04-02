@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
 {% block title %}
   Admin - Detalle de producto
 {% endblock title %}
@@ -46,9 +47,9 @@
           <span class="text-xs 2xl:text-sm text-body">Estado</span>
           <div>
             {% if product.status %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Activo</span>
+              {{ status_badge('Activo', 'success') }}
             {% else %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
+              {{ status_badge('Inactivo', 'danger') }}
             {% endif %}
           </div>
         </div>

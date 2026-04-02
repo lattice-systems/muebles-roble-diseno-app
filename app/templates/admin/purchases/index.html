@@ -1,6 +1,7 @@
 {% extends "layouts/admin.html" %}
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
 {% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
 {% block title %}
   Admin - Compras
@@ -238,17 +239,17 @@
                 </td>
                 <td class="px-6 py-4">
                   {% if order.status == 'pendiente' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Pendiente</span>
+                    {{ status_badge('Pendiente', 'brand') }}
                   {% elif order.status == 'confirmada' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-info-subtle text-fg-info-strong text-xs 2xl:text-sm font-medium rounded bg-info-soft">Confirmada</span>
+                    {{ status_badge('Confirmada', 'info') }}
                   {% elif order.status == 'recibida_parcial' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning-strong text-xs 2xl:text-sm font-medium rounded bg-warning-soft">Recibida Parcial</span>
+                    {{ status_badge('Recibida Parcial', 'warning') }}
                   {% elif order.status == 'recibida' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Recibida</span>
+                    {{ status_badge('Recibida', 'success') }}
                   {% elif order.status == 'cancelada' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Cancelada</span>
+                    {{ status_badge('Cancelada', 'danger') }}
                   {% else %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-neutral-subtle text-body text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">{{ order.status }}</span>
+                    {{ status_badge(order.status, 'neutral') }}
                   {% endif %}
                 </td>
                 {{ row_actions_cell_start("px-6 py-4 w-48 min-w-48 whitespace-nowrap") }}

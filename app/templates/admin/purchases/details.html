@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
 {% block title %}
   Admin - Detalles de la Orden de Compra
 {% endblock title %}
@@ -27,17 +28,17 @@
           <span class="text-xs 2xl:text-sm font-medium text-heading">Estado actual</span>
           <div>
             {% if order.status == 'pendiente' %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Pendiente</span>
+              {{ status_badge('Pendiente', 'brand') }}
             {% elif order.status == 'confirmada' %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs 2xl:text-sm font-medium rounded bg-brand-soft">Confirmada</span>
+              {{ status_badge('Confirmada', 'brand') }}
             {% elif order.status == 'recibida' %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Recibida</span>
+              {{ status_badge('Recibida', 'success') }}
             {% elif order.status == 'recibida_parcial' %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning-strong text-xs 2xl:text-sm font-medium rounded bg-warning-soft">Recibida Parcial</span>
+              {{ status_badge('Recibida Parcial', 'warning') }}
             {% elif order.status == 'cancelada' %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Cancelada</span>
+              {{ status_badge('Cancelada', 'danger') }}
             {% else %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-neutral-subtle text-body text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">{{ order.status }}</span>
+              {{ status_badge(order.status, 'neutral') }}
             {% endif %}
           </div>
         </div>
