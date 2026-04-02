@@ -19,6 +19,14 @@
             <label for="input-group-1" class="sr-only">Search</label>
             <input type="hidden" name="status" value="{{ status_filter }}">
             <input type="hidden" name="sort" value="{{ sort_by }}">
+            <input type="hidden"
+                   name="date_from"
+                   id="purchase-date-from-hidden"
+                   value="{{ date_from or '' }}">
+            <input type="hidden"
+                   name="date_to"
+                   id="purchase-date-to-hidden"
+                   value="{{ date_to or '' }}">
             <div class="flex flex-col md:flex-row items-center gap-2">
               <div class="relative w-full">
                 <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
@@ -41,24 +49,11 @@
                        placeholder="Buscar por folio o proveedor"
                        onkeypress="if(event.key === 'Enter') this.form.submit();">
               </div>
-              <input type="date"
-                     name="date_from"
-                     value="{{ date_from or '' }}"
-                     class="bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base w-full md:w-32 lg:w-36 px-2 py-2"
-                     title="Fecha desde"
-                     onchange="this.form.submit()">
-              <span class="text-body hidden md:inline">-</span>
-              <input type="date"
-                     name="date_to"
-                     value="{{ date_to or '' }}"
-                     class="bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base w-full md:w-32 lg:w-36 px-2 py-2"
-                     title="Fecha hasta"
-                     onchange="this.form.submit()">
             </div>
           </form>
           {% if search_term or date_from or date_to %}
             <button type="button"
-                    onclick="document.getElementById('input-group-1').value = ''; document.querySelector('input[name=\'date_from\']').value = ''; document.querySelector('input[name=\'date_to\']').value = ''; document.getElementById('searchForm').submit();"
+                    onclick="document.getElementById('input-group-1').value = ''; document.getElementById('purchase-date-from-hidden').value = ''; document.getElementById('purchase-date-to-hidden').value = ''; document.getElementById('filterDateFrom').value = ''; document.getElementById('filterDateTo').value = ''; document.getElementById('searchForm').submit();"
                     class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
                     title="Limpiar búsqueda">Limpiar</button>
           {% endif %}
@@ -133,6 +128,55 @@
                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Canceladas</a>
               </li>
             </ul>
+          </div>
+          <button id="filterDateDropdownButton"
+                  data-dropdown-toggle="filterDateDropdown"
+                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+                  type="button">
+            <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z" />
+            </svg>
+            Fecha
+            <svg class="w-4 h-4 ms-1.5 -me-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+            </svg>
+          </button>
+          <div id="filterDateDropdown"
+               class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-56 p-3">
+            <h6 class="mb-2 text-xs 2xl:text-sm font-medium text-heading">Rango de fecha</h6>
+            <div class="flex flex-col gap-2">
+              <div>
+                <label class="block mb-1 text-xs text-body">Desde</label>
+                <input type="date"
+                       id="filterDateFrom"
+                       value="{{ date_from or '' }}"
+                       class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+              </div>
+              <div>
+                <label class="block mb-1 text-xs text-body">Hasta</label>
+                <input type="date"
+                       id="filterDateTo"
+                       value="{{ date_to or '' }}"
+                       class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+              </div>
+              <button type="button"
+                      id="btnApplyDates"
+                      class="w-full inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+                Aplicar fechas
+              </button>
+            </div>
           </div>
           <button id="actionsDropdownButton"
                   data-dropdown-toggle="actionsDropdown"
@@ -411,6 +455,33 @@
   </div>
   <script>
       document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById('btnApplyDates')?.addEventListener('click', function() {
+              const params = new URLSearchParams(window.location.search);
+              const from = document.getElementById('filterDateFrom')?.value;
+              const to = document.getElementById('filterDateTo')?.value;
+              const hiddenFrom = document.getElementById('purchase-date-from-hidden');
+              const hiddenTo = document.getElementById('purchase-date-to-hidden');
+
+              if (from) {
+                  params.set('date_from', from);
+                  if (hiddenFrom) hiddenFrom.value = from;
+              } else {
+                  params.delete('date_from');
+                  if (hiddenFrom) hiddenFrom.value = '';
+              }
+
+              if (to) {
+                  params.set('date_to', to);
+                  if (hiddenTo) hiddenTo.value = to;
+              } else {
+                  params.delete('date_to');
+                  if (hiddenTo) hiddenTo.value = '';
+              }
+
+              params.delete('page');
+              window.location.href = '{{ url_for("purchases.index") }}?' + params.toString();
+          });
+
           const checkAll = document.getElementById("table-checkbox-all");
           const rowCheckboxes = Array.from(document.querySelectorAll(".order-row-checkbox"));
           const bulkForm = document.getElementById("bulkOrdersActionForm");
