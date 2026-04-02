@@ -10,7 +10,7 @@
         {% endif %}
       {% endfor %}
     {% endif %}
-    {% set query_string = '?' ~ ns.query_parts|join('&') if ns.query_parts else '' %}
+    {% set query_string = '&' ~ ns.query_parts|join('&') if ns.query_parts else '' %}
     <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
          aria-label="Table navigation">
       <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
