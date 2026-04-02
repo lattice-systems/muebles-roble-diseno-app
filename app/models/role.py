@@ -17,7 +17,7 @@ class Role(AuditMixin, db.Model, RoleMixin):
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
 
-    users = db.relationship("User", back_populates="role", lazy=True)
+    users = db.relationship("User", back_populates="role", lazy=True, foreign_keys="User.role_id")
 
     def to_dict(self) -> dict:
         return {

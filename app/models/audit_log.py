@@ -16,7 +16,7 @@ class AuditLog(db.Model):
     previous_data = db.Column(db.JSON, nullable=True)
     new_data = db.Column(db.JSON, nullable=True)
 
-    user = db.relationship("User", back_populates="audit_logs")
+    user = db.relationship("User", back_populates="audit_logs", foreign_keys="AuditLog.user_id")
 
     def to_dict(self) -> dict:
         return {
