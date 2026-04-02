@@ -11,7 +11,7 @@
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      {% call table_header(url_for('users.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre o correo', search_label='Search', hidden_fields=[('status', status_filter)], clear_condition=search_term, clear_onclick="document.getElementById('input-group-1').value = ''; document.getElementById('searchForm').submit();") %}
+      {% call table_header(url_for('users.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre o correo', search_label='Search', hidden_fields=[('status', status_filter)], clear_condition=search_term) %}
         <a id="addUserButton"
            href="{{ url_for('users.create_user') }}"
            class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">

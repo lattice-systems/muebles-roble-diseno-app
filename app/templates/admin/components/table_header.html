@@ -36,10 +36,17 @@
         </div>
       </form>
       {% if clear_condition %}
-        <button type="button"
-                onclick="{{ clear_onclick }}"
-                class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
-                title="Limpiar búsqueda">Limpiar</button>
+        {% if clear_onclick %}
+          <button type="button"
+                  onclick="{{ clear_onclick }}"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                  title="Limpiar búsqueda">Limpiar</button>
+        {% else %}
+          <button type="button"
+                  onclick="const form=this.previousElementSibling; if(form){const input=form.querySelector('input[type=text]'); if(input){input.value='';} form.submit();}"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                  title="Limpiar búsqueda">Limpiar</button>
+        {% endif %}
       {% endif %}
     </div>
     <div class="{{ actions_wrapper_class }}">{{ caller() }}</div>

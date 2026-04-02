@@ -17,7 +17,7 @@
     <!-- Table Card -->
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       <!-- Toolbar -->
-      {% call table_header(url_for('unit_of_measures.list_unit_of_measures'), search_input_id='simple-search', search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por título o código...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')], clear_condition=search_term, clear_onclick="document.getElementById('simple-search').value = ''; document.getElementById('searchForm').submit();") %}
+      {% call table_header(url_for('unit_of_measures.list_unit_of_measures'), search_input_id='simple-search', search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por título o código...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')], clear_condition=search_term) %}
         <!-- + Agregar Button -->
         <button type="button"
                 data-modal-target="createModal"
