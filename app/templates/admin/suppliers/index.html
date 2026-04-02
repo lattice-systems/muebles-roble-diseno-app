@@ -1,6 +1,7 @@
 {% extends "layouts/admin.html" %}
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown, row_status_toggle_button %}
 {% block title %}
   Admin - Proveedores
 {% endblock title %}
@@ -163,70 +164,21 @@
                     <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 w-72 min-w-72 whitespace-nowrap">
-                  <div class="flex flex-row flex-nowrap gap-2.5 2xl:gap-3">
-                    <button id="actionsSupplierDropdownButton-{{ supplier.id }}"
-                            data-dropdown-toggle="actionsSupplierDropdown-{{ supplier.id }}"
-                            class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                            type="button">
-                      Acciones
-                      <svg class="w-4 h-4 ms-1.5 -me-0.5"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           width="24"
-                           height="24"
-                           fill="none"
-                           viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-                      </svg>
-                    </button>
-                    <div id="actionsSupplierDropdown-{{ supplier.id }}"
-                         class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40">
-                      <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
-                          aria-labelledby="actionsSupplierDropdownButton-{{ supplier.id }}">
-                        <li>
-                          <a href="{{ url_for('suppliers.detail_supplier', id_supplier=supplier.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
-                        </li>
-                        <li>
-                          <a href="{{ url_for('suppliers.edit_supplier', id_supplier=supplier.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
-                        </li>
-                      </ul>
-                    </div>
-                    <button data-modal-target="toggle-supplier-status-modal-{{ supplier.id }}"
-                            data-modal-toggle="toggle-supplier-status-modal-{{ supplier.id }}"
-                            class="shrink-0 inline-flex items-center justify-center text-white {% if supplier.status %}bg-danger hover:bg-danger-strong focus:ring-danger-medium{% else %}bg-brand hover:bg-brand-strong focus:ring-brand-medium{% endif %} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                            type="button">
-                      {% if supplier.status %}
-                        <svg class="w-4 h-4 me-1.5 -ms-0.5"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             width="24"
-                             height="24"
-                             fill="none"
-                             viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                      {% else %}
-                        <svg class="w-4 h-4 me-1.5 -ms-0.5"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             width="24"
-                             height="24"
-                             fill="none"
-                             viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                      {% endif %}
-                      {% if supplier.status %}
-                        Desactivar
-                      {% else %}
-                        Activar
-                      {% endif %}
-                    </button>
-                  </div>
-                </td>
+                {{ row_actions_cell_start() }}
+                {{ row_actions_group_start() }}
+                {% call row_actions_dropdown('actionsSupplierDropdownButton-' ~ supplier.id, 'actionsSupplierDropdown-' ~ supplier.id, 'Opciones') %}
+                  <li>
+                    <a href="{{ url_for('suppliers.detail_supplier', id_supplier=supplier.id) }}"
+                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
+                  </li>
+                  <li>
+                    <a href="{{ url_for('suppliers.edit_supplier', id_supplier=supplier.id) }}"
+                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
+                  </li>
+                {% endcall %}
+                {{ row_status_toggle_button('toggle-supplier-status-modal-' ~ supplier.id, supplier.status, 'Desactivar', 'Activar') }}
+                {{ row_actions_group_end() }}
+                {{ row_actions_cell_end() }}
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">

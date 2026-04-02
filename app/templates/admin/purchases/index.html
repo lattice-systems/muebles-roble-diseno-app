@@ -1,6 +1,7 @@
 {% extends "layouts/admin.html" %}
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
 {% block title %}
   Admin - Compras
 {% endblock title %}
@@ -250,42 +251,22 @@
                     <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-neutral-subtle text-body text-xs 2xl:text-sm font-medium rounded bg-neutral-secondary-medium">{{ order.status }}</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 w-48 min-w-48 whitespace-nowrap">
-                  <div class="flex flex-row flex-nowrap gap-2.5 2xl:gap-3">
-                    <button id="actionsOrderDropdownButton-{{ order.id }}"
-                            data-dropdown-toggle="actionsOrderDropdown-{{ order.id }}"
-                            class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                            type="button">
-                      Opciones
-                      <svg class="w-4 h-4 ms-1.5 -me-0.5"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           width="24"
-                           height="24"
-                           fill="none"
-                           viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-                      </svg>
-                    </button>
-                    <!-- Dropdown individual options -->
-                    <div id="actionsOrderDropdown-{{ order.id }}"
-                         class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40">
-                      <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
-                          aria-labelledby="actionsOrderDropdownButton-{{ order.id }}">
-                        <li>
-                          <a href="{{ url_for('purchases.detail_order', id_order=order.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
-                        </li>
-                        {% if order.status == 'pendiente' %}
-                          <li>
-                            <a href="{{ url_for('purchases.edit_order', id_order=order.id) }}"
-                               class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
-                          </li>
-                        {% endif %}
-                      </ul>
-                    </div>
-                  </div>
-                </td>
+                {{ row_actions_cell_start("px-6 py-4 w-48 min-w-48 whitespace-nowrap") }}
+                {{ row_actions_group_start() }}
+                {% call row_actions_dropdown('actionsOrderDropdownButton-' ~ order.id, 'actionsOrderDropdown-' ~ order.id, 'Opciones') %}
+                  <li>
+                    <a href="{{ url_for('purchases.detail_order', id_order=order.id) }}"
+                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
+                  </li>
+                  {% if order.status == 'pendiente' %}
+                    <li>
+                      <a href="{{ url_for('purchases.edit_order', id_order=order.id) }}"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
+                    </li>
+                  {% endif %}
+                {% endcall %}
+                {{ row_actions_group_end() }}
+                {{ row_actions_cell_end() }}
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
