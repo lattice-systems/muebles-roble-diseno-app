@@ -1,0 +1,48 @@
+{% macro table_footer(pagination, endpoint, query_params=None, range_label='Mostrando', of_label='de', previous_label='Anterior', next_label='Siguiente') %}
+  {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
+  {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) < pagination.total else pagination.total %}
+  {% set ns = namespace(query_parts=[]) %}
+  {% if query_params %}
+    {% for key, value in query_params.items() %}
+      {% if value is not none and value != '' %}
+        {% set ns.query_parts = ns.query_parts + [key ~ '=' ~ (value|string)|urlencode] %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% set query_string = '?' ~ ns.query_parts|join('&') if ns.query_parts else '' %}
+  <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
+       aria-label="Table navigation">
+    <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
+      {{ range_label }} <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
+      {{ of_label }} <span class="font-semibold text-heading">{{ pagination.total }}</span>
+    </span>
+    {% if pagination.pages > 1 %}
+      <ul class="flex -space-x-px text-xs 2xl:text-sm">
+        <li>
+          <a href="{{ url_for(endpoint, page=pagination.prev_num if pagination.has_prev else 1) ~ query_string }}"
+             class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
+            {{ previous_label }}
+          </a>
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            <li>
+              <a href="{{ url_for(endpoint, page=p) ~ query_string }}"
+                 {% if p == pagination.page %}aria-current="page" class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% else %} class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% endif %}>{{ p }}</a>
+            </li>
+          {% else %}
+            <li>
+              <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+        <li>
+          <a href="{{ url_for(endpoint, page=pagination.next_num if pagination.has_next else pagination.pages) ~ query_string }}"
+             class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
+            {{ next_label }}
+          </a>
+        </li>
+      </ul>
+    {% endif %}
+  </nav>
+{% endmacro %}
