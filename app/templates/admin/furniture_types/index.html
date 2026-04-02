@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_footer.html" import table_footer %}
 {% block title %}
   Tipos de muebles - Furniture Store
 {% endblock title %}
@@ -276,37 +277,7 @@
           </tbody>
         </table>
       </div>
-      <!-- Pagination -->
-      {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
-      {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) < pagination.total else pagination.total %}
-      <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
-           aria-label="Table navigation">
-        <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span> de <span class="font-semibold text-heading">{{ pagination.total }}</span></span>
-        {% if pagination.pages > 1 %}
-          <ul class="flex -space-x-px text-xs 2xl:text-sm">
-            <li>
-              <a href="{{ url_for('furniture_type.list_furniture_type', page=pagination.prev_num if pagination.has_prev else 1, q=search_term, status=status_filter) }}"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Anterior</a>
-            </li>
-            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-              {% if p %}
-                <li>
-                  <a href="{{ url_for('furniture_type.list_furniture_type', page=p, q=search_term, status=status_filter) }}"
-                     class="flex items-center justify-center px-3 h-9 leading-tight {% if p == pagination.page %}text-heading bg-neutral-secondary-medium border border-default-medium{% else %}text-body bg-neutral-primary-soft border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading{% endif %}">{{ p }}</a>
-                </li>
-              {% else %}
-                <li>
-                  <span class="flex items-center justify-center px-3 h-9 text-body bg-neutral-primary-soft border border-default-medium">...</span>
-                </li>
-              {% endif %}
-            {% endfor %}
-            <li>
-              <a href="{{ url_for('furniture_type.list_furniture_type', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term, status=status_filter) }}"
-                 class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Siguiente</a>
-            </li>
-          </ul>
-        {% endif %}
-      </nav>
+      {{ table_footer(pagination, 'furniture_type.list_furniture_type', {'q': search_term, 'status': status_filter}) }}
       {% if not furniture_types %}
         <div class="p-10 text-center text-body">No hay tipos de mueble registrados.</div>
       {% endif %}

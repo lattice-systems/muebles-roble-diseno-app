@@ -1,4 +1,5 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_footer.html" import table_footer %}
 {% block title %}
   Admin - Costos
 {% endblock title %}
@@ -110,33 +111,7 @@
           </tbody>
         </table>
       </div>
-      <div class="p-4 flex flex-col md:flex-row items-center justify-between gap-3">
-        <span class="text-sm text-body">
-          Showing {{ pagination.first if pagination.total else 0 }}-{{ pagination.last if pagination.total else 0 }} of {{ pagination.total }}
-        </span>
-        {% if pagination.pages > 1 %}
-          <div class="flex items-center gap-1">
-            {% if pagination.has_prev %}
-              <a href="{{ url_for('costs.index', page=pagination.prev_num, q=search_term) }}"
-                 class="px-3 py-2 text-sm rounded-base border border-default-medium bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium">‹</a>
-            {% endif %}
-            {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
-              {% if page_num %}
-                <a href="{{ url_for('costs.index', page=page_num, q=search_term) }}"
-                   class="px-3 py-2 text-sm rounded-base border {% if page_num == pagination.page %}bg-brand text-white border-brand{% else %}border-default-medium bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium{% endif %}">
-                  {{ page_num }}
-                </a>
-              {% else %}
-                <span class="px-2 text-body">...</span>
-              {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-              <a href="{{ url_for('costs.index', page=pagination.next_num, q=search_term) }}"
-                 class="px-3 py-2 text-sm rounded-base border border-default-medium bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium">›</a>
-            {% endif %}
-          </div>
-        {% endif %}
-      </div>
+      {{ table_footer(pagination, 'costs.index', {'q': search_term}) }}
     </div>
   </div>
   <script>
