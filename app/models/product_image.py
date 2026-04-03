@@ -7,8 +7,9 @@ class ProductImage(AuditMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
-    image_path = db.Column(db.String(255), nullable=False)
-    sort_order = db.Column(db.Integer, nullable=False, default=1)
+    image_url = db.Column(db.String(500), nullable=True)
+    public_id = db.Column(db.String(255), nullable=True)
+    sort_order = db.Column(db.Integer, nullable=True)
 
     product = db.relationship("Product", back_populates="images")
 
@@ -16,7 +17,8 @@ class ProductImage(AuditMixin, db.Model):
         return {
             "id": self.id,
             "product_id": self.product_id,
-            "image_path": self.image_path,
+            "image_url": self.image_url,
+            "public_id": self.public_id,
             "sort_order": self.sort_order,
             **self._audit_dict(),
         }
