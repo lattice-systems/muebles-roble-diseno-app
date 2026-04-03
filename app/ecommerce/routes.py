@@ -1,8 +1,9 @@
 """Rutas iniciales para e-commerce."""
 
+from decimal import Decimal
 from urllib.parse import urlparse
 
-from flask import abort, redirect, render_template, request, url_for
+from flask import abort, jsonify, redirect, render_template, request, session, url_for
 
 from . import ecommerce_bp
 from .services import EcommerceService
@@ -28,6 +29,96 @@ def _resolve_redirect_target(default_endpoint: str = "ecommerce.cart"):
         return redirect(requested_target)
 
     return redirect(url_for(default_endpoint))
+
+
+def _build_checkout_form_data(raw_data: dict | None = None) -> dict:
+    data = {
+        "first_name": "",
+        "last_name": "",
+        "company": "",
+        "country": "MX",
+        "street": "",
+        "city": "",
+        "state": "",
+        "zip_code": "",
+        "phone": "",
+        "email": "",
+        "neighborhood": "",
+        "exterior_number": "",
+        "interior_number": "",
+        "notes": "",
+        "delivery_mode": "shipping",
+        "payment_method_id": "",
+    }
+    if raw_data:
+        for key in data:
+            if key in raw_data and raw_data.get(key) is not None:
+                data[key] = str(raw_data.get(key))
+    return data
+
+
+def _render_checkout(
+    *,
+    form_data: dict | None = None,
+    error_message: str | None = None,
+    status_code: int = 200,
+):
+    cart_data = EcommerceService.get_cart()
+    payment_methods = EcommerceService.get_ecommerce_payment_methods()
+    normalized_form_data = _build_checkout_form_data(form_data)
+
+    if (
+        not normalized_form_data.get("payment_method_id")
+        and payment_methods
+        and cart_data.get("total_items", 0) > 0
+    ):
+        normalized_form_data["payment_method_id"] = str(payment_methods[0].id)
+
+    quote_error = None
+    if normalized_form_data["delivery_mode"] == "shipping" and (
+        not normalized_form_data.get("city", "").strip()
+        or not normalized_form_data.get("state", "").strip()
+    ):
+        quote = {
+            "cost": 0.0,
+            "zone": None,
+            "free": False,
+            "delivery_days": 0,
+            "reason": "Completa ciudad y estado para cotizar el envio.",
+            "total_with_freight": float(cart_data.get("total", 0)),
+        }
+    else:
+        try:
+            quote = EcommerceService.quote_freight(
+                delivery_mode=normalized_form_data["delivery_mode"],
+                city=normalized_form_data.get("city", ""),
+                state=normalized_form_data.get("state", ""),
+                cart_total=Decimal(str(cart_data.get("total", 0))),
+            )
+        except Exception:
+            quote = {
+                "cost": 0.0,
+                "zone": None,
+                "free": False,
+                "delivery_days": 0,
+                "reason": "",
+                "total_with_freight": float(cart_data.get("total", 0)),
+            }
+            quote_error = "No fue posible cotizar el envio en este momento."
+
+    return (
+        render_template(
+            "store/checkout.html",
+            cart=cart_data,
+            payment_methods=payment_methods,
+            form_data=normalized_form_data,
+            checkout_error=error_message,
+            quote_error=quote_error,
+            freight_quote=quote,
+            active_section="",
+        ),
+        status_code,
+    )
 
 
 @ecommerce_bp.context_processor
@@ -195,11 +286,142 @@ def clear_cart():
     return _resolve_redirect_target(default_endpoint="ecommerce.cart")
 
 
-@ecommerce_bp.route("/checkout")
+@ecommerce_bp.route("/checkout", methods=["GET"])
 def checkout():
     """Página de finalizar compra."""
-    cart_data = EcommerceService.get_cart()
-    return render_template("store/checkout.html", cart=cart_data, active_section="")
+    return _render_checkout()
+
+
+@ecommerce_bp.route("/checkout", methods=["POST"])
+def process_checkout():
+    """Procesa el checkout de e-commerce y genera la orden."""
+    payload = request.form.to_dict()
+    try:
+        result = EcommerceService.checkout_from_form(payload)
+        order = result["order"]
+
+        from .email_service import send_ecommerce_order_email
+
+        send_ecommerce_order_email(
+            order=order,
+            freight=result["freight"],
+            products_total=result["products_total"],
+        )
+
+        EcommerceService.clear_cart()
+        session["ecommerce_last_order_id"] = order.id
+        session.modified = True
+        return redirect(url_for("ecommerce.checkout_success", order_id=order.id))
+    except ValueError as exc:
+        return _render_checkout(
+            form_data=payload,
+            error_message=str(exc),
+            status_code=400,
+        )
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
+        return _render_checkout(
+            form_data=payload,
+            error_message=(
+                "Ocurrio un error procesando tu pedido. "
+                "Intenta nuevamente en unos minutos."
+            ),
+            status_code=500,
+        )
+
+
+@ecommerce_bp.route("/checkout/success", methods=["GET"])
+def checkout_success():
+    """Muestra el resumen final del ultimo pedido de ecommerce."""
+    order_id_raw = request.args.get("order_id") or session.get(
+        "ecommerce_last_order_id"
+    )
+    if not order_id_raw:
+        return redirect(url_for("ecommerce.checkout"))
+
+    try:
+        order_id = int(order_id_raw)
+    except (TypeError, ValueError):
+        return redirect(url_for("ecommerce.checkout"))
+
+    from app.customer_orders.services import CustomerOrderService
+
+    order = CustomerOrderService.get_order_by_id(order_id)
+    if order.source != "ecommerce":
+        abort(404)
+
+    products_total = sum(float(item.price) * int(item.quantity) for item in order.items)
+    order_total = float(order.total or 0)
+    freight_cost = max(order_total - products_total, 0.0)
+
+    return render_template(
+        "store/checkout_success.html",
+        order=order,
+        products_total=products_total,
+        freight_cost=freight_cost,
+        active_section="",
+    )
+
+
+@ecommerce_bp.route("/api/cp/<string:cp>", methods=["GET"])
+def lookup_cp(cp: str):
+    """Consulta CP usando COPOMEX para autocompletar direccion."""
+    from app.sales.copomex_service import CopomexService
+
+    result = CopomexService.lookup_cp(cp)
+    if result is None:
+        return (
+            jsonify(
+                {
+                    "error": True,
+                    "message": "Codigo postal no encontrado o invalido.",
+                }
+            ),
+            404,
+        )
+
+    return jsonify(
+        {
+            "error": False,
+            "estado": result["estado"],
+            "municipio": result["municipio"],
+            "colonias": result["colonias"],
+        }
+    )
+
+
+@ecommerce_bp.route("/freight/quote", methods=["POST"])
+def freight_quote():
+    """Cotiza flete de checkout para envio/recoleccion."""
+    data = request.get_json(silent=True) or request.form.to_dict()
+    delivery_mode = (data.get("delivery_mode") or "shipping").strip().lower()
+    city = (data.get("city") or "").strip()
+    state = (data.get("state") or "").strip()
+
+    if delivery_mode not in {"shipping", "pickup"}:
+        return jsonify({"error": "Tipo de entrega invalido."}), 400
+
+    if delivery_mode == "shipping" and (not city or not state):
+        return (
+            jsonify({"error": "Ciudad y estado son obligatorios para cotizar envio."}),
+            400,
+        )
+
+    cart_total_raw = data.get("cart_total")
+    try:
+        cart_total = Decimal(str(cart_total_raw))
+    except Exception:
+        cart_total = Decimal(str(EcommerceService.get_cart().get("total", 0)))
+
+    quote = EcommerceService.quote_freight(
+        delivery_mode=delivery_mode,
+        city=city,
+        state=state,
+        cart_total=cart_total,
+    )
+    return jsonify(quote)
 
 
 @ecommerce_bp.route("/contact")

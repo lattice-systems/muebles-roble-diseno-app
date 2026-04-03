@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 import re
+from datetime import date, timedelta
+from decimal import Decimal, InvalidOperation
 from math import ceil
+from types import SimpleNamespace
 
 from flask import session, url_for
 from markupsafe import escape
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
+from app.extensions import db
+from app.models.customer import Customer
 from app.models.furniture_type import FurnitureType
+from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_color import ProductColor
+from app.models.product_inventory import ProductInventory
 
 
 class EcommerceService:
@@ -28,6 +36,14 @@ class EcommerceService:
         "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=400",
     ]
     IVA_RATE = 0.16
+    SHIPPING_REQUIRED_FIELDS = (
+        "zip_code",
+        "state",
+        "city",
+        "street",
+        "neighborhood",
+        "exterior_number",
+    )
 
     @staticmethod
     def get_product_categories() -> list[dict[str, str]]:
@@ -565,4 +581,274 @@ class EcommerceService:
             "total": total_amount,
             "total_items": total_items,
             "iva_rate": EcommerceService.IVA_RATE,
+        }
+
+    @staticmethod
+    def _to_decimal(value: object, default: Decimal = Decimal("0")) -> Decimal:
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def get_ecommerce_payment_methods() -> list[PaymentMethod]:
+        return (
+            PaymentMethod.query.filter_by(status=True, available_ecommerce=True)
+            .order_by(PaymentMethod.id.asc())
+            .all()
+        )
+
+    @staticmethod
+    def quote_freight(
+        *,
+        delivery_mode: str,
+        city: str,
+        state: str,
+        cart_total: Decimal | None = None,
+    ) -> dict[str, object]:
+        cart_total = cart_total or EcommerceService._to_decimal(
+            EcommerceService.get_cart().get("total", 0)
+        )
+
+        if delivery_mode == "pickup":
+            return {
+                "cost": 0.0,
+                "zone": None,
+                "free": False,
+                "delivery_days": 0,
+                "reason": "Recoleccion en tienda",
+                "total_with_freight": float(cart_total),
+            }
+
+        from app.sales.freight_config import calculate_freight
+
+        pseudo_customer = SimpleNamespace(
+            requires_freight=True,
+            city=(city or "").strip(),
+            state=(state or "").strip(),
+        )
+        freight = calculate_freight(pseudo_customer, cart_total)
+        freight_cost = EcommerceService._to_decimal(freight.get("cost", 0))
+
+        return {
+            "cost": float(freight_cost),
+            "zone": freight.get("zone"),
+            "free": bool(freight.get("free", False)),
+            "delivery_days": int(freight.get("delivery_days") or 0),
+            "reason": freight.get("reason") or "",
+            "total_with_freight": float(cart_total + freight_cost),
+        }
+
+    @staticmethod
+    def _upsert_checkout_customer(
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        phone: str,
+        delivery_mode: str,
+        shipping_data: dict[str, str],
+    ) -> Customer:
+        customer = Customer.query.filter(
+            func.lower(Customer.email) == email.lower()
+        ).first()
+
+        if not customer:
+            customer = Customer(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                status=True,
+                requires_freight=(delivery_mode == "shipping"),
+            )
+            db.session.add(customer)
+
+        customer.first_name = first_name
+        customer.last_name = last_name
+        customer.phone = phone
+
+        if delivery_mode == "shipping":
+            customer.requires_freight = True
+            customer.zip_code = shipping_data.get("zip_code")
+            customer.state = shipping_data.get("state")
+            customer.city = shipping_data.get("city")
+            customer.street = shipping_data.get("street")
+            customer.neighborhood = shipping_data.get("neighborhood")
+            customer.exterior_number = shipping_data.get("exterior_number")
+            customer.interior_number = shipping_data.get("interior_number")
+        elif customer.id is None:
+            customer.requires_freight = False
+
+        db.session.flush()
+        return customer
+
+    @staticmethod
+    def checkout_from_form(form_data: dict) -> dict[str, object]:
+        cart_data = EcommerceService.get_cart()
+        if not cart_data["total_items"]:
+            raise ValueError("Tu carrito esta vacio. Agrega productos para continuar.")
+
+        first_name = (form_data.get("first_name") or "").strip()
+        last_name = (form_data.get("last_name") or "").strip()
+        email = (form_data.get("email") or "").strip().lower()
+        phone = (form_data.get("phone") or "").strip()
+        notes = (form_data.get("notes") or "").strip()
+        delivery_mode = (form_data.get("delivery_mode") or "shipping").strip().lower()
+
+        if not first_name or not last_name or not email or not phone:
+            raise ValueError("Nombre, apellido, correo y telefono son obligatorios.")
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+            raise ValueError("El correo electronico no es valido.")
+        if delivery_mode not in {"shipping", "pickup"}:
+            raise ValueError("Selecciona un tipo de entrega valido.")
+
+        payment_method_raw = form_data.get("payment_method_id")
+        try:
+            payment_method_id = int(str(payment_method_raw))
+        except (TypeError, ValueError):
+            raise ValueError("Selecciona un metodo de pago valido.")
+
+        payment_method = PaymentMethod.query.filter_by(
+            id=payment_method_id,
+            status=True,
+            available_ecommerce=True,
+        ).first()
+        if not payment_method:
+            raise ValueError(
+                "El metodo de pago seleccionado no esta disponible en ecommerce."
+            )
+
+        shipping_data = {
+            "zip_code": (form_data.get("zip_code") or "").strip(),
+            "state": (form_data.get("state") or "").strip(),
+            "city": (form_data.get("city") or "").strip(),
+            "street": (form_data.get("street") or "").strip(),
+            "neighborhood": (form_data.get("neighborhood") or "").strip(),
+            "exterior_number": (form_data.get("exterior_number") or "").strip(),
+            "interior_number": (form_data.get("interior_number") or "").strip() or None,
+        }
+
+        if delivery_mode == "shipping":
+            missing_labels = {
+                "zip_code": "Codigo postal",
+                "state": "Estado",
+                "city": "Ciudad",
+                "street": "Calle",
+                "neighborhood": "Colonia",
+                "exterior_number": "Numero exterior",
+            }
+            missing = [
+                missing_labels[field]
+                for field in EcommerceService.SHIPPING_REQUIRED_FIELDS
+                if not shipping_data.get(field)
+            ]
+            if missing:
+                raise ValueError(
+                    "Faltan campos obligatorios de envio: " + ", ".join(missing) + "."
+                )
+            if not re.fullmatch(r"\d{5}", shipping_data["zip_code"]):
+                raise ValueError("El codigo postal debe tener 5 digitos.")
+
+        customer = EcommerceService._upsert_checkout_customer(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            delivery_mode=delivery_mode,
+            shipping_data=shipping_data,
+        )
+
+        cart_items = cart_data["cart_items"]
+        products_total = EcommerceService._to_decimal(
+            sum(float(item["subtotal"]) for item in cart_items)
+        )
+
+        freight_data = EcommerceService.quote_freight(
+            delivery_mode=delivery_mode,
+            city=shipping_data.get("city", ""),
+            state=shipping_data.get("state", ""),
+            cart_total=products_total,
+        )
+        freight_cost = EcommerceService._to_decimal(freight_data.get("cost", 0))
+        order_total = products_total + freight_cost
+
+        normalized_items: list[dict[str, object]] = []
+        stock_updates: list[tuple[ProductInventory, int, str]] = []
+
+        for item in cart_items:
+            product_payload = item.get("product") or {}
+            product_id = int(product_payload.get("id"))
+            quantity = int(item.get("quantity", 0))
+            product_name = str(product_payload.get("title") or f"ID {product_id}")
+            unit_price = EcommerceService._to_decimal(product_payload.get("price"))
+
+            if quantity <= 0:
+                raise ValueError(f"Cantidad invalida para '{product_name}'.")
+
+            inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+            if not inventory or inventory.stock < quantity:
+                available = inventory.stock if inventory else 0
+                raise ValueError(
+                    f"Stock insuficiente para '{product_name}'. "
+                    f"Disponible: {available}, solicitado: {quantity}."
+                )
+
+            normalized_items.append(
+                {
+                    "product_id": product_id,
+                    "quantity": quantity,
+                    "price": float(unit_price),
+                }
+            )
+            stock_updates.append((inventory, quantity, product_name))
+
+        for inventory, quantity, product_name in stock_updates:
+            inventory.stock -= quantity
+            if inventory.stock < 0:
+                raise ValueError(
+                    f"Inventario negativo detectado para '{product_name}'."
+                )
+
+        estimated_delivery_date = date.today()
+        delivery_days = int(freight_data.get("delivery_days") or 0)
+        if delivery_days > 0:
+            estimated_delivery_date = date.today() + timedelta(days=delivery_days)
+
+        notes_parts = []
+        if notes:
+            notes_parts.append(notes)
+        if delivery_mode == "shipping":
+            notes_parts.append(
+                "Entrega: envio a domicilio."
+                + (f" {freight_data['reason']}" if freight_data.get("reason") else "")
+            )
+        else:
+            notes_parts.append("Entrega: recoleccion en tienda.")
+
+        final_notes = " ".join(notes_parts).strip()
+
+        from app.customer_orders.services import CustomerOrderService
+
+        try:
+            order = CustomerOrderService.create_from_ecommerce(
+                customer_id=customer.id,
+                cart_items=normalized_items,
+                payment_method_id=payment_method.id,
+                total=order_total,
+                notes=final_notes,
+                estimated_delivery_date=estimated_delivery_date,
+            )
+        except Exception:
+            db.session.rollback()
+            raise
+
+        return {
+            "order": order,
+            "customer": customer,
+            "payment_method": payment_method,
+            "freight": freight_data,
+            "products_total": float(products_total),
+            "total": float(order_total),
+            "cart": cart_data,
         }

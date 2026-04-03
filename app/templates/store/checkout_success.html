@@ -1,0 +1,78 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Pedido Confirmado | Roble & Diseño
+{% endblock title %}
+{% block content %}
+  <div class="relative bg-slate-200 py-20 flex flex-col items-center justify-center">
+    <div class="absolute inset-0 overflow-hidden bg-white/70">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=2000"
+           alt="Pedido confirmado"
+           class="w-full h-full object-cover opacity-30 mix-blend-multiply blur-[2px]" />
+    </div>
+    <div class="relative z-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-heading mb-4">Pedido confirmado</h1>
+      <p class="text-body">Tu orden se registró correctamente.</p>
+    </div>
+  </div>
+  <section class="max-w-5xl mx-auto px-6 py-16">
+    <div class="bg-slate-50 border border-slate-200 rounded-lg p-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <p class="text-sm text-body-subtle">Folio</p>
+          <p class="text-2xl font-bold text-heading">#{{ "%06d"|format(order.id) }}</p>
+        </div>
+        <div class="text-sm text-body-subtle">
+          <p>Fecha: {{ order.order_date.strftime("%d/%m/%Y %H:%M") if order.order_date else "N/D" }}</p>
+          <p>
+            Entrega estimada: {{ order.estimated_delivery_date.strftime("%d/%m/%Y") if order.estimated_delivery_date else "Por confirmar" }}
+          </p>
+          <p>Método de pago: {{ order.payment_method.name if order.payment_method else "Sin método" }}</p>
+        </div>
+      </div>
+      <div class="border-t border-slate-200 pt-6">
+        <h2 class="text-xl font-semibold text-heading mb-4">Resumen del pedido</h2>
+        <div class="space-y-3">
+          {% for item in order.items %}
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-body-subtle">
+                {{ item.product.name if item.product else ("Producto #" ~ item.product_id) }}
+                <strong class="text-heading">x {{ item.quantity }}</strong>
+              </span>
+              <span class="text-body font-medium">Mx. {{ "{:,.2f}".format((item.price * item.quantity) |float) }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-200 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-heading font-medium">Productos</span>
+            <span class="text-body">Mx. {{ "{:,.2f}".format(products_total) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-heading font-medium">Envío</span>
+            <span class="text-body">
+              {% if freight_cost > 0 %}
+                Mx. {{ "{:,.2f}".format(freight_cost) }}
+              {% else %}
+                Sin costo
+              {% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between text-lg pt-2">
+            <span class="text-heading font-semibold">Total</span>
+            <span class="text-sky-900 font-bold">Mx. {{ "{:,.2f}".format(order.total|float) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 flex flex-col sm:flex-row gap-3">
+        <a href="{{ url_for('ecommerce.products') }}"
+           class="w-full sm:w-auto text-center py-3 px-6 rounded-md border border-heading text-heading font-semibold hover:bg-heading hover:text-white transition-colors">
+          Seguir comprando
+        </a>
+        <a href="{{ url_for('ecommerce.home') }}"
+           class="w-full sm:w-auto text-center py-3 px-6 rounded-md border border-slate-300 text-body font-semibold hover:bg-slate-100 transition-colors">
+          Volver al inicio
+        </a>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
