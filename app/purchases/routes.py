@@ -81,6 +81,7 @@ def create_order():
         # Extraemos los arreglos provenientes del formulario dinámico de ítems
         rm_ids = request.form.getlist("raw_material_id[]")
         quantities = request.form.getlist("quantity[]")
+        conversion_factors = request.form.getlist("conversion_factor[]")
         prices = request.form.getlist("unit_price[]")
 
         items_data = []
@@ -89,6 +90,11 @@ def create_order():
                 {
                     "raw_material_id": int(rm_ids[i]),
                     "quantity": float(quantities[i]) if quantities[i] else 0,
+                    "conversion_factor": (
+                        float(conversion_factors[i])
+                        if i < len(conversion_factors) and conversion_factors[i]
+                        else 1.0
+                    ),
                     "unit_price": float(prices[i]) if prices[i] else 0,
                 }
             )
@@ -147,6 +153,7 @@ def edit_order(id_order: int):
     elif form.validate_on_submit():
         rm_ids = request.form.getlist("raw_material_id[]")
         quantities = request.form.getlist("quantity[]")
+        conversion_factors = request.form.getlist("conversion_factor[]")
         prices = request.form.getlist("unit_price[]")
 
         items_data = []
@@ -155,6 +162,11 @@ def edit_order(id_order: int):
                 {
                     "raw_material_id": int(rm_ids[i]),
                     "quantity": float(quantities[i]) if quantities[i] else 0,
+                    "conversion_factor": (
+                        float(conversion_factors[i])
+                        if i < len(conversion_factors) and conversion_factors[i]
+                        else 1.0
+                    ),
                     "unit_price": float(prices[i]) if prices[i] else 0,
                 }
             )

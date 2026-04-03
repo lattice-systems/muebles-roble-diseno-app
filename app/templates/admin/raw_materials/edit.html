@@ -1,99 +1,86 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-  Admin - Editar materia prima
+  Admin - Editar Materia Prima
 {% endblock title %}
 {% block content %}
   <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
     <div class="flex flex-col gap-1">
       <h1 class="text-heading text-base 2xl:text-lg font-medium">Editar materia prima</h1>
-      <p class="text-body">Actualiza la información de la materia prima seleccionada</p>
+      <p class="text-body">Actualiza los datos base y planificación de la materia prima.</p>
     </div>
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
-      <form id="editRawMaterialForm"
-            method="post"
+      <form method="post"
             action="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
             class="flex flex-col gap-2.5 2xl:gap-4">
-        {{ form.hidden_tag() }}
+        {{ form.csrf_token }}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
-          <div class="flex flex-col gap-1">
-            <label for="{{ form.name.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.name.label.text }}</label>
-            {{ form.name(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.name.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
-          </div>
-          <div class="flex flex-col gap-1">
-            <label for="{{ form.category_id.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.category_id.label.text }}</label>
-            {{ form.category_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.category_id.errors %}
-              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+          <!-- Nombre -->
+          <div class="flex flex-col gap-1 md:col-span-2">
+            {{ form.name.label(class="text-xs 2xl:text-sm font-medium text-heading") }}
+            {{ form.name(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="Ej: Madera de Pino", required=true) }}
+            {% for error in form.name.errors %}
+              <span class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</span>
             {% endfor %}
           </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <!-- Categoría -->
           <div class="flex flex-col gap-1">
-            <label for="{{ form.unit_id.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.unit_id.label.text }}</label>
-            {{ form.unit_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.unit_id.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+            {{ form.category_id.label(class="text-xs 2xl:text-sm font-medium text-heading") }}
+            {{ form.category_id(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", required=true) }}
           </div>
+          <!-- Unidad de Medida -->
           <div class="flex flex-col gap-1">
-            <label for="{{ form.supplier_id.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.supplier_id.label.text }}</label>
-            {{ form.supplier_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.supplier_id.errors %}
-              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
-            {% endfor %}
+            {{ form.unit_id.label(class="text-xs 2xl:text-sm font-medium text-heading") }}
+            {{ form.unit_id(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", required=true) }}
           </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
+          <!-- Porcentaje de Merma -->
           <div class="flex flex-col gap-1">
-            <label for="{{ form.stock.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.stock.label.text }}</label>
-            {{ form.stock(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.stock.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
-          </div>
-          <div class="flex flex-col gap-1">
-            <label for="{{ form.estimated_cost.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.estimated_cost.label.text }}</label>
-            {{ form.estimated_cost(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.estimated_cost.errors %}
-              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
-          <div class="flex flex-col gap-1">
-            <label for="{{ form.waste_percentage.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.waste_percentage.label.text }}</label>
-            {{ form.waste_percentage(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            <label class="text-xs 2xl:text-sm font-medium text-heading flex items-center justify-between">
+              {{ form.waste_percentage.label.text }}
+              <div class="relative group">
+                <span class="cursor-pointer text-brand hover:text-brand-strong bg-brand-softer rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-bold">?</span>
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-neutral-primary text-body text-xs rounded border border-default-strong shadow-lg z-10">
+                  Porcentaje estimado que se desperdicia en la transformación. Usado para estimación de costos y requerimientos.
+                </div>
+              </div>
+            </label>
+            <div class="relative">
+              {{ form.waste_percentage(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 pr-8 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="15") }}
+              <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-body text-xs 2xl:text-sm">%</span>
+            </div>
             {% for error in form.waste_percentage.errors %}
-              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+              <span class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</span>
             {% endfor %}
           </div>
+          <!-- Estado -->
           <div class="flex flex-col gap-1">
-            <label for="{{ form.status.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.status.label.text }}</label>
-            {{ form.status(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
-            {% for error in form.status.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
+            {{ form.status.label(class="text-xs 2xl:text-sm font-medium text-heading") }}
+            {{ form.status(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+          </div>
+          <!-- Descripción -->
+          <div class="flex flex-col gap-1 md:col-span-2">
+            {{ form.description.label(class="text-xs 2xl:text-sm font-medium text-heading") }}
+            {{ form.description(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body h-24", placeholder="Detalles adicionales opcionales") }}
+            {% for error in form.description.errors %}
+              <span class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</span>
+            {% endfor %}
           </div>
         </div>
-        <div class="flex flex-col gap-1">
-          <label for="{{ form.description.id }}"
-                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.description.label.text }}</label>
-          {{ form.description(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", rows="3") }}
-          {% for error in form.description.errors %}
-            <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
-          {% endfor %}
+        <!-- Aviso de Stock -->
+        <div class="mt-4 flex flex-col gap-1 md:col-span-2">
+          <label class="text-xs 2xl:text-sm font-medium text-heading">Stock Actual (No editable)</label>
+          <div class="bg-neutral-secondary border border-default overflow-hidden rounded-base flex gap-3 text-xs 2xl:text-sm text-body px-3 py-2 items-center cursor-not-allowed opacity-75">
+            <span class="font-bold text-heading">{{ raw_material.stock }}</span>
+            <span>{{ raw_material.unit.abbreviation if raw_material.unit else '' }}</span>
+            <span class="ml-auto text-xs opacity-75">Modificable vía recepción de compras o ajustes manuales.</span>
+          </div>
         </div>
-        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
-          <a href="{{ url_for('raw_materials.list_raw_materials') }}"
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-4 border-t border-default-medium">
+          <a href="{{ session.get('raw_materials_list_url', url_for('raw_materials.index') ) }}"
              class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
             Volver
           </a>
-          <button id="openConfirmEditRawMaterialModalBtn"
-                  type="button"
+          <button type="submit"
                   class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
             Guardar cambios
           </button>
@@ -102,82 +89,3 @@
     </div>
   </div>
 {% endblock content %}
-{% block modals %}
-  <div id="confirmEditRawMaterialModal"
-       tabindex="-1"
-       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
-      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
-        <button type="button"
-                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
-                data-modal-hide="confirmEditRawMaterialModal">
-          <svg class="w-5 h-5"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
-          </svg>
-          <span class="sr-only">Cerrar modal</span>
-        </button>
-        <div class="p-3 2xl:p-4 md:p-5 text-center">
-          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-          <h3 class="mb-6 text-body">¿Estás seguro que deseas guardar los cambios de esta materia prima?</h3>
-          <div class="flex items-center space-x-4 justify-center">
-            <button id="confirmEditRawMaterialSubmitBtn"
-                    type="button"
-                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-              Sí, guardar
-            </button>
-            <button data-modal-hide="confirmEditRawMaterialModal"
-                    type="button"
-                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-              No, cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          const form = document.getElementById("editRawMaterialForm");
-          const modalElement = document.getElementById("confirmEditRawMaterialModal");
-          const openModalBtn = document.getElementById("openConfirmEditRawMaterialModalBtn");
-          const confirmSubmitBtn = document.getElementById("confirmEditRawMaterialSubmitBtn");
-
-          if (!form || !modalElement || !openModalBtn || !confirmSubmitBtn) {
-              return;
-          }
-
-          const modal = new Modal(modalElement);
-
-          openModalBtn.addEventListener("click", function() {
-              if (!form.checkValidity()) {
-                  form.reportValidity();
-                  return;
-              }
-              modal.show();
-          });
-
-          confirmSubmitBtn.addEventListener("click", function() {
-              if (!form.checkValidity()) {
-                  modal.hide();
-                  form.reportValidity();
-                  return;
-              }
-              form.requestSubmit();
-          });
-      });
-  </script>
-{% endblock modals %}
