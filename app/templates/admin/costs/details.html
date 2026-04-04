@@ -2,26 +2,21 @@
 {% block title %}
   Admin - Detalle de costos
 {% endblock title %}
-
 {% block content %}
   <div class="max-w-7xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de detalle de costos</h1>
-      <p class="text-body">Detalle de costos de producción de un producto</p>
-    </div>
-
+    {% set admin_header_title = "Detalle de detalle de costos" %}
+    {% set admin_header_subtitle = "Detalle de costos de producción de un producto" %}
+    {% include "admin/components/page_header.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6 flex flex-col gap-6">
       <div class="flex flex-col gap-1">
         <h2 class="text-heading text-lg 2xl:text-xl font-semibold">{{ detail.product.name }}</h2>
         <span class="text-body text-sm">SKU: {{ detail.product.sku }}</span>
         <span class="text-body text-sm">Versión de receta: {{ detail.summary.recipe_version }}</span>
       </div>
-
       <div class="rounded-base border border-default overflow-hidden">
         <div class="px-4 py-3 border-b border-default-medium bg-neutral-secondary-medium">
           <h3 class="text-heading font-medium">Materiales</h3>
         </div>
-
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left text-body">
             <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
@@ -54,7 +49,6 @@
           </table>
         </div>
       </div>
-
       <div class="flex flex-col gap-2 text-sm">
         <p class="text-heading">Costo total: ${{ "%.2f"|format(detail.summary.total_cost|float) }}</p>
         <p class="text-heading">Precio venta: ${{ "%.2f"|format(detail.summary.sale_price|float) }}</p>
@@ -67,7 +61,6 @@
           {% endif %}
         </p>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
         <div class="relative">
           <button type="button"
@@ -78,14 +71,9 @@
                  xmlns="http://www.w3.org/2000/svg"
                  fill="none"
                  viewBox="0 0 10 6">
-              <path stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.5"
-                    d="m1 1 4 4 4-4"/>
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m1 1 4 4 4-4" />
             </svg>
           </button>
-
           <div id="detail-actions-dropdown"
                class="hidden absolute left-0 z-10 mt-2 w-full rounded-base border border-default-medium bg-white shadow-lg">
             <div class="py-1">
@@ -100,7 +88,6 @@
             </div>
           </div>
         </div>
-
         <a href="{{ url_for('costs.index') }}"
            class="w-full inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium rounded-base text-sm px-5 py-3 focus:outline-none">
           Cancelar
@@ -108,22 +95,21 @@
       </div>
     </div>
   </div>
-
   <script>
-    function toggleDetailDropdown() {
-      document.getElementById('detail-actions-dropdown').classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', function(event) {
-      const isButton = event.target.closest('button');
-      const isDropdown = event.target.closest('#detail-actions-dropdown');
-
-      if (!isButton && !isDropdown) {
-        const dropdown = document.getElementById('detail-actions-dropdown');
-        if (dropdown) {
-          dropdown.classList.add('hidden');
-        }
+      function toggleDetailDropdown() {
+          document.getElementById('detail-actions-dropdown').classList.toggle('hidden');
       }
-    });
+
+      document.addEventListener('click', function(event) {
+          const isButton = event.target.closest('button');
+          const isDropdown = event.target.closest('#detail-actions-dropdown');
+
+          if (!isButton && !isDropdown) {
+              const dropdown = document.getElementById('detail-actions-dropdown');
+              if (dropdown) {
+                  dropdown.classList.add('hidden');
+              }
+          }
+      });
   </script>
 {% endblock content %}

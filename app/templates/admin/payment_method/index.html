@@ -1,684 +1,802 @@
 {% extends "layouts/admin.html" %}
+{% from "admin/components/table_header.html" import table_header %}
+{% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
 {% block title %}
-Metodos de Pago - Furniture Store
+  Metodos de Pago - Furniture Store
 {% endblock title %}
 {% block content %}
-<div class="flex flex-col gap-4">
-  {% set active_tab = "payment_method" %}
-  {% include 'admin/components/catalog_tabs.html' %}
-  <!-- Header Section -->
-  <div>
-    <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Metodos de Pago</h1>
-    <p class="mt-1 text-sm font-normal text-gray-500">Gestiona los metodos de pago existentes o añade uno nuevo</p>
-  </div>
-  <!-- Messages / Flash -->
-  {% include 'admin/components/alerts.html' %}
-  <!-- Table Card -->
+  <div class="flex flex-col gap-4">
+    {% set active_tab = "payment_method" %}
+    {% include 'admin/components/catalog_tabs.html' %}
+    {% set admin_header_title = "Metodos de Pago" %}
+    {% set admin_header_subtitle = "Gestiona los metodos de pago existentes o añade uno nuevo" %}
+    {% include "admin/components/page_header.html" %}
+    <!-- Messages / Flash -->
+    {% include 'admin/components/alerts.html' %}
+    <!-- Table Card -->
     <!-- Table Card -->
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       <!-- Toolbar -->
-      <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">
-        <div class="flex w-full max-w-96 items-center gap-2">
-          <form class="w-full" method="get" action="{{ url_for('payment_method.list_payment_method') }}" id="searchForm">
-            <label for="simple-search" class="sr-only">Buscar</label>
-            <input type="hidden" name="status" value="{{ status_filter if status_filter else 'all' }}">
-            <div class="relative">
-              <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path>
-                </svg>
-              </div>
-              <input type="text" id="simple-search" name="q" value="{{ search_term if search_term else '' }}" class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" placeholder="Buscar por título o código..." onkeypress="if(event.key === 'Enter') this.form.submit();">
-            </div>
-          </form>
-          {% if search_term %}
-          <button type="button" onclick="document.getElementById('simple-search').value = ''; document.getElementById('searchForm').submit();" class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none" title="Limpiar búsqueda">
-            Limpiar
-          </button>
-          {% endif %}
+      {% call table_header(url_for('payment_method.list_payment_method'), search_input_id='simple-search', search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por título o código...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')], clear_condition=search_term) %}
+        <!-- + Agregar Button -->
+        <button type="button"
+                data-modal-target="createModal"
+                data-modal-toggle="createModal"
+                class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
+          </svg>
+          Agregar
+        </button>
+        <!-- Filter Dropdown -->
+        <button id="filterDropdownButton"
+                data-dropdown-toggle="filterDropdown"
+                class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+                type="button">
+          <svg class="w-4 h-4 me-1.5 -ms-0.5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z">
+            </path>
+          </svg>
+          Filtrar
+          <svg class="w-4 h-4 ms-1.5 -me-0.5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div id="filterDropdown"
+             class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
+          <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
+              aria-labelledby="filterDropdownButton">
+            <li>
+              <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='all') }}"
+                 class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Todos</a>
+            </li>
+            <li>
+              <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='active') }}"
+                 class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activos</a>
+            </li>
+            <li>
+              <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='inactive') }}"
+                 class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Inactivos</a>
+            </li>
+          </ul>
         </div>
-        <div class="flex flex-row gap-2.5 2xl:gap-3">
-          <!-- + Agregar Button -->
-          <button type="button" data-modal-target="createModal" data-modal-toggle="createModal" class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-            <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
-            </svg>
-            Agregar
-          </button>
-          <!-- Filter Dropdown -->
-          <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown" class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5" type="button">
-            <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"></path>
-            </svg>
-            Filtrar
-            <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-            </svg>
-          </button>
-          <div id="filterDropdown" class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-32">
-            <ul class="p-2 text-xs 2xl:text-sm text-body font-medium" aria-labelledby="filterDropdownButton">
-              <li>
-                <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='all') }}" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Todos</a>
-              </li>
-              <li>
-                <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='active') }}" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activos</a>
-              </li>
-              <li>
-                <a href="{{ url_for('payment_method.list_payment_method', q=search_term, status='inactive') }}" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Inactivos</a>
-              </li>
-            </ul>
-          </div>
-          <!-- Acciones Dropdown -->
-          <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown" class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5" type="button">
-            Acciones
-            <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-            </svg>
-          </button>
-          <div id="actionsDropdown" class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-48">
-            <ul class="p-2 text-xs 2xl:text-sm text-body font-medium" aria-labelledby="actionsDropdownButton">
-              <li>
-                <button type="button" id="bulkExportBtn" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Exportar seleccionados</button>
-              </li>
-              <li>
-                <button type="button" id="bulkActivateBtn" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activar seleccionados</button>
-              </li>
-              <li>
-                <button type="button" id="bulkDeactivateBtn" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Desactivar seleccionados</button>
-              </li>
-            </ul>
-          </div>
+        <!-- Acciones Dropdown -->
+        <button id="actionsDropdownButton"
+                data-dropdown-toggle="actionsDropdown"
+                class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+                type="button">
+          Acciones
+          <svg class="w-4 h-4 ms-1.5 -me-0.5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div id="actionsDropdown"
+             class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-48">
+          <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
+              aria-labelledby="actionsDropdownButton">
+            <li>
+              <button type="button"
+                      id="bulkExportBtn"
+                      class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                Exportar seleccionados
+              </button>
+            </li>
+            <li>
+              <button type="button"
+                      id="bulkActivateBtn"
+                      class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                Activar seleccionados
+              </button>
+            </li>
+            <li>
+              <button type="button"
+                      id="bulkDeactivateBtn"
+                      class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                Desactivar seleccionados
+              </button>
+            </li>
+          </ul>
         </div>
-      </div>
+      {% endcall %}
       <!-- Table -->
       <div class="relative w-full overflow-x-auto bg-neutral-primary-soft shadow-xs">
         <table class="w-full min-w-4xl table-auto text-xs 2xl:text-sm text-left rtl:text-right text-body">
           <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
-          <tr>
-            <th scope="col" class="p-3 2xl:p-4">
-              <div class="flex items-center">
-                <input id="checkbox-all" type="checkbox"
-                  class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-              </div>
-            </th>
-            <th scope="col" class="px-6 py-3 font-medium">Nombre</th>
-            <th scope="col" class="px-6 py-3 font-medium">Tipo</th>
-            <th scope="col" class="px-6 py-3 font-medium">Descripción</th>
-            <th scope="col" class="px-6 py-3 font-medium">Disponibilidad</th>
-            <th scope="col" class="px-6 py-3 font-medium">Estado</th>
-            <th scope="col" class="px-6 py-3 font-medium w-72 min-w-72 whitespace-nowrap text-center">
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for payment_method in payment_methods %}
-          <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
-            <td class="w-4 p-3 2xl:p-4">
-              <div class="flex items-center">
-                <input id="checkbox-{{ payment_method.id_payment_method }}" type="checkbox"
-                  class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-              </div>
-            </td>
-            <th scope="row" class="px-6 py-4 font-medium text-heading truncate max-w-[150px]" title="{{ payment_method.name }}">{{ payment_method.name }}</th>
-            <td class="px-6 py-4 truncate max-w-[100px]" title="{{ payment_method.type|capitalize|replace('_', ' ') }}">
-              {{ payment_method.type|capitalize|replace('_', ' ') }}</td>
-            <td class="px-6 py-4 truncate max-w-[100px] md:max-w-[150px]"
-              title="{{ payment_method.description or 'Sin descripción' }}">{{ payment_method.description or '<span
-                class="text-gray-400 italic">Sin descripción</span>'|safe }}</td>
-            <td class="px-6 py-4">
-              <div class="flex gap-1 flex-wrap">
-                {% if payment_method.available_pos %}
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">POS</span>
-                {% else %}
-                <span
-                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">POS</span>
-                {% endif %}
-
-                {% if payment_method.available_ecommerce %}
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">Web</span>
-                {% else %}
-                <span
-                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">Web</span>
-                {% endif %}
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              {% if payment_method.status %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Activo</span>
-              {% else %}
-              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
-              {% endif %}
-            </td>
-            <td class="px-6 py-4 w-72 min-w-72 whitespace-nowrap text-center">
-              <div class="flex flex-row flex-nowrap items-center justify-center gap-2.5 2xl:gap-3">
-                <!-- Actions dropdown button -->
-                <button id="actionsDropdownBtn-{{ payment_method.id_payment_method }}"
-                  data-dropdown-toggle="actionsDropdownList-{{ payment_method.id_payment_method }}"
-                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                  type="button">
-                  Acciones
-                </button>
-                <!-- Actions Dropdown Menu -->
-                <div id="actionsDropdownList-{{ payment_method.id_payment_method }}" class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40">
-                  <ul class="p-2 text-xs 2xl:text-sm text-body font-medium" aria-labelledby="actionsDropdownBtn-{{ payment_method.id_payment_method }}">
-                    <li>
-                      <button type="button" data-modal-target="editModal-{{ payment_method.id_payment_method }}" data-modal-toggle="editModal-{{ payment_method.id_payment_method }}" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</button>
-                    </li>
-                  </ul>
+            <tr>
+              <th scope="col" class="p-3 2xl:p-4">
+                <div class="flex items-center">
+                  <input id="checkbox-all"
+                         type="checkbox"
+                         class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
                 </div>
-                <!-- Desactivar / Activar button -->
-                <form id="toggleForm-{{ payment_method.id_payment_method }}" method="post"
-                  action="{{ url_for('payment_method.delete_payment_method', id_payment_method=payment_method.id_payment_method) }}" class="inline">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}" />
+              </th>
+              <th scope="col" class="px-6 py-3 font-medium">Nombre</th>
+              <th scope="col" class="px-6 py-3 font-medium">Tipo</th>
+              <th scope="col" class="px-6 py-3 font-medium">Descripción</th>
+              <th scope="col" class="px-6 py-3 font-medium">Disponibilidad</th>
+              <th scope="col" class="px-6 py-3 font-medium">Estado</th>
+              <th scope="col"
+                  class="px-6 py-3 font-medium w-72 min-w-72 whitespace-nowrap text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payment_method in payment_methods %}
+              <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                <td class="w-4 p-3 2xl:p-4">
+                  <div class="flex items-center">
+                    <input id="checkbox-{{ payment_method.id_payment_method }}"
+                           type="checkbox"
+                           class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  </div>
+                </td>
+                <th scope="row"
+                    class="px-6 py-4 font-medium text-heading truncate max-w-[150px]"
+                    title="{{ payment_method.name }}">{{ payment_method.name }}</th>
+                <td class="px-6 py-4 truncate max-w-[100px]"
+                    title="{{ payment_method.type|capitalize|replace('_', ' ') }}">
+                  {{ payment_method.type|capitalize|replace('_', ' ') }}
+                </td>
+                <td class="px-6 py-4 truncate max-w-[100px] md:max-w-[150px]"
+                    title="{{ payment_method.description or 'Sin descripción' }}">
+                  {{ payment_method.description or '<span class="text-gray-400 italic">Sin descripción</span>'|safe }}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-1 flex-wrap">
+                    {% if payment_method.available_pos %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">POS</span>
+                    {% else %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">POS</span>
+                    {% endif %}
+                    {% if payment_method.available_ecommerce %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">Web</span>
+                    {% else %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">Web</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
                   {% if payment_method.status %}
-                  <button type="button" data-confirm-action="deactivate" data-confirm-form="toggleForm-{{ payment_method.id_payment_method }}" class="shrink-0 inline-flex items-center justify-center text-white bg-danger hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium box-border border border-transparent shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-                    <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                    Desactivar
-                  </button>
+                    {{ status_badge('Activo', 'success') }}
                   {% else %}
-                  <button type="button" data-confirm-action="activate" data-confirm-form="toggleForm-{{ payment_method.id_payment_method }}" class="shrink-0 inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium box-border border border-transparent shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-                    <svg class="w-4 h-4 me-1.5 -ms-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                    Activar
-                  </button>
+                    {{ status_badge('Inactivo', 'danger') }}
+                  {% endif %}
+                </td>
+                {{ row_actions_cell_start("px-6 py-4 w-72 min-w-72 whitespace-nowrap text-center") }}
+                {{ row_actions_group_start("flex flex-row flex-nowrap items-center justify-center gap-2.5 2xl:gap-3") }}
+                <button type="button"
+                        data-modal-target="editModal-{{ payment_method.id_payment_method }}"
+                        data-modal-toggle="editModal-{{ payment_method.id_payment_method }}"
+                        class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                  Editar
+                </button>
+                <!-- Desactivar / Activar button -->
+                <form id="toggleForm-{{ payment_method.id_payment_method }}"
+                      method="post"
+                      action="{{ url_for('payment_method.delete_payment_method', id_payment_method=payment_method.id_payment_method) }}"
+                      class="inline">
+                  <input type="hidden"
+                         name="csrf_token"
+                         value="{{ csrf_token() if csrf_token else '' }}" />
+                  {% if payment_method.status %}
+                    <button type="button"
+                            data-confirm-action="deactivate"
+                            data-confirm-form="toggleForm-{{ payment_method.id_payment_method }}"
+                            class="shrink-0 inline-flex items-center justify-center text-white bg-danger hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium box-border border border-transparent shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                      <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                           aria-hidden="true"
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="24"
+                           height="24"
+                           fill="none"
+                           viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                      Desactivar
+                    </button>
+                  {% else %}
+                    <button type="button"
+                            data-confirm-action="activate"
+                            data-confirm-form="toggleForm-{{ payment_method.id_payment_method }}"
+                            class="shrink-0 inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium box-border border border-transparent shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                      <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                           aria-hidden="true"
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="24"
+                           height="24"
+                           fill="none"
+                           viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                      Activar
+                    </button>
                   {% endif %}
                 </form>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      </div>
-      <!-- Pagination -->
-      {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
-      {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) < pagination.total else pagination.total %}
-      <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4" aria-label="Table navigation">
-        <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span> de <span class="font-semibold text-heading">{{ pagination.total }}</span></span>
-        {% if pagination.pages > 1 %}
-        <ul class="flex -space-x-px text-xs 2xl:text-sm">
-            <li>
-                <a href="{{ url_for('payment_method.list_payment_method', page=pagination.prev_num if pagination.has_prev else 1, q=search_term, status=status_filter) }}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Anterior</a>
-            </li>
-            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-            {% if p %}
-            <li>
-                <a href="{{ url_for('payment_method.list_payment_method', page=p, q=search_term, status=status_filter) }}" class="flex items-center justify-center px-3 h-9 leading-tight {% if p == pagination.page %}text-heading bg-neutral-secondary-medium border border-default-medium{% else %}text-body bg-neutral-primary-soft border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading{% endif %}">{{ p }}</a>
-            </li>
-            {% else %}
-            <li><span class="flex items-center justify-center px-3 h-9 text-body bg-neutral-primary-soft border border-default-medium">...</span></li>
-            {% endif %}
+                {{ row_actions_group_end() }}
+                {{ row_actions_cell_end() }}
+              </tr>
             {% endfor %}
-            <li>
-                <a href="{{ url_for('payment_method.list_payment_method', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term, status=status_filter) }}" class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">Siguiente</a>
-            </li>
-        </ul>
-        {% endif %}
-      </nav>
+          </tbody>
+        </table>
+      </div>
+      {{ table_footer(pagination, 'payment_method.list_payment_method', {'q': search_term, 'status': status_filter}) }}
       {% if not payment_methods %}
-      <div class="p-10 text-center text-body">No hay métodos de pago registrados.</div>
+        <div class="p-10 text-center text-body">No hay métodos de pago registrados.</div>
       {% endif %}
     </div>
   </div>
   <!-- end Table Card -->
 </div>
 <!-- Hidden form for bulk deactivation -->
-<form id="bulkDeactivateForm" method="post" action="{{ url_for('payment_method.bulk_deactivate') }}" class="hidden">
+<form id="bulkDeactivateForm"
+      method="post"
+      action="{{ url_for('payment_method.bulk_deactivate') }}"
+      class="hidden">
   {{ form.hidden_tag() }}
   <input type="hidden" name="ids" id="bulkDeactivateIds" value="">
 </form>
 <!-- Hidden form for bulk activation -->
-<form id="bulkActivateForm" method="post" action="{{ url_for('payment_method.bulk_activate') }}" class="hidden">
+<form id="bulkActivateForm"
+      method="post"
+      action="{{ url_for('payment_method.bulk_activate') }}"
+      class="hidden">
   {{ form.hidden_tag() }}
   <input type="hidden" name="ids" id="bulkActivateIds" value="">
 </form>
 <!-- Hidden form for bulk export -->
-<form id="bulkExportForm" method="post" action="{{ url_for('payment_method.bulk_export') }}" class="hidden">
+<form id="bulkExportForm"
+      method="post"
+      action="{{ url_for('payment_method.bulk_export') }}"
+      class="hidden">
   {{ form.hidden_tag() }}
   <input type="hidden" name="ids" id="bulkExportIds" value="">
 </form>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const checkAll = document.getElementById("checkbox-all");
-    const rowCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="checkbox-"]:not(#checkbox-all)');
-    let pendingAction = null; // stores a function to call on confirm
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkAll = document.getElementById("checkbox-all");
+        const rowCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="checkbox-"]:not(#checkbox-all)');
+        let pendingAction = null; // stores a function to call on confirm
 
-    // Select-all
-    if (checkAll) {
-      checkAll.addEventListener("change", function () {
-        rowCheckboxes.forEach(cb => cb.checked = checkAll.checked);
-      });
-    }
-    rowCheckboxes.forEach(cb => {
-      cb.addEventListener("change", function () {
-        if (!this.checked) checkAll.checked = false;
-        else if ([...rowCheckboxes].every(c => c.checked)) checkAll.checked = true;
-      });
-    });
-
-    function getCheckedIds() {
-      return [...rowCheckboxes].filter(cb => cb.checked).map(cb => cb.id.replace("checkbox-", ""));
-    }
-
-    // Helper: show a confirmation modal
-    function showConfirmModal(modalId, onConfirm) {
-      pendingAction = onConfirm;
-      const modalEl = document.getElementById(modalId);
-      const modal = new Modal(modalEl);
-      modal.show();
-      // Store modal instance so we can hide it
-      modalEl._modalInstance = modal;
-    }
-
-    // Wire up all Confirmar buttons inside confirmation modals
-    document.querySelectorAll('[data-confirm-submit]').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const modalEl = this.closest('[id^="confirmModal"]');
-        if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
-        if (pendingAction) {
-          pendingAction();
-          pendingAction = null;
+        // Select-all
+        if (checkAll) {
+            checkAll.addEventListener("change", function() {
+                rowCheckboxes.forEach(cb => cb.checked = checkAll.checked);
+            });
         }
-      });
-    });
+        rowCheckboxes.forEach(cb => {
+            cb.addEventListener("change", function() {
+                if (!this.checked) checkAll.checked = false;
+                else if ([...rowCheckboxes].every(c => c.checked)) checkAll.checked = true;
+            });
+        });
 
-    // Helper: show a warning modal
-    function showWarningModal(message) {
-      const modalEl = document.getElementById('warningModal');
-      const messageEl = document.getElementById('warningModalMessage');
-      if (messageEl) messageEl.textContent = message;
-      const modal = new Modal(modalEl);
-      modal.show();
-      modalEl._modalInstance = modal;
-    }
+        function getCheckedIds() {
+            return [...rowCheckboxes].filter(cb => cb.checked).map(cb => cb.id.replace("checkbox-", ""));
+        }
 
-    // Wire up all Cancel / Close buttons inside confirmation modals
-    document.querySelectorAll('[data-confirm-cancel]').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const modalEl = this.closest('[id^="confirmModal"]');
-        if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
-        pendingAction = null;
-      });
-    });
+        // Helper: show a confirmation modal
+        function showConfirmModal(modalId, onConfirm) {
+            pendingAction = onConfirm;
+            const modalEl = document.getElementById(modalId);
+            const modal = new Modal(modalEl);
+            modal.show();
+            // Store modal instance so we can hide it
+            modalEl._modalInstance = modal;
+        }
 
-    // Wire up Close buttons for warning modal
-    document.querySelectorAll('[data-warning-close]').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const modalEl = this.closest('#warningModal');
-        if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
-      });
-    });
+        // Wire up all Confirmar buttons inside confirmation modals
+        document.querySelectorAll('[data-confirm-submit]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modalEl = this.closest('[id^="confirmModal"]');
+                if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
+                if (pendingAction) {
+                    pendingAction();
+                    pendingAction = null;
+                }
+            });
+        });
 
-    // Row-level Desactivar / Activar buttons
-    document.querySelectorAll('[data-confirm-action]').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const action = this.getAttribute('data-confirm-action');
-        const formId = this.getAttribute('data-confirm-form');
-        const modalId = action === 'deactivate' ? 'confirmModalDeactivate' : 'confirmModalActivate';
-        showConfirmModal(modalId, () => document.getElementById(formId).submit());
-      });
-    });
+        // Helper: show a warning modal
+        function showWarningModal(message) {
+            const modalEl = document.getElementById('warningModal');
+            const messageEl = document.getElementById('warningModalMessage');
+            if (messageEl) messageEl.textContent = message;
+            const modal = new Modal(modalEl);
+            modal.show();
+            modalEl._modalInstance = modal;
+        }
 
-    // Bulk deactivate
-    document.getElementById("bulkDeactivateBtn").addEventListener("click", function () {
-      const ids = getCheckedIds();
-      if (ids.length === 0) {
-        showWarningModal("Selecciona al menos un registro para realizar esta acción.");
-        return;
-      }
-      showConfirmModal('confirmModalDeactivate', () => {
-        document.getElementById("bulkDeactivateIds").value = ids.join(",");
-        document.getElementById("bulkDeactivateForm").submit();
-      });
-    });
+        // Wire up all Cancel / Close buttons inside confirmation modals
+        document.querySelectorAll('[data-confirm-cancel]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modalEl = this.closest('[id^="confirmModal"]');
+                if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
+                pendingAction = null;
+            });
+        });
 
-    // Bulk activate
-    document.getElementById("bulkActivateBtn").addEventListener("click", function () {
-      const ids = getCheckedIds();
-      if (ids.length === 0) {
-        showWarningModal("Selecciona al menos un registro para realizar esta acción.");
-        return;
-      }
-      showConfirmModal('confirmModalActivate', () => {
-        document.getElementById("bulkActivateIds").value = ids.join(",");
-        document.getElementById("bulkActivateForm").submit();
-      });
-    });
+        // Wire up Close buttons for warning modal
+        document.querySelectorAll('[data-warning-close]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modalEl = this.closest('#warningModal');
+                if (modalEl && modalEl._modalInstance) modalEl._modalInstance.hide();
+            });
+        });
 
-    // Bulk export
-    document.getElementById("bulkExportBtn").addEventListener("click", function () {
-      const ids = getCheckedIds();
-      if (ids.length === 0) {
-        showWarningModal("Selecciona al menos un registro para exportar.");
-        return;
-      }
-      document.getElementById("bulkExportIds").value = ids.join(",");
-      document.getElementById("bulkExportForm").submit();
+        // Row-level Desactivar / Activar buttons
+        document.querySelectorAll('[data-confirm-action]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.getAttribute('data-confirm-action');
+                const formId = this.getAttribute('data-confirm-form');
+                const modalId = action === 'deactivate' ? 'confirmModalDeactivate' : 'confirmModalActivate';
+                showConfirmModal(modalId, () => document.getElementById(formId).submit());
+            });
+        });
+
+        // Bulk deactivate
+        document.getElementById("bulkDeactivateBtn").addEventListener("click", function() {
+            const ids = getCheckedIds();
+            if (ids.length === 0) {
+                showWarningModal("Selecciona al menos un registro para realizar esta acción.");
+                return;
+            }
+            showConfirmModal('confirmModalDeactivate', () => {
+                document.getElementById("bulkDeactivateIds").value = ids.join(",");
+                document.getElementById("bulkDeactivateForm").submit();
+            });
+        });
+
+        // Bulk activate
+        document.getElementById("bulkActivateBtn").addEventListener("click", function() {
+            const ids = getCheckedIds();
+            if (ids.length === 0) {
+                showWarningModal("Selecciona al menos un registro para realizar esta acción.");
+                return;
+            }
+            showConfirmModal('confirmModalActivate', () => {
+                document.getElementById("bulkActivateIds").value = ids.join(",");
+                document.getElementById("bulkActivateForm").submit();
+            });
+        });
+
+        // Bulk export
+        document.getElementById("bulkExportBtn").addEventListener("click", function() {
+            const ids = getCheckedIds();
+            if (ids.length === 0) {
+                showWarningModal("Selecciona al menos un registro para exportar.");
+                return;
+            }
+            document.getElementById("bulkExportIds").value = ids.join(",");
+            document.getElementById("bulkExportForm").submit();
+        });
     });
-  });
 </script>
 {% endblock content %}
 {% block modals %}
-<!-- Warning Modal (Info/No Selection) -->
-<div id="warningModal" tabindex="-1"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
-      <button type="button" data-warning-close
-        class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
-        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-          viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M6 18 17.94 6M18 18 6.06 6" />
-        </svg>
-        <span class="sr-only">Cerrar</span>
-      </button>
-      <div class="p-4 md:p-5 text-center">
-        <svg class="mx-auto mb-4 text-warning-strong w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <h3 id="warningModalMessage" class="mb-6 text-body">Atención</h3>
-        <div class="flex items-center space-x-4 justify-center">
-          <button type="button" data-warning-close
-            class="text-white bg-warning-strong box-border border border-transparent hover:bg-warning focus:ring-4 focus:ring-warning-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Entendido
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Confirmation Modal: Deactivate (RED) -->
-<div id="confirmModalDeactivate" tabindex="-1"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
-      <button type="button" data-confirm-cancel
-        class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
-        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-          viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M6 18 17.94 6M18 18 6.06 6" />
-        </svg>
-        <span class="sr-only">Cerrar</span>
-      </button>
-      <div class="p-4 md:p-5 text-center">
-        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-        <h3 class="mb-6 text-body">¿Estas seguro que quieres desactivar este elemento?</h3>
-        <div class="flex items-center space-x-4 justify-center">
-          <button type="button" data-confirm-submit
-            class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Confirmar
-          </button>
-          <button type="button" data-confirm-cancel
-            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            No, cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Confirmation Modal: Activate (GREEN) -->
-<div id="confirmModalActivate" tabindex="-1"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
-      <button type="button" data-confirm-cancel
-        class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
-        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-          viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M6 18 17.94 6M18 18 6.06 6" />
-        </svg>
-        <span class="sr-only">Cerrar</span>
-      </button>
-      <div class="p-4 md:p-5 text-center">
-        <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-        <h3 class="mb-6 text-body">¿Estas seguro que quieres activar este elemento?</h3>
-        <div class="flex items-center space-x-4 justify-center">
-          <button type="button" data-confirm-submit
-            class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Confirmar
-          </button>
-          <button type="button" data-confirm-cancel
-            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            No, cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Edit Modals (rendered outside z-20 stacking context) -->
-{% for payment_method in payment_methods %}
-<div id="editModal-{{ payment_method.id_payment_method }}" tabindex="-1" aria-hidden="true"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-white rounded-2xl shadow">
-      <div class="flex items-center justify-between p-5">
-        <h3 class="text-base font-semibold text-gray-900">Modificar catálogo</h3>
+  <!-- Warning Modal (Info/No Selection) -->
+  <div id="warningModal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
         <button type="button"
-          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
-          data-modal-hide="editModal-{{ payment_method.id_payment_method }}">
-          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                data-warning-close
+                class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
-          <span class="sr-only">Cerrar modal</span>
+          <span class="sr-only">Cerrar</span>
         </button>
+        <div class="p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-warning-strong w-12 h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 id="warningModalMessage" class="mb-6 text-body">Atención</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button type="button"
+                    data-warning-close
+                    class="text-white bg-warning-strong box-border border border-transparent hover:bg-warning focus:ring-4 focus:ring-warning-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Entendido
+            </button>
+          </div>
+        </div>
       </div>
-      <form method="post"
-        action="{{ url_for('payment_method.edit_payment_method', id_payment_method=payment_method.id_payment_method) }}">
-        {{ form.hidden_tag() }}
-        <div class="px-5 py-4 space-y-4">
-          <div>
-            <label for="edit-name-{{ payment_method.id_payment_method }}"
-              class="block mb-1.5 text-sm font-medium text-gray-900">
-              Nombre <span class="text-red-500">*</span>
-            </label>
-            <input type="text" name="name" id="edit-name-{{ payment_method.id_payment_method }}"
-              value="{{ payment_method.name }}"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-              placeholder="Ingresar nombre del método de pago" required>
-            {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.name.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ edit_form.name.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div>
-            <label for="edit-type-{{ payment_method.id_payment_method }}"
-              class="block mb-1.5 text-sm font-medium text-gray-900">
-              Tipo <span class="text-red-500">*</span>
-            </label>
-            <select name="type" id="edit-type-{{ payment_method.id_payment_method }}" required
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
-              <option value="efectivo" {% if payment_method.type=='efectivo' %}selected{% endif %}>Efectivo</option>
-              <option value="transferencia" {% if payment_method.type=='transferencia' %}selected{% endif %}>
-                Transferencia</option>
-              <option value="tarjeta" {% if payment_method.type=='tarjeta' %}selected{% endif %}>Tarjeta</option>
-              <option value="pasarela_online" {% if payment_method.type=='pasarela_online' %}selected{% endif %}>
-                Pasarela Online</option>
-            </select>
-            {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.type.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ edit_form.type.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div>
-            <label for="edit-description-{{ payment_method.id_payment_method }}"
-              class="block mb-1.5 text-sm font-medium text-gray-900">
-              Descripción
-            </label>
-            <textarea name="description" id="edit-description-{{ payment_method.id_payment_method }}" rows="2"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-              placeholder="Opcional. Breve descripción.">{{ payment_method.description or '' }}</textarea>
-            {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.description.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ edit_form.description.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div class="flex gap-4 mb-4">
-            <div class="flex items-center">
-              <input id="edit-pos-{{ payment_method.id_payment_method }}" name="available_pos" type="checkbox"
-                value="true" class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                {% if payment_method.available_pos %}checked{% endif %}>
-              <label for="edit-pos-{{ payment_method.id_payment_method }}"
-                class="select-none ms-2 text-sm font-medium text-heading">Disponible POS</label>
-            </div>
-            <div class="flex items-center">
-              <input id="edit-ecommerce-{{ payment_method.id_payment_method }}" name="available_ecommerce"
-                type="checkbox" value="true"
-                class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" {% if
-                payment_method.available_ecommerce %}checked{% endif %}>
-              <label for="edit-ecommerce-{{ payment_method.id_payment_method }}"
-                class="select-none ms-2 text-sm font-medium text-heading">Disponible Web</label>
-            </div>
-          </div>
-          <div>
-            <label for="edit-status-{{ payment_method.id_payment_method }}"
-              class="block mb-1.5 text-sm font-medium text-gray-900">
-              Estado <span class="text-red-500">*</span>
-            </label>
-            <select name="status" id="edit-status-{{ payment_method.id_payment_method }}"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
-              <option value="1" {% if payment_method.status %}selected{% endif %}>Activo</option>
-              <option value="0" {% if not payment_method.status %}selected{% endif %}>Inactivo</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 px-5 pb-5">
-          <button type="submit"
-            class="w-full text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-            Modificar
-          </button>
-          <button type="button" data-modal-hide="editModal-{{ payment_method.id_payment_method }}"
-            class="w-full text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-            Cancelar
-          </button>
-        </div>
-      </form>
     </div>
   </div>
-</div>
-{% endfor %}
-<!-- Create Modal -->
-<div id="createModal" tabindex="-1" aria-hidden="true"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-white rounded-2xl shadow">
-      <div class="flex items-center justify-between p-5">
-        <h3 class="text-base font-semibold text-gray-900">Crear método de pago</h3>
+  <!-- Confirmation Modal: Deactivate (RED) -->
+  <div id="confirmModalDeactivate"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
         <button type="button"
-          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
-          data-modal-hide="createModal">
-          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                data-confirm-cancel
+                class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
-          <span class="sr-only">Cerrar modal</span>
+          <span class="sr-only">Cerrar</span>
         </button>
+        <div class="p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estas seguro que quieres desactivar este elemento?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button type="button"
+                    data-confirm-submit
+                    class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Confirmar
+            </button>
+            <button type="button"
+                    data-confirm-cancel
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
       </div>
-      <form method="post" action="{{ url_for('payment_method.create_payment_method') }}">
-        {{ form.hidden_tag() if form and form.hidden_tag else '' }}
-        <div class="px-5 py-4 space-y-4">
-          <div>
-            <label for="create-name" class="block mb-1.5 text-sm font-medium text-gray-900">
-              Nombre <span class="text-red-500">*</span>
-            </label>
-            <input type="text" name="name" id="create-name"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-              placeholder="Ingresar nombre del método de pago" required>
-            {% if show_create_modal and form and form.name.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ form.name.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div>
-            <label for="create-type" class="block mb-1.5 text-sm font-medium text-gray-900">
-              Tipo <span class="text-red-500">*</span>
-            </label>
-            <select name="type" id="create-type" required
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
-              <option value="" disabled selected>Seleccionar tipo</option>
-              <option value="efectivo">Efectivo</option>
-              <option value="transferencia">Transferencia</option>
-              <option value="tarjeta">Tarjeta</option>
-              <option value="pasarela_online">Pasarela Online</option>
-            </select>
-            {% if show_create_modal and form and form.type.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ form.type.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div>
-            <label for="create-description" class="block mb-1.5 text-sm font-medium text-gray-900">
-              Descripción
-            </label>
-            <textarea name="description" id="create-description" rows="2"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
-              placeholder="Opcional. Breve descripción."></textarea>
-            {% if show_create_modal and form and form.description.errors %}
-            <p class="mt-1.5 text-xs text-red-600">{{ form.description.errors[0] }}</p>
-            {% endif %}
-          </div>
-          <div class="flex gap-4 mb-4">
-            <div class="flex items-center">
-              <input id="create-pos" name="available_pos" type="checkbox" value="true" checked
-                class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-              <label for="create-pos" class="select-none ms-2 text-sm font-medium text-heading">Disponible POS</label>
-            </div>
-            <div class="flex items-center">
-              <input id="create-ecommerce" name="available_ecommerce" type="checkbox" value="true" checked
-                class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
-              <label for="create-ecommerce" class="select-none ms-2 text-sm font-medium text-heading">Disponible Web</label>
-            </div>
-          </div>
-          <div>
-            <label for="create-status" class="block mb-1.5 text-sm font-medium text-gray-900">
-              Estado <span class="text-red-500">*</span>
-            </label>
-            <select name="status" id="create-status"
-              class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
-              <option value="" disabled selected>Seleccionar estado</option>
-              <option value="1">Activo</option>
-              <option value="0">Inactivo</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 px-5 pb-5">
-          <button type="submit"
-            class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-            Crear
-          </button>
-          <button type="button" data-modal-hide="createModal"
-            class="w-full text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-            Cancelar
-          </button>
-        </div>
-      </form>
     </div>
   </div>
-</div>
-{% if show_create_modal %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const btn = document.querySelector('[data-modal-target="createModal"]');
-    if (btn) btn.click();
-  });
-</script>
-{% endif %}
-{% if show_edit_modal %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const btn = document.querySelector('[data-modal-target="editModal-{{ show_edit_modal }}"]');
-    if (btn) btn.click();
-  });
-</script>
-{% endif %}
-{% endblock modals %}
+  <!-- Confirmation Modal: Activate (GREEN) -->
+  <div id="confirmModalActivate"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-4 md:p-6">
+        <button type="button"
+                data-confirm-cancel
+                class="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar</span>
+        </button>
+        <div class="p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-12 h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">¿Estas seguro que quieres activar este elemento?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button type="button"
+                    data-confirm-submit
+                    class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Confirmar
+            </button>
+            <button type="button"
+                    data-confirm-cancel
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Edit Modals (rendered outside z-20 stacking context) -->
+  {% for payment_method in payment_methods %}
+    <div id="editModal-{{ payment_method.id_payment_method }}"
+         tabindex="-1"
+         aria-hidden="true"
+         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-2xl shadow">
+          <div class="flex items-center justify-between p-5">
+            <h3 class="text-base font-semibold text-gray-900">Modificar catálogo</h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
+                    data-modal-hide="editModal-{{ payment_method.id_payment_method }}">
+              <svg class="w-3 h-3"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   fill="none"
+                   viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+              </svg>
+              <span class="sr-only">Cerrar modal</span>
+            </button>
+          </div>
+          <form method="post"
+                action="{{ url_for('payment_method.edit_payment_method', id_payment_method=payment_method.id_payment_method) }}">
+            {{ form.hidden_tag() }}
+            <div class="px-5 py-4 space-y-4">
+              <div>
+                <label for="edit-name-{{ payment_method.id_payment_method }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                  Nombre <span class="text-red-500">*</span>
+                </label>
+                <input type="text"
+                       name="name"
+                       id="edit-name-{{ payment_method.id_payment_method }}"
+                       value="{{ payment_method.name }}"
+                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
+                       placeholder="Ingresar nombre del método de pago"
+                       required>
+                {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.name.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.name.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="edit-type-{{ payment_method.id_payment_method }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                  Tipo <span class="text-red-500">*</span>
+                </label>
+                <select name="type"
+                        id="edit-type-{{ payment_method.id_payment_method }}"
+                        required
+                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
+                  <option value="efectivo"
+                          {% if payment_method.type=='efectivo' %}selected{% endif %}>Efectivo</option>
+                  <option value="transferencia"
+                          {% if payment_method.type=='transferencia' %}selected{% endif %}>Transferencia</option>
+                  <option value="tarjeta"
+                          {% if payment_method.type=='tarjeta' %}selected{% endif %}>Tarjeta</option>
+                  <option value="pasarela_online"
+                          {% if payment_method.type=='pasarela_online' %}selected{% endif %}>Pasarela Online</option>
+                </select>
+                {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.type.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.type.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="edit-description-{{ payment_method.id_payment_method }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">Descripción</label>
+                <textarea name="description"
+                          id="edit-description-{{ payment_method.id_payment_method }}"
+                          rows="2"
+                          class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
+                          placeholder="Opcional. Breve descripción.">{{ payment_method.description or '' }}</textarea>
+                {% if show_edit_modal == payment_method.id_payment_method and edit_form and edit_form.description.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.description.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div class="flex gap-4 mb-4">
+                <div class="flex items-center">
+                  <input id="edit-pos-{{ payment_method.id_payment_method }}"
+                         name="available_pos"
+                         type="checkbox"
+                         value="true"
+                         class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
+                         {% if payment_method.available_pos %}checked{% endif %}>
+                  <label for="edit-pos-{{ payment_method.id_payment_method }}"
+                         class="select-none ms-2 text-sm font-medium text-heading">Disponible POS</label>
+                </div>
+                <div class="flex items-center">
+                  <input id="edit-ecommerce-{{ payment_method.id_payment_method }}" name="available_ecommerce"
+                    type="checkbox" value="true"
+                    class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" {% if
+                    payment_method.available_ecommerce %}checked{% endif %}>
+                    <label for="edit-ecommerce-{{ payment_method.id_payment_method }}"
+                           class="select-none ms-2 text-sm font-medium text-heading">Disponible Web</label>
+                  </div>
+                </div>
+                <div>
+                  <label for="edit-status-{{ payment_method.id_payment_method }}"
+                         class="block mb-1.5 text-sm font-medium text-gray-900">
+                    Estado <span class="text-red-500">*</span>
+                  </label>
+                  <select name="status"
+                          id="edit-status-{{ payment_method.id_payment_method }}"
+                          class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
+                    <option value="1" {% if payment_method.status %}selected{% endif %}>Activo</option>
+                    <option value="0" {% if not payment_method.status %}selected{% endif %}>Inactivo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 px-5 pb-5">
+                <button type="submit"
+                        class="w-full text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  Modificar
+                </button>
+                <button type="button"
+                        data-modal-hide="editModal-{{ payment_method.id_payment_method }}"
+                        class="w-full text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    <!-- Create Modal -->
+    <div id="createModal"
+         tabindex="-1"
+         aria-hidden="true"
+         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-2xl shadow">
+          <div class="flex items-center justify-between p-5">
+            <h3 class="text-base font-semibold text-gray-900">Crear método de pago</h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
+                    data-modal-hide="createModal">
+              <svg class="w-3 h-3"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   fill="none"
+                   viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+              </svg>
+              <span class="sr-only">Cerrar modal</span>
+            </button>
+          </div>
+          <form method="post"
+                action="{{ url_for('payment_method.create_payment_method') }}">
+            {{ form.hidden_tag() if form and form.hidden_tag else '' }}
+            <div class="px-5 py-4 space-y-4">
+              <div>
+                <label for="create-name"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                  Nombre <span class="text-red-500">*</span>
+                </label>
+                <input type="text"
+                       name="name"
+                       id="create-name"
+                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
+                       placeholder="Ingresar nombre del método de pago"
+                       required>
+                {% if show_create_modal and form and form.name.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ form.name.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="create-type"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                  Tipo <span class="text-red-500">*</span>
+                </label>
+                <select name="type"
+                        id="create-type"
+                        required
+                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
+                  <option value="" disabled selected>Seleccionar tipo</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta">Tarjeta</option>
+                  <option value="pasarela_online">Pasarela Online</option>
+                </select>
+                {% if show_create_modal and form and form.type.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ form.type.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="create-description"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">Descripción</label>
+                <textarea name="description"
+                          id="create-description"
+                          rows="2"
+                          class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 placeholder-gray-400"
+                          placeholder="Opcional. Breve descripción."></textarea>
+                {% if show_create_modal and form and form.description.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ form.description.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div class="flex gap-4 mb-4">
+                <div class="flex items-center">
+                  <input id="create-pos"
+                         name="available_pos"
+                         type="checkbox"
+                         value="true"
+                         checked
+                         class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  <label for="create-pos"
+                         class="select-none ms-2 text-sm font-medium text-heading">Disponible POS</label>
+                </div>
+                <div class="flex items-center">
+                  <input id="create-ecommerce"
+                         name="available_ecommerce"
+                         type="checkbox"
+                         value="true"
+                         checked
+                         class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  <label for="create-ecommerce"
+                         class="select-none ms-2 text-sm font-medium text-heading">Disponible Web</label>
+                </div>
+              </div>
+              <div>
+                <label for="create-status"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">
+                  Estado <span class="text-red-500">*</span>
+                </label>
+                <select name="status"
+                        id="create-status"
+                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
+                  <option value="" disabled selected>Seleccionar estado</option>
+                  <option value="1">Activo</option>
+                  <option value="0">Inactivo</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 px-5 pb-5">
+              <button type="submit"
+                      class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                Crear
+              </button>
+              <button type="button"
+                      data-modal-hide="createModal"
+                      class="w-full text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% if show_create_modal %}
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const btn = document.querySelector('[data-modal-target="createModal"]');
+              if (btn) btn.click();
+          });
+      </script>
+    {% endif %}
+    {% if show_edit_modal %}
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const btn = document.querySelector('[data-modal-target="editModal-{{ show_edit_modal }}"]');
+              if (btn) btn.click();
+          });
+      </script>
+    {% endif %}
+  {% endblock modals %}
