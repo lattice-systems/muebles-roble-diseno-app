@@ -49,7 +49,7 @@ platformdirs==4.9.4
 pre_commit==4.5.1
 psycopg2-binary==2.9.11
 pycparser==3.0
-Pygments==2.19.2
+Pygments==2.20.0
 pymongo==4.16.0
 PyMySQL==1.1.2
 python-discovery==1.1.3
