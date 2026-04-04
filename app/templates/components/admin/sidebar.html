@@ -57,6 +57,9 @@
 {% set icon_ecommerce_sub = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v5m-3 0h6M4 11h16M5 15h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1Z" />
 ' %}
+{% set icon_orders = '
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10V6a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v4m3-2 .917 11.923A1 1 0 0 1 17.92 21H6.08a1 1 0 0 1-.997-1.077L6 8h12Z" />
+' %}
 {# Iconos para Análisis #}
 {% set icon_costs = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15v3c0 .5523.44772 1 1 1h9.5M3 15v-4m0 4h9m-9-4V6c0-.55228.44772-1 1-1h16c.5523 0 1 .44772 1 1v5H3Zm5 0v8m4-8v8m7.0999-1.0999L21 16m0 0-1.9001-1.9001M21 16h-5" />
@@ -95,11 +98,11 @@
   </div>
   <div class="py-4 2xl:py-5 overflow-y-auto flex-1">
     <ul class="space-y-1.5 2xl:space-y-2 font-medium">
-      {{ sidebar_link("Dashboard", "#", icon_dashboard, request.endpoint == 'index_admin') }}
-      {{ sidebar_dropdown("Adminsitración",
+      {{ sidebar_link("Dashboard", url_for('index_admin') , icon_dashboard, request.endpoint == 'index_admin') }}
+      {{ sidebar_dropdown("Administración",
             [
             {"label": "Usuarios", "href": url_for('users.index') , "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
-      {"label": "Catalogos", "href": "#", "icon": icon_catalog},
+      {"label": "Catálogos", "href": url_for('catalogs_index'), "icon": icon_catalog, "active": request.endpoint and (request.endpoint.startswith('colors.') or request.endpoint.startswith('furniture_type.') or request.endpoint.startswith('woods_types.') or request.endpoint.startswith('unit_of_measures.') or request.endpoint.startswith('payment_method.'))},
       ],
       icon_admin,
       "dropdown-admin") }}
@@ -107,7 +110,7 @@
             [
             {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
       {"label": "Compras", "href": url_for('purchases.index') , "icon": icon_purchases, "active": request.endpoint and request.endpoint.startswith('purchases.')},
-      {"label": "Materia prima", "href": url_for('raw_materials.list_raw_materials'), "icon": icon_materials, "active": request.endpoint and request.endpoint.startswith('raw_materials.')}
+      {"label": "Materia prima", "href": url_for('raw_materials.index'), "icon": icon_materials, "active": request.endpoint and request.endpoint.startswith('raw_materials.')}
       ],
       icon_supplies,
       "dropdown-supplies") }}
@@ -122,17 +125,18 @@
             [
             {"label": "POS", "href": url_for('sales.pos') , "icon": icon_pos, "active": request.endpoint and request.endpoint.startswith('sales.')},
       {"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub},
+      {"label": "Órdenes de Cliente", "href": url_for('customer_orders.index'), "icon": icon_orders, "active": request.endpoint and request.endpoint.startswith('customer_orders.')},
       ],
       icon_sales,
       "dropdown-sales") }}
       {{ sidebar_dropdown("Análisis",
-      [
-      {"label": "Costos", "href": url_for('costs.index'), "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
+            [
+            {"label": "Costos", "href": url_for('costs.index') , "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
       {"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports, "active": request.endpoint and request.endpoint.startswith('reports.')},
       ],
       icon_analysis,
       "dropdown-analysis") }}
-      {{ sidebar_link("Productos", url_for('products.index') , icon_products) }}
+      {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
       {{ sidebar_link("Control", "#", icon_control) }}
     </ul>
   </div>

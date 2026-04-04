@@ -86,6 +86,13 @@ class ColorService:
             raise NotFoundError(f"No se encontró un color con ID {id_color}")
         return color
 
+    @staticmethod
+    def get_by_ids(ids: list[int]) -> list[Color]:
+        """Obtiene multiples colores por IDs."""
+        if not ids:
+            return []
+        return Color.query.filter(Color.id.in_(ids)).all()
+
     # ------------------------------------------------------------------ #
     #  CREATE                                                             #
     # ------------------------------------------------------------------ #

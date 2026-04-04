@@ -2,7 +2,10 @@
 Rutas/Endpoints para el módulo de tipos de madera.
 """
 
-from flask import flash, redirect, render_template, url_for, request
+import csv
+from datetime import datetime
+from io import StringIO
+from flask import flash, redirect, render_template, request, url_for, make_response
 from . import woods_types_bp
 from .forms import WoodTypeForm
 from .services import WoodTypeService
@@ -184,3 +187,35 @@ def bulk_activate():
         flash(str(e), "error")
 
     return redirect(url_for("woods_types.list_wood_types"))
+
+
+@woods_types_bp.route("/bulk-export", methods=["POST"])
+def bulk_export():
+    """Exportar múltiples tipos de madera seleccionados a CSV."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron registros", "error")
+        return redirect(url_for("woods_types.list_wood_types"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    wood_types = WoodTypeService.get_by_ids(ids)
+    if not wood_types:
+        flash("No se encontraron registros para exportar", "error")
+        return redirect(url_for("woods_types.list_wood_types"))
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Nombre", "Estado", "Descripcion"])
+    for w in wood_types:
+        writer.writerow([
+            w.id,
+            w.name,
+            "Activo" if w.status else "Inactivo",
+            w.description or ""
+        ])
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    response = make_response('\ufeff' + output.getvalue())
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="tipos_madera_{timestamp}.csv"'
+    return response

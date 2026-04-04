@@ -1016,6 +1016,14 @@ POS – Venta Física | Furniture Store
       document.getElementById("edit_customer_street").value = c.street || "";
       document.getElementById("edit_customer_ext_num").value = c.exterior_number || "";
       document.getElementById("edit_customer_int_num").value = c.interior_number || "";
+
+      if (c.requires_freight && c.zip_code && window.triggerEditCpLookup) {
+         window.triggerEditCpLookup(c.zip_code, c.neighborhood);
+      } else {
+         if (window.editCpSetManualMode) {
+             window.editCpSetManualMode();
+         }
+      }
     }
 
     // Botón "Ver"

@@ -23,6 +23,7 @@ desde la materia prima hasta el producto terminado.
 * Base de datos relacional (MySQL)
 * pip
 * Virtual Environment (venv)
+* Cloudinary (Gestión de imágenes en la nube)
 
 ---
 
@@ -107,6 +108,10 @@ Variables clave para 2FA con recuperación por correo (Brevo):
 - `MAIL_DEFAULT_SENDER`, `SECURITY_EMAIL_SENDER`
 - `SECURITY_TWO_FACTOR_RESCUE_MAIL`
 
+Variables para integraciones externas:
+
+- `CLOUDINARY_URL`: URL de configuración para Cloudinary, incluyendo credenciales de API.
+
 ---
 
 ## 🔌 Integraciones y APIs Externas
@@ -115,6 +120,7 @@ El proyecto hace uso de servicios externos para enriquecer sus funcionalidades:
 
 * **Brevo (SMTP / Envío de Correos):** Se utiliza la plataforma de Brevo como puente SMTP seguro para el envío de correos electrónicos transaccionales institucionales (ej. códigos de autenticación 2FA, recuperación de contraseñas y correos de confirmación / tickets de compra).
 * **COPOMEX API:** Se integra esta API de códigos postales mexicanos dentro del módulo de ventas (POS y E-Commerce). Permite buscar códigos postales para autocompletar asentamientos y, principalmente, automatizar el cálculo logístico del costo de flete (envío) según la zona o colonia de destino del cliente.
+* **Cloudinary:** Servicio de gestión de imágenes en la nube utilizado para almacenar y gestionar las imágenes de productos. Permite subir imágenes de productos al crear o editar productos, y eliminarlas cuando se remueven. Las imágenes se almacenan de forma segura en la nube y se accede a ellas mediante URLs generadas por Cloudinary.
 
 ---
 

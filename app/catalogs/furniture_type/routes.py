@@ -2,7 +2,10 @@
 Rutas/Endpoints para el módulo de tipo de mueble.
 """
 
-from flask import flash, redirect, render_template, url_for, request
+import csv
+from datetime import datetime
+from io import StringIO
+from flask import flash, redirect, render_template, request, url_for, make_response
 from . import furniture_type_bp
 from .forms import FurnitureTypeForm
 from .services import FurnitureTypeService
@@ -155,3 +158,34 @@ def bulk_activate():
         flash(str(e), "error")
 
     return redirect(url_for("furniture_type.list_furniture_type"))
+
+
+@furniture_type_bp.route("/bulk-export", methods=["POST"])
+def bulk_export():
+    """Exportar múltiples tipos de mueble seleccionados a CSV."""
+    ids_str = request.form.get("ids", "")
+    if not ids_str:
+        flash("No se seleccionaron registros", "error")
+        return redirect(url_for("furniture_type.list_furniture_type"))
+
+    ids = [int(x) for x in ids_str.split(",") if x.strip().isdigit()]
+    furniture_types = FurnitureTypeService.get_by_ids(ids)
+    if not furniture_types:
+        flash("No se encontraron registros para exportar", "error")
+        return redirect(url_for("furniture_type.list_furniture_type"))
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Titulo", "Estado"])
+    for f in furniture_types:
+        writer.writerow([
+            f.id,
+            f.title,
+            "Activo" if f.status else "Inactivo"
+        ])
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    response = make_response('\ufeff' + output.getvalue())
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="tipos_mueble_{timestamp}.csv"'
+    return response
