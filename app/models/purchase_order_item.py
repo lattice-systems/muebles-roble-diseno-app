@@ -14,6 +14,7 @@ class PurchaseOrderItem(db.Model):
         db.Integer, db.ForeignKey("raw_materials.id"), nullable=False
     )
     quantity = db.Column(db.Numeric(12, 3), nullable=False)
+    conversion_factor = db.Column(db.Numeric(12, 3), nullable=False, default=1.0)
     received_quantity = db.Column(db.Numeric(12, 3), nullable=False, default=0)
     unit_price = db.Column(db.Numeric(12, 2), nullable=False)
 
@@ -41,6 +42,11 @@ class PurchaseOrderItem(db.Model):
             "raw_material_id": self.raw_material_id,
             "raw_material_name": self.raw_material.name if self.raw_material else None,
             "quantity": float(self.quantity) if self.quantity is not None else None,
+            "conversion_factor": (
+                float(self.conversion_factor)
+                if self.conversion_factor is not None
+                else 1.0
+            ),
             "received_quantity": (
                 float(self.received_quantity)
                 if self.received_quantity is not None

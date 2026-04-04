@@ -88,7 +88,7 @@ def create_app():
         payment_method_bp, url_prefix="/admin/catalogs/payment-methods"
     )
 
-    from .suppliers.raw_materials import raw_materials_bp
+    from .raw_materials import raw_materials_bp
 
     app.register_blueprint(raw_materials_bp, url_prefix="/admin/raw-materials")
 
