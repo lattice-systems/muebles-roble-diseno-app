@@ -1,20 +1,21 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-  Admin - Materias primas
+  Admin - Materias Primas
 {% endblock title %}
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
     <div class="flex flex-col justify-center gap-1">
       <h1 class="text-heading text-base 2xl:text-lg font-medium">Materias primas</h1>
-      <p class="text-body">Gestiona materias primas registradas o añade una nueva</p>
+      <p class="text-body">Gestiona las materias primas como insumo para tu producción</p>
     </div>
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       <div class="p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3">
+        <!-- Barra de búsqueda -->
         <div class="flex w-full max-w-96 items-center gap-2">
           <form class="w-full"
                 method="get"
-                action="{{ url_for('raw_materials.list_raw_materials') }}"
+                action="{{ url_for('raw_materials.index') }}"
                 id="searchForm">
             <label for="input-group-1" class="sr-only">Buscar</label>
             <input type="hidden" name="status" value="{{ status_filter }}">
@@ -36,7 +37,7 @@
                      name="q"
                      value="{{ search_term }}"
                      class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-                     placeholder="Buscar por nombre o categoría"
+                     placeholder="Buscar por nombre..."
                      onkeypress="if(event.key === 'Enter') this.form.submit();">
             </div>
           </form>
@@ -47,6 +48,7 @@
                     title="Limpiar búsqueda">Limpiar</button>
           {% endif %}
         </div>
+        <!-- Acciones principales -->
         <div class="flex flex-row gap-2.5 2xl:gap-3">
           <a href="{{ url_for('raw_materials.create_raw_material') }}"
              class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
@@ -59,8 +61,9 @@
                  viewBox="0 0 24 24">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
             </svg>
-            Agregar
+            Nueva materia prima
           </a>
+          <!-- Filtro de Estado -->
           <button id="filterDropdownButton"
                   data-dropdown-toggle="filterDropdown"
                   class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
@@ -75,7 +78,7 @@
               <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z">
               </path>
             </svg>
-            Filtrar
+            Estado: {{ "Todos" if status_filter == 'all' else ("Activos" if status_filter == 'active' else "Inactivos") }}
             <svg class="w-4 h-4 ms-1.5 -me-0.5"
                  aria-hidden="true"
                  xmlns="http://www.w3.org/2000/svg"
@@ -91,16 +94,59 @@
             <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
                 aria-labelledby="filterDropdownButton">
               <li>
-                <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='all') }}"
+                <a href="{{ url_for('raw_materials.index', q=search_term, status='all') }}"
                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Todos</a>
               </li>
               <li>
-                <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='active') }}"
+                <a href="{{ url_for('raw_materials.index', q=search_term, status='active') }}"
                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activos</a>
               </li>
               <li>
-                <a href="{{ url_for('raw_materials.list_raw_materials', q=search_term, status='inactive') }}"
+                <a href="{{ url_for('raw_materials.index', q=search_term, status='inactive') }}"
                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Inactivos</a>
+              </li>
+            </ul>
+          </div>
+          <!-- Acciones Masivas -->
+          <button id="actionsDropdownButton"
+                  data-dropdown-toggle="actionsDropdown"
+                  class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
+                  type="button">
+            Acciones (Masivas)
+            <svg class="w-4 h-4 ms-1.5 -me-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="actionsDropdown"
+               class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-48">
+            <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
+                aria-labelledby="actionsDropdownButton">
+              <li>
+                <button type="button"
+                        id="bulkExportBtn"
+                        class="inline-flex items-center w-full p-2 text-left hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                  Exportar seleccionados
+                </button>
+              </li>
+              <li>
+                <button type="button"
+                        id="bulkActivateBtn"
+                        class="inline-flex items-center w-full p-2 text-left hover:bg-neutral-tertiary-medium hover:text-heading rounded text-success">
+                  Activar seleccionados
+                </button>
+              </li>
+              <li>
+                <button type="button"
+                        id="bulkDeactivateBtn"
+                        class="inline-flex items-center w-full p-2 text-left hover:bg-neutral-tertiary-medium hover:text-heading rounded text-danger">
+                  Desactivar seleccionados
+                </button>
               </li>
             </ul>
           </div>
@@ -110,158 +156,136 @@
         <table class="w-full min-w-4xl table-auto text-xs 2xl:text-sm text-left rtl:text-right text-body">
           <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
             <tr>
-              <th scope="col" class="px-6 py-3 font-medium">Nombre</th>
+              <th scope="col" class="p-3 2xl:p-4">
+                <div class="flex items-center">
+                  <input id="checkbox-all"
+                         type="checkbox"
+                         class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                  <label for="checkbox-all" class="sr-only">Seleccionar todos</label>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 font-medium">Material</th>
               <th scope="col" class="px-6 py-3 font-medium">Categoría</th>
               <th scope="col" class="px-6 py-3 font-medium">Stock</th>
+              <th scope="col" class="px-6 py-3 font-medium">Merma</th>
               <th scope="col" class="px-6 py-3 font-medium">Estado</th>
-              <th scope="col"
-                  class="px-6 py-3 font-medium w-72 min-w-72 whitespace-nowrap">Acciones</th>
+              <th scope="col" class="px-6 py-3 font-medium w-48 whitespace-nowrap">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {% for raw_material in raw_materials %}
               <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                <td class="w-4 p-3 2xl:p-4">
+                  <div class="flex items-center">
+                    <input id="checkbox-{{ raw_material.id }}"
+                           type="checkbox"
+                           value="{{ raw_material.id }}"
+                           class="item-checkbox w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft">
+                    <label for="checkbox-{{ raw_material.id }}" class="sr-only">Seleccionar fila</label>
+                  </div>
+                </td>
                 <th scope="row" class="px-6 py-4 font-medium text-heading">
-                  <span class="block truncate" title="{{ raw_material.name }}">{{ raw_material.name }}</span>
+                  <span class="block truncate max-w-xs" title="{{ raw_material.name }}">{{ raw_material.name }}</span>
+                  <span class="text-xs text-body font-normal">{{ raw_material.unit.name if raw_material.unit else "—" }}</span>
                 </th>
                 <td class="px-6 py-4">
-                  <span class="block truncate"
-                        title="{{ raw_material.category.name if raw_material.category else 'Sin categoría' }}">
-                    {{ raw_material.category.name if raw_material.category else "Sin categoría" }}
-                  </span>
+                  <span class="block truncate max-w-xs"
+                        title="{{ raw_material.category.name if raw_material.category else '—' }}">{{ raw_material.category.name if raw_material.category else "—" }}</span>
                 </td>
                 <td class="px-6 py-4">
-                  <span class="block truncate" title="{{ raw_material.stock }}">{{ raw_material.stock }}</span>
+                  {{ raw_material.stock }} <span class="text-xs">{{ raw_material.unit.abbreviation if raw_material.unit else '' }}</span>
                 </td>
+                <td class="px-6 py-4">{{ raw_material.waste_percentage }}%</td>
                 <td class="px-6 py-4">
                   {% if raw_material.status == 'active' %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">
-                      Activo
-                    </span>
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs 2xl:text-sm font-medium rounded bg-success-soft">Activo</span>
                   {% else %}
-                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">
-                      Inactivo
-                    </span>
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs 2xl:text-sm font-medium rounded bg-danger-soft">Inactivo</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 w-72 min-w-72 whitespace-nowrap">
-                  <div class="flex flex-row flex-nowrap gap-2.5 2xl:gap-3">
-                    <button id="actionsRawMaterialDropdownButton-{{ raw_material.id }}"
-                            data-dropdown-toggle="actionsRawMaterialDropdown-{{ raw_material.id }}"
-                            class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                            type="button">
+                <td class="px-6 py-4 w-48 min-w-48 whitespace-nowrap">
+                  <div class="flex flex-row flex-nowrap gap-2">
+                    <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=raw_material.id) }}"
+                       class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2 py-1 focus:outline-none">
+                      Ver
+                    </a>
+                    <button id="actions-{{ raw_material.id }}"
+                            data-dropdown-toggle="dropdown-{{ raw_material.id }}"
+                            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2 py-1 focus:outline-none">
                       Acciones
-                      <svg class="w-4 h-4 ms-1.5 -me-0.5"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           width="24"
-                           height="24"
-                           fill="none"
-                           viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-                      </svg>
                     </button>
-                    <div id="actionsRawMaterialDropdown-{{ raw_material.id }}"
-                         class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40">
-                      <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
-                          aria-labelledby="actionsRawMaterialDropdownButton-{{ raw_material.id }}">
-                        <li>
-                          <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=raw_material.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                            Ver detalles
-                          </a>
-                        </li>
+                    <!-- Dropdown Acciones Individuales -->
+                    <div id="dropdown-{{ raw_material.id }}"
+                         class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-36">
+                      <ul class="p-2 text-xs 2xl:text-sm font-medium"
+                          aria-labelledby="actions-{{ raw_material.id }}">
                         <li>
                           <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-body">
                             Editar
                           </a>
                         </li>
                         <li>
                           <a href="{{ url_for('raw_materials.adjust_stock', raw_material_id=raw_material.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                            Ajustar stock
+                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-body">
+                            Ajustar Inventario
                           </a>
                         </li>
                         <li>
-                          <a href="{{ url_for('raw_materials.update_waste', raw_material_id=raw_material.id) }}"
-                             class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                            Actualizar merma
-                          </a>
+                          <button type="button"
+                                  data-modal-target="toggle-modal-{{ raw_material.id }}"
+                                  data-modal-toggle="toggle-modal-{{ raw_material.id }}"
+                                  class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded {% if raw_material.status == 'active' %}text-danger{% else %}text-brand{% endif %} text-left">
+                            {% if raw_material.status == 'active' %}
+                              Desactivar
+                            {% else %}
+                              Activar
+                            {% endif %}
+                          </button>
                         </li>
                       </ul>
                     </div>
-                    <button data-modal-target="toggle-raw-material-status-modal-{{ raw_material.id }}"
-                            data-modal-toggle="toggle-raw-material-status-modal-{{ raw_material.id }}"
-                            class="shrink-0 inline-flex items-center justify-center text-white {% if raw_material.status == 'active' %}bg-danger hover:bg-danger-strong focus:ring-danger-medium{% else %}bg-brand hover:bg-brand-strong focus:ring-brand-medium{% endif %} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
-                            type="button">
-                      {% if raw_material.status == 'active' %}
-                        <svg class="w-4 h-4 me-1.5 -ms-0.5"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             width="24"
-                             height="24"
-                             fill="none"
-                             viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        Desactivar
-                      {% else %}
-                        <svg class="w-4 h-4 me-1.5 -ms-0.5"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             width="24"
-                             height="24"
-                             fill="none"
-                             viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        Activar
-                      {% endif %}
-                    </button>
                   </div>
                 </td>
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
-                <td colspan="5" class="px-6 py-8 text-center text-body">No se encontraron materias primas</td>
+                <td colspan="7" class="px-6 py-8 text-center text-body">No se encontraron materias primas registradas.</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-        {% if pagination %}
-          {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
-          {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) < pagination.total else pagination.total %}
-          <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
+        <!-- Paginación -->
+        {% if pagination and pagination.pages > 1 %}
+          <nav class="flex items-center justify-between p-3 2xl:p-4"
                aria-label="Table navigation">
-            <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
-              Mostrando <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
-              de <span class="font-semibold text-heading">{{ pagination.total }}</span>
+            <span class="text-xs font-normal text-body block w-full md:inline md:w-auto">
+              Mostrando <span class="font-semibold text-heading">{{ pagination.first }}</span> a <span class="font-semibold text-heading">{{ pagination.last }}</span> de <span class="font-semibold text-heading">{{ pagination.total }}</span>
             </span>
-            <ul class="flex -space-x-px text-xs 2xl:text-sm">
+            <ul class="flex -space-x-px text-xs">
               <li>
-                <a href="{{ url_for('raw_materials.list_raw_materials', page=pagination.prev_num if pagination.has_prev else 1, q=search_term, status=status_filter) }}"
-                   class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
+                <a href="{{ url_for('raw_materials.index', page=pagination.prev_num, q=search_term, status=status_filter) if pagination.has_prev else '#' }}"
+                   class="flex items-center justify-center px-3 h-8 {{ 'text-body hover:bg-neutral-tertiary-medium cursor-pointer' if pagination.has_prev else 'text-body opacity-50 cursor-not-allowed' }} bg-neutral-secondary-medium border border-default-medium rounded-s-md">
                   Anterior
                 </a>
               </li>
               {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                 {% if p %}
                   <li>
-                    <a href="{{ url_for('raw_materials.list_raw_materials', page=p, q=search_term, status=status_filter) }}"
-                       {% if p == pagination.page %} aria-current="page" class="flex items-center justify-center text-fg-brand bg-brand-softer box-border border border-default-medium hover:bg-brand-soft hover:text-fg-brand font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% else %} class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none" {% endif %}>
+                    <a href="{{ url_for('raw_materials.index', page=p, q=search_term, status=status_filter) }}"
+                       class="flex items-center justify-center px-3 h-8 {{ 'bg-brand text-white border-brand' if p == pagination.page else 'text-body bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium border-default-medium' }} border">
                       {{ p }}
                     </a>
                   </li>
                 {% else %}
                   <li>
-                    <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
+                    <span class="flex items-center justify-center px-3 h-8 text-body bg-neutral-secondary-medium border border-default-medium">...</span>
                   </li>
                 {% endif %}
               {% endfor %}
               <li>
-                <a href="{{ url_for('raw_materials.list_raw_materials', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term, status=status_filter) }}"
-                   class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none">
+                <a href="{{ url_for('raw_materials.index', page=pagination.next_num, q=search_term, status=status_filter) if pagination.has_next else '#' }}"
+                   class="flex items-center justify-center px-3 h-8 {{ 'text-body hover:bg-neutral-tertiary-medium cursor-pointer' if pagination.has_next else 'text-body opacity-50 cursor-not-allowed' }} bg-neutral-secondary-medium border border-default-medium rounded-e-md">
                   Siguiente
                 </a>
               </li>
@@ -273,15 +297,31 @@
   </div>
 {% endblock content %}
 {% block modals %}
-  {% for raw_material in raw_materials %}
-    <div id="toggle-raw-material-status-modal-{{ raw_material.id }}"
+  <!-- Formulario oculto para acciones masivas -->
+  <form id="bulkActionForm"
+        method="post"
+        action="{{ url_for('raw_materials.bulk_action_raw_materials') }}"
+        class="hidden">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="q" value="{{ search_term }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="page" value="{{ request.args.get('page', 1) }}">
+    <input type="hidden" name="action" id="bulk-action-input" value="">
+    <input type="hidden"
+           name="selected_ids"
+           id="bulk-selected-ids-input"
+           value="">
+  </form>
+  <!-- Modales individuales Activar/Desactivar -->
+  {% for rm in raw_materials %}
+    <div id="toggle-modal-{{ rm.id }}"
          tabindex="-1"
          class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
       <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
         <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
           <button type="button"
                   class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
-                  data-modal-hide="toggle-raw-material-status-modal-{{ raw_material.id }}">
+                  data-modal-hide="toggle-modal-{{ rm.id }}">
             <svg class="w-5 h-5"
                  aria-hidden="true"
                  xmlns="http://www.w3.org/2000/svg"
@@ -303,9 +343,9 @@
                  viewBox="0 0 24 24">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
-            <h3 class="mb-2 text-heading font-medium">{{ raw_material.name }}</h3>
+            <h3 class="mb-2 text-heading font-medium">{{ rm.name }}</h3>
             <p class="mb-6 text-body">
-              {% if raw_material.status == 'active' %}
+              {% if rm.status == 'active' %}
                 ¿Seguro que deseas desactivar esta materia prima?
               {% else %}
                 ¿Seguro que deseas activar esta materia prima?
@@ -313,21 +353,22 @@
             </p>
             <div class="flex items-center space-x-4 justify-center">
               <form method="post"
-                    action="{{ url_for('raw_materials.toggle_status', raw_material_id=raw_material.id) }}"
+                    action="{{ url_for('raw_materials.toggle_status', raw_material_id=rm.id) }}"
                     class="inline-flex">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token() if csrf_token else '' }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="q" value="{{ search_term }}">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="hidden" name="page" value="{{ pagination.page }}">
                 <button type="submit"
-                        class="text-white {% if raw_material.status == 'active' %}bg-danger hover:bg-danger-strong focus:ring-danger-medium{% else %}bg-brand hover:bg-brand-strong focus:ring-brand-medium{% endif %} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-                  {% if raw_material.status == 'active' %}
+                        class="text-white {% if rm.status == 'active' %}bg-danger hover:bg-danger-strong focus:ring-danger-medium{% else %}bg-brand hover:bg-brand-strong focus:ring-brand-medium{% endif %} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                  {% if rm.status == 'active' %}
                     Sí, desactivar
                   {% else %}
                     Sí, activar
                   {% endif %}
                 </button>
               </form>
-              <button data-modal-hide="toggle-raw-material-status-modal-{{ raw_material.id }}"
+              <button data-modal-hide="toggle-modal-{{ rm.id }}"
                       type="button"
                       class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
                 No, cancelar
@@ -338,4 +379,217 @@
       </div>
     </div>
   {% endfor %}
+  <!-- Modal: Sin selección -->
+  <div id="bulk-no-selection-modal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="bulk-no-selection-modal">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 class="mb-6 text-body">Selecciona al menos una materia prima para ejecutar esta acción.</h3>
+          <button data-modal-hide="bulk-no-selection-modal"
+                  type="button"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal: Confirmar acción masiva -->
+  <div id="bulk-confirm-action-modal"
+       tabindex="-1"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-3 2xl:p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-neutral-primary-soft border border-default rounded-base shadow-sm p-3 md:p-4 2xl:p-6">
+        <button type="button"
+                class="absolute top-3 inset-e-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:text-heading rounded-base text-xs 2xl:text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                data-modal-hide="bulk-confirm-action-modal">
+          <svg class="w-5 h-5"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-3 2xl:p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <h3 id="bulk-confirm-action-message" class="mb-6 text-body">¿Deseas continuar con esta acción?</h3>
+          <div class="flex items-center space-x-4 justify-center">
+            <button id="bulk-confirm-action-submit"
+                    type="button"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Sí, continuar
+            </button>
+            <button data-modal-hide="bulk-confirm-action-modal"
+                    type="button"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              No, cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const checkAll = document.getElementById("checkbox-all");
+          const rowCheckboxes = Array.from(document.querySelectorAll(".item-checkbox"));
+          const bulkForm = document.getElementById("bulkActionForm");
+          const bulkActionInput = document.getElementById("bulk-action-input");
+          const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
+          const bulkExportBtn = document.getElementById("bulkExportBtn");
+          const bulkActivateBtn = document.getElementById("bulkActivateBtn");
+          const bulkDeactivateBtn = document.getElementById("bulkDeactivateBtn");
+          const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
+          const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
+          const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
+          const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
+          let pendingAction = "";
+
+          const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
+          const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
+
+          if (!checkAll || !bulkForm || !bulkActionInput || !bulkSelectedIdsInput) {
+              return;
+          }
+
+          const syncMasterCheckbox = () => {
+              const total = rowCheckboxes.length;
+              const selected = rowCheckboxes.filter((cb) => cb.checked).length;
+              checkAll.checked = total > 0 && selected === total;
+              checkAll.indeterminate = selected > 0 && selected < total;
+          };
+
+          checkAll.addEventListener("change", function() {
+              rowCheckboxes.forEach((cb) => {
+                  cb.checked = checkAll.checked;
+              });
+              syncMasterCheckbox();
+          });
+
+          rowCheckboxes.forEach((cb) => {
+              cb.addEventListener("change", syncMasterCheckbox);
+          });
+
+          syncMasterCheckbox();
+
+          const getActionMeta = (action) => {
+              if (action === "export") {
+                  return {
+                      message: "¿Deseas exportar las materias primas seleccionadas?",
+                      buttonText: "Sí, exportar",
+                      buttonClass: "bg-brand hover:bg-brand-strong focus:ring-brand-medium",
+                  };
+              }
+              if (action === "activate") {
+                  return {
+                      message: "¿Deseas activar las materias primas seleccionadas?",
+                      buttonText: "Sí, activar",
+                      buttonClass: "bg-success hover:bg-success-strong focus:ring-success-medium",
+                  };
+              }
+              return {
+                  message: "¿Deseas desactivar las materias primas seleccionadas?",
+                  buttonText: "Sí, desactivar",
+                  buttonClass: "bg-danger hover:bg-danger-strong focus:ring-danger-medium",
+              };
+          };
+
+          const applyConfirmButtonStyle = (buttonClass) => {
+              if (!confirmSubmitBtn) return;
+              confirmSubmitBtn.classList.remove(
+                  "bg-brand", "hover:bg-brand-strong", "focus:ring-brand-medium",
+                  "bg-success", "hover:bg-success-strong", "focus:ring-success-medium",
+                  "bg-danger", "hover:bg-danger-strong", "focus:ring-danger-medium"
+              );
+              buttonClass.split(" ").forEach((klass) => {
+                  confirmSubmitBtn.classList.add(klass);
+              });
+          };
+
+          const submitBulkAction = (action) => {
+              const selectedIds = rowCheckboxes
+                  .filter((cb) => cb.checked)
+                  .map((cb) => cb.value);
+
+              if (selectedIds.length === 0) {
+                  if (noSelectionModal) noSelectionModal.show();
+                  return;
+              }
+
+              pendingAction = action;
+              bulkSelectedIdsInput.value = selectedIds.join(",");
+
+              const actionMeta = getActionMeta(action);
+              if (confirmMessageElement) confirmMessageElement.textContent = actionMeta.message;
+              if (confirmSubmitBtn) confirmSubmitBtn.textContent = actionMeta.buttonText;
+              applyConfirmButtonStyle(actionMeta.buttonClass);
+
+              if (confirmModal) confirmModal.show();
+          };
+
+          if (confirmSubmitBtn) {
+              confirmSubmitBtn.addEventListener("click", function() {
+                  if (!pendingAction) return;
+                  bulkActionInput.value = pendingAction;
+                  if (confirmModal) confirmModal.hide();
+                  bulkForm.submit();
+              });
+          }
+
+          if (bulkExportBtn) {
+              bulkExportBtn.addEventListener("click", function() {
+                  submitBulkAction("export");
+              });
+          }
+
+          if (bulkActivateBtn) {
+              bulkActivateBtn.addEventListener("click", function() {
+                  submitBulkAction("activate");
+              });
+          }
+
+          if (bulkDeactivateBtn) {
+              bulkDeactivateBtn.addEventListener("click", function() {
+                  submitBulkAction("deactivate");
+              });
+          }
+      });
+  </script>
 {% endblock modals %}

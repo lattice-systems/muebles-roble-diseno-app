@@ -186,8 +186,9 @@ class PurchaseOrderService:
             rm_id = item.get("raw_material_id")
             qty = float(item.get("quantity", 0))
             price = float(item.get("unit_price", 0))
+            factor = float(item.get("conversion_factor", 1.0))
 
-            if not rm_id or qty <= 0 or price <= 0:
+            if not rm_id or qty <= 0 or price <= 0 or factor <= 0:
                 raise ValidationError(
                     "Los detalles de la orden contienen datos inválidos"
                 )
@@ -196,6 +197,7 @@ class PurchaseOrderService:
                 purchase_order_id=order.id,
                 raw_material_id=rm_id,
                 quantity=qty,
+                conversion_factor=factor,
                 unit_price=price,
             )
             db.session.add(order_item)
@@ -242,8 +244,9 @@ class PurchaseOrderService:
             rm_id = item.get("raw_material_id")
             qty = float(item.get("quantity", 0))
             price = float(item.get("unit_price", 0))
+            factor = float(item.get("conversion_factor", 1.0))
 
-            if not rm_id or qty <= 0 or price <= 0:
+            if not rm_id or qty <= 0 or price <= 0 or factor <= 0:
                 raise ValidationError(
                     "Los detalles de la orden contienen datos inválidos"
                 )
@@ -252,6 +255,7 @@ class PurchaseOrderService:
                 purchase_order_id=order.id,
                 raw_material_id=rm_id,
                 quantity=qty,
+                conversion_factor=factor,
                 unit_price=price,
             )
             db.session.add(order_item)
@@ -313,17 +317,23 @@ class PurchaseOrderService:
                         raw_material = item.raw_material
                         current_stock = float(raw_material.stock)
 
-                        raw_material.stock = current_stock + added_qty
+                        stock_to_add = added_qty * float(item.conversion_factor)
+                        raw_material.stock = current_stock + stock_to_add
                         item.received_quantity = (
                             float(item.received_quantity) + added_qty
                         )
 
+                        factor_label = (
+                            f" (Factor: {float(item.conversion_factor)})"
+                            if float(item.conversion_factor) != 1.0
+                            else ""
+                        )
                         movement = RawMaterialMovement(
                             raw_material_id=raw_material.id,
                             movement_type="ENTRADA",
-                            quantity=added_qty,
+                            quantity=stock_to_add,
                             reference=f"Compra OC-{order.id}",
-                            reason="Recepción de orden de compra",
+                            reason=f"Recepción de orden de compra{factor_label}",
                         )
                         db.session.add(movement)
             else:
@@ -333,17 +343,24 @@ class PurchaseOrderService:
                     added_qty = item.pending_quantity
                     if added_qty > 0:
                         raw_material = item.raw_material
-                        raw_material.stock = float(raw_material.stock) + added_qty
+
+                        stock_to_add = added_qty * float(item.conversion_factor)
+                        raw_material.stock = float(raw_material.stock) + stock_to_add
                         item.received_quantity = (
                             float(item.received_quantity) + added_qty
                         )
 
+                        factor_label = (
+                            f" (Factor: {float(item.conversion_factor)})"
+                            if float(item.conversion_factor) != 1.0
+                            else ""
+                        )
                         movement = RawMaterialMovement(
                             raw_material_id=raw_material.id,
                             movement_type="ENTRADA",
-                            quantity=added_qty,
+                            quantity=stock_to_add,
                             reference=f"Compra OC-{order.id}",
-                            reason="Recepción de orden de compra",
+                            reason=f"Recepción de orden de compra{factor_label}",
                         )
                         db.session.add(movement)
 
