@@ -84,7 +84,7 @@
             {% for image in product.images %}
               <div class="flex flex-col gap-2">
                 <div class="w-24 h-24 rounded-base border border-default-medium overflow-hidden bg-neutral-secondary-medium">
-                  <img src="{{ url_for('static', filename=image.image_path) }}"
+                  <img src="{{ image.image_url }}"
                        alt="Imagen del producto"
                        class="w-full h-full object-cover">
                 </div>
