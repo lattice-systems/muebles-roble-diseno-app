@@ -1,80 +1,201 @@
 {% extends "layouts/admin.html" %}
 {% block title %}
-  Admin - Detalle materia prima
+  Admin - Detalles de Materia Prima
 {% endblock title %}
 {% block content %}
   <div class="max-w-4xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <!-- Header -->
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Detalle de materia prima</h1>
-      <p class="text-body">Consulta la información completa de la materia prima</p>
-    </div>
+    {% set admin_header_title = "Detalle de materia prima" %}
+    {% set admin_header_subtitle = "Consulta la información completa de la materia prima" %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
-    <!-- Card -->
-    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
-      <!-- Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Nombre -->
-        <div>
-          <p class="text-xs text-body">Nombre</p>
-          <p class="text-heading font-medium">{{ raw_material.name }}</p>
+    <!-- TARJETA PRINCIPAL DASHBOARD -->
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6 flex flex-col gap-4 2xl:gap-6">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-heading text-lg 2xl:text-xl font-semibold">{{ raw_material.name }}</h2>
+          <div class="flex items-center gap-2 mt-1">
+            {% if raw_material.status == 'active' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Activo</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Inactivo</span>
+            {% endif %}
+            <span class="text-xs text-body">ID: {{ raw_material.id }}</span>
+            <span class="text-xs text-body">• Categoría: {{ raw_material.category.name if raw_material.category else '—' }}</span>
+          </div>
         </div>
-        <!-- Estado -->
-        <div>
-          <p class="text-xs text-body">Estado</p>
-          {% if raw_material.status == 'active' %}
-            <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-success-soft text-fg-success-strong">Activo</span>
-          {% else %}
-            <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-danger-soft text-fg-danger-strong">Inactivo</span>
-          {% endif %}
-        </div>
-        <!-- Categoría -->
-        <div>
-          <p class="text-xs text-body">Categoría</p>
-          <p class="text-heading">{{ raw_material.category.name if raw_material.category else "Sin categoría" }}</p>
-        </div>
-        <!-- Unidad -->
-        <div>
-          <p class="text-xs text-body">Unidad de medida</p>
-          <p class="text-heading">{{ raw_material.unit.name if raw_material.unit else "-" }}</p>
-        </div>
-        <!-- Stock -->
-        <div>
-          <p class="text-xs text-body">Stock</p>
-          <p class="text-heading font-medium">{{ raw_material.stock }}</p>
-        </div>
-        <!-- Costo -->
-        <div>
-          <p class="text-xs text-body">Costo estimado</p>
-          <p class="text-heading">{{ raw_material.estimated_cost if raw_material.estimated_cost else "-" }}</p>
-        </div>
-        <!-- Merma -->
-        <div>
-          <p class="text-xs text-body">Merma (%)</p>
-          <p class="text-heading">{{ raw_material.waste_percentage }}%</p>
-        </div>
-        <!-- Proveedor -->
-        <div>
-          <p class="text-xs text-body">Proveedor</p>
-          <p class="text-heading">{{ raw_material.supplier.name if raw_material.supplier else "Sin proveedor" }}</p>
+        <div class="flex gap-2">
+          <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
+             class="inline-flex items-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none gap-2">
+            <svg class="w-4 h-4"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z" />
+            </svg>
+            Editar
+          </a>
+          <a href="{{ url_for('raw_materials.adjust_stock', raw_material_id=raw_material.id) }}"
+             class="inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none gap-2">
+            <svg class="w-4 h-4"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v9m-5 0H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2M8 9l4-5 4 5m1 8h.01" />
+            </svg>
+            Ajustar Stock
+          </a>
         </div>
       </div>
-      <!-- Descripción -->
-      <div class="mt-4">
-        <p class="text-xs text-body">Descripción</p>
-        <p class="text-heading">{{ raw_material.description or "Sin descripción" }}</p>
+      <!-- Estadísticas (Kpis) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 2xl:gap-4 mt-2">
+        <div class="bg-neutral-secondary-medium rounded-lg p-3 2xl:p-4 border border-default-light">
+          <p class="text-xs font-medium text-body uppercase tracking-wider mb-1">Stock Actual</p>
+          <p class="text-2xl font-bold text-heading">
+            {{ raw_material.stock }} <span class="text-sm font-normal text-body">{{ raw_material.unit.abbreviation if raw_material.unit else '' }}</span>
+          </p>
+        </div>
+        <div class="bg-neutral-secondary-medium rounded-lg p-3 2xl:p-4 border border-default-light">
+          <p class="text-xs font-medium text-body uppercase tracking-wider mb-1 flex items-center gap-1">
+            Merma Estimada
+            <span class="text-brand text-[10px] bg-brand-softer px-1 rounded-sm cursor-help"
+                  title="Porcentaje configurado para planificación">?</span>
+          </p>
+          <p class="text-2xl font-bold text-heading">{{ raw_material.waste_percentage }}%</p>
+        </div>
+        <div class="bg-neutral-secondary-medium rounded-lg p-3 2xl:p-4 border border-default-light">
+          <p class="text-xs font-medium text-body uppercase tracking-wider mb-1">Unidad Base</p>
+          <p class="text-sm font-medium text-heading mt-2">
+            {{ raw_material.unit.name if raw_material.unit else 'No definida' }}
+          </p>
+        </div>
+        <div class="bg-neutral-secondary-medium rounded-lg p-3 2xl:p-4 border border-default-light">
+          <p class="text-xs font-medium text-body uppercase tracking-wider mb-1">Última Accion</p>
+          <p class="text-sm font-medium text-heading mt-2">
+            {{ raw_material.updated_at.strftime("%d/%m/%Y %H:%M") if raw_material.updated_at else 'Desconocida' }}
+          </p>
+        </div>
       </div>
-      <!-- Acciones -->
-      <div class="flex justify-end gap-2 mt-6">
-        <a href="{{ url_for('raw_materials.list_raw_materials') }}"
-           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading rounded-base text-xs px-3 py-2">
-          Volver
-        </a>
-        <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
-           class="inline-flex items-center justify-center text-white bg-brand hover:bg-brand-strong rounded-base text-xs px-3 py-2">
-          Editar
-        </a>
+      <div class="pt-2 border-t border-default-medium">
+        <h3 class="text-xs font-medium text-body uppercase tracking-wider mb-2">Descripción:</h3>
+        <p class="text-sm text-heading">{{ raw_material.description or 'Sin descripción adicional.' }}</p>
       </div>
+    </div>
+    <!-- SECCIÓN HISTORIAL DE MOVIMIENTOS -->
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2">
+      <div class="p-4 border-b border-default">
+        <h3 class="text-heading text-md font-semibold flex items-center gap-2">
+          <svg class="w-5 h-5 text-body"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          Auditoría de Movimientos de Stock
+        </h3>
+        <p class="text-xs text-body mt-1">Historial del inventario (entradas, salidas, mermas reportadas).</p>
+      </div>
+      <div class="relative w-full overflow-x-auto bg-neutral-primary-soft">
+        <table class="w-full text-xs 2xl:text-sm text-left text-body">
+          <thead class="text-xs text-body uppercase bg-neutral-secondary-medium border-b border-default-medium">
+            <tr>
+              <th scope="col" class="px-6 py-3 font-medium">Fecha</th>
+              <th scope="col" class="px-6 py-3 font-medium">Tipo</th>
+              <th scope="col" class="px-6 py-3 font-medium">Cantidad</th>
+              <th scope="col" class="px-6 py-3 font-medium">Motivo</th>
+              <th scope="col" class="px-6 py-3 font-medium">Referencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mov in movements_pagination.items %}
+              <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                <td class="px-6 py-3 whitespace-nowrap">
+                  {{ mov.created_at.strftime("%Y-%m-%d %H:%M") if mov.created_at else 'N/D' }}
+                </td>
+                <td class="px-6 py-3">
+                  {% if mov.movement_type == 'ENTRADA' or mov.movement_type == 'AJUSTE_ENTRADA' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-soft text-fg-success-strong">
+                      + {{ mov.movement_type }}
+                    </span>
+                  {% elif mov.movement_type == 'MERMA' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-danger-soft text-fg-danger-strong">
+                      - {{ mov.movement_type }}
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-tertiary-medium text-heading">
+                      - {{ mov.movement_type }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-3 font-bold text-heading">{{ mov.quantity }}</td>
+                <td class="px-6 py-3">{{ mov.reason or '—' }}</td>
+                <td class="px-6 py-3">{{ mov.reference or '—' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="px-6 py-6 text-center text-body">No hay movimientos registrados para este insumo.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <!-- Paginación Movimientos -->
+        {% if movements_pagination and movements_pagination.pages > 1 %}
+          <nav class="flex items-center justify-between p-3"
+               aria-label="Table navigation">
+            <ul class="flex -space-x-px text-xs">
+              <li>
+                <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=raw_material.id, page=movements_pagination.prev_num) if movements_pagination.has_prev else '#' }}"
+                   class="flex items-center justify-center px-3 h-8 {{ 'text-body hover:bg-neutral-tertiary-medium cursor-pointer' if movements_pagination.has_prev else 'text-body opacity-50 cursor-not-allowed' }} bg-neutral-secondary-medium border border-default-medium rounded-s-md">
+                  Anterior
+                </a>
+              </li>
+              {% for p in movements_pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                  <li>
+                    <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=raw_material.id, page=p) }}"
+                       class="flex items-center justify-center px-3 h-8 {{ 'bg-brand text-white border-brand' if p == movements_pagination.page else 'text-body bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium border-default-medium' }} border">
+                      {{ p }}
+                    </a>
+                  </li>
+                {% else %}
+                  <li>
+                    <span class="flex items-center justify-center px-3 h-8 text-body bg-neutral-secondary-medium border border-default-medium">...</span>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              <li>
+                <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=raw_material.id, page=movements_pagination.next_num) if movements_pagination.has_next else '#' }}"
+                   class="flex items-center justify-center px-3 h-8 {{ 'text-body hover:bg-neutral-tertiary-medium cursor-pointer' if movements_pagination.has_next else 'text-body opacity-50 cursor-not-allowed' }} bg-neutral-secondary-medium border border-default-medium rounded-e-md">
+                  Siguiente
+                </a>
+              </li>
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+    </div>
+    <div class="mt-4 pb-8 flex items-center justify-start">
+      <a href="{{ session.get('raw_materials_list_url', url_for('raw_materials.index') ) }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none gap-2">
+        <svg class="w-4 h-4"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             fill="none"
+             viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
+        </svg>
+        Volver a la lista
+      </a>
     </div>
   </div>
 {% endblock content %}

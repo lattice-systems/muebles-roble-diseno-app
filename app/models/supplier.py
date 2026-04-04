@@ -17,8 +17,6 @@ class Supplier(AuditMixin, db.Model):
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
 
-    raw_materials = db.relationship("RawMaterial", back_populates="supplier", lazy=True)
-
     purchase_orders = db.relationship(
         "PurchaseOrder", back_populates="supplier", lazy=True
     )

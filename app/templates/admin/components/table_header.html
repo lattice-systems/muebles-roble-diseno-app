@@ -1,0 +1,54 @@
+{% macro table_header(search_action, search_input_id='table-search', search_name='q', search_value='', search_placeholder='Buscar', search_label='Buscar', hidden_fields=None, clear_condition=False, clear_onclick='', container_class='p-3 2xl:p-4 flex flex-wrap items-center justify-between gap-2.5 2xl:gap-3', left_wrapper_class='flex w-full xl:w-auto items-center gap-2', actions_wrapper_class='flex flex-row flex-nowrap items-center gap-2.5 2xl:gap-3 shrink-0', search_form_class='w-full xl:w-[22rem] xl:flex-none min-w-0', search_input_class='') %}
+  <div class="{{ container_class }}">
+    <div class="{{ left_wrapper_class }}">
+      <form class="{{ search_form_class }}"
+            method="get"
+            action="{{ search_action }}"
+            id="searchForm">
+        <label for="{{ search_input_id }}" class="sr-only">{{ search_label }}</label>
+        {% if hidden_fields %}
+          {% for field_name, field_value in hidden_fields %}
+            <input type="hidden"
+                   name="{{ field_name }}"
+                   value="{{ field_value if field_value is not none else '' }}">
+          {% endfor %}
+        {% endif %}
+        <div class="relative">
+          <div class="absolute inset-y-0 inset-s-0 flex items-center ps-3 pointer-events-none">
+            <svg class="w-4 h-4 text-body"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
+              </path>
+            </svg>
+          </div>
+          <input type="text"
+                 id="{{ search_input_id }}"
+                 name="{{ search_name }}"
+                 value="{{ search_value }}"
+                 class="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body {{ search_input_class }}"
+                 placeholder="{{ search_placeholder }}"
+                 onkeypress="if(event.key === 'Enter') this.form.submit();">
+        </div>
+      </form>
+      {% if clear_condition %}
+        {% if clear_onclick %}
+          <button type="button"
+                  onclick="{{ clear_onclick }}"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                  title="Limpiar búsqueda">Limpiar</button>
+        {% else %}
+          <button type="button"
+                  onclick="const form=this.previousElementSibling; if(form){const input=form.querySelector('input[type=text]'); if(input){input.value='';} form.submit();}"
+                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                  title="Limpiar búsqueda">Limpiar</button>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="{{ actions_wrapper_class }}">{{ caller() }}</div>
+  </div>
+{% endmacro %}

@@ -1,0 +1,12 @@
+{% macro status_badge(label, variant='neutral', extra_class='') -%}
+  {% set variant_classes = {
+    "success": "ring-success-subtle text-fg-success-strong bg-success-soft",
+    "danger": "ring-danger-subtle text-fg-danger-strong bg-danger-soft",
+    "warning": "ring-warning-subtle text-fg-warning-strong bg-warning-soft",
+    "info": "ring-info-subtle text-fg-info-strong bg-info-soft",
+    "brand": "ring-brand-subtle text-fg-brand-strong bg-brand-soft",
+    "neutral": "ring-neutral-subtle text-body bg-neutral-secondary-medium"
+  } %}
+  {% set badge_classes = variant_classes.get(variant, variant_classes['neutral']) %}
+  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset text-xs 2xl:text-sm font-medium rounded {{ badge_classes }}{% if extra_class %} {{ extra_class }}{% endif %}">{{ label }}</span>
+{%- endmacro %}

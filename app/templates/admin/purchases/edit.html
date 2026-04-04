@@ -4,10 +4,9 @@
 {% endblock title %}
 {% block content %}
   <div class="max-w-5xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Editar Orden de Compra #{{ order.id }}</h1>
-      <p class="text-body">Edita la orden mientras se encuentra en estado pendiente.</p>
-    </div>
+    {% set admin_header_title = "Editar Orden de Compra #" ~ order.id %}
+    {% set admin_header_subtitle = "Edita la orden mientras se encuentra en estado pendiente." %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
       <form id="editPurchaseForm"
@@ -69,8 +68,13 @@
             <table class="w-full text-left text-xs 2xl:text-sm text-body">
               <thead class="text-xs 2xl:text-sm text-heading bg-neutral-secondary-medium border-b border-default-medium">
                 <tr>
-                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/3">Materia Prima</th>
+                  <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/4">Materia Prima</th>
                   <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Cantidad</th>
+                  <th scope="col"
+                      class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6 text-center"
+                      title="Ej: Si compras 1 Caja que trae 100 piezas, pon 100.">
+                    Fact. Conv. <span class="text-brand font-bold cursor-help bg-brand-softer px-1 rounded-sm text-[10px]">?</span>
+                  </th>
                   <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Precio Unitario</th>
                   <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-1/6">Subtotal</th>
                   <th scope="col" class="px-3 py-2 2xl:px-4 2xl:py-3 w-12 text-center">Acción</th>
@@ -98,6 +102,16 @@
                                value="{{ item.quantity }}"
                                required
                                class="item-qty block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                      </td>
+                      <td class="px-3 py-2 2xl:px-4">
+                        <input type="number"
+                               step="0.001"
+                               min="0.001"
+                               value="{{ item.conversion_factor }}"
+                               name="conversion_factor[]"
+                               required
+                               class="item-factor block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs text-center"
+                               title="Multiplicador de stock base (P. ej: Caja de 100 -> Escribe 100)">
                       </td>
                       <td class="px-3 py-2 2xl:px-4">
                         <input type="number"
@@ -133,7 +147,7 @@
               <tfoot class="bg-neutral-secondary-medium border-t border-default-medium">
                 <tr>
                   <th scope="row"
-                      colspan="3"
+                      colspan="4"
                       class="px-3 py-3 2xl:px-4 2xl:py-4 text-right font-semibold text-heading text-sm">
                     Total Orden:
                   </th>
@@ -252,6 +266,9 @@
                   </td>
                   <td class="px-3 py-2 2xl:px-4">
                       <input type="number" step="0.001" min="0.001" name="quantity[]" required class="item-qty block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" placeholder="0.000">
+                  </td>
+                  <td class="px-3 py-2 2xl:px-4">
+                      <input type="number" step="0.001" min="0.001" value="1" name="conversion_factor[]" required class="item-factor block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs text-center" title="Multiplicador de stock base (P. ej: Caja de 100 -> Escribe 100)">
                   </td>
                   <td class="px-3 py-2 2xl:px-4">
                       <input type="number" step="0.01" min="0.01" name="unit_price[]" required class="item-price block w-full px-2 py-1 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" placeholder="0.00">

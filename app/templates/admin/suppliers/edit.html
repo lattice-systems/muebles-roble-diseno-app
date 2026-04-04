@@ -4,10 +4,9 @@
 {% endblock title %}
 {% block content %}
   <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-heading text-base 2xl:text-lg font-medium">Editar proveedor</h1>
-      <p class="text-body">Actualiza la información del proveedor seleccionado</p>
-    </div>
+    {% set admin_header_title = "Editar proveedor" %}
+    {% set admin_header_subtitle = "Actualiza la información del proveedor seleccionado" %}
+    {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
       <form id="editSupplierForm"

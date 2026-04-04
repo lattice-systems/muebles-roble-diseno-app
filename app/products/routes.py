@@ -1,8 +1,8 @@
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_required
-import os
-from werkzeug.utils import secure_filename
-from flask import current_app
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from app import db
 from app.models import Product, FurnitureType, Color, ProductInventory, ProductImage
 from . import products_bp
@@ -16,19 +16,19 @@ from .services import (
 
 
 def save_product_images(product, files):
-    upload_folder = os.path.join(current_app.root_path, "static", "uploads", "products")
+    current_count = len(product.images)
 
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
-
-    for file in files:
+    for index, file in enumerate(files):
         if file and file.filename:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(upload_folder, filename)
-            file.save(filepath)
+            result = cloudinary.uploader.upload(
+                file, folder="products", resource_type="image"
+            )
 
             image = ProductImage(
-                product_id=product.id, image_path=f"uploads/products/{filename}"
+                product_id=product.id,
+                image_url=result["secure_url"],
+                public_id=result["public_id"],
+                sort_order=current_count + index + 1,
             )
             db.session.add(image)
 
@@ -295,14 +295,7 @@ def delete_image(image_id):
     product_id = image.product_id
 
     try:
-        file_path = os.path.join(current_app.root_path, "static", image.image_path)
-
-        print("PATH:", file_path)
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        else:
-            print("NO EXISTE:", file_path)
+        cloudinary.uploader.destroy(image.public_id, resource_type="image")
 
         db.session.delete(image)
         db.session.commit()
