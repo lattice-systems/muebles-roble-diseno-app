@@ -106,7 +106,7 @@ class ProductionService:
                 selectinload(Bom.items).selectinload(BomItem.raw_material)
             )
             .filter(Bom.product_id == product_id)
-            .order_by(Bom.id.desc())
+            .order_by(Bom.updated_at.desc(), Bom.id.desc())
             .first()
         )
 
@@ -218,7 +218,7 @@ class ProductionService:
                 )
             )
 
-        return query.order_by(Bom.id.desc()).paginate(
+        return query.order_by(Bom.updated_at.desc(), Bom.id.desc()).paginate(
             page=page,
             per_page=per_page,
             error_out=False,

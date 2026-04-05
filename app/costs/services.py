@@ -5,7 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy import or_
 
 from app.extensions import db
-from app.models import Product, ProductionOrder, PurchaseOrderItem
+from app.models import Bom, Product, ProductionOrder, PurchaseOrderItem
 from app.exceptions import NotFoundError
 
 
@@ -32,9 +32,14 @@ class CostService:
 
     @staticmethod
     def _get_primary_bom(product: Product):
-        if not product.boms:
+        if not product or not product.id:
             return None
-        return sorted(product.boms, key=lambda x: x.id)[0]
+
+        return (
+            Bom.query.filter(Bom.product_id == product.id)
+            .order_by(Bom.updated_at.desc(), Bom.id.desc())
+            .first()
+        )
 
     @staticmethod
     def _get_latest_unit_price(raw_material_id: int) -> Decimal:
