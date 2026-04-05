@@ -4,6 +4,7 @@ from flask_security import SQLAlchemyUserDatastore, auth_required
 from config import Config
 from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
+from .rbac import register_rbac
 
 
 def create_app(config_class=None):
@@ -38,6 +39,9 @@ def create_app(config_class=None):
     # Setup Flask-Security datastore
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, user_datastore)
+
+    # Register RBAC deny-by-default guard and Jinja helpers
+    register_rbac(app)
 
     # Register error handlers
     register_error_handlers(app)
@@ -123,11 +127,11 @@ def create_app(config_class=None):
 
     from .sales import sales_bp
 
-    app.register_blueprint(sales_bp, url_prefix="/sales")
+    app.register_blueprint(sales_bp, url_prefix="/admin/sales")
 
     from .customer_orders import customer_orders_bp
 
-    app.register_blueprint(customer_orders_bp, url_prefix="/customer-orders")
+    app.register_blueprint(customer_orders_bp, url_prefix="/admin/customer-orders")
 
     from .production import production_bp
 

@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 from io import StringIO
 from flask import flash, redirect, render_template, request, url_for, make_response
+from flask_security import auth_required
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 
@@ -15,6 +16,7 @@ from .services import ColorService
 
 
 @colors_bp.route("/", methods=["GET"])
+@auth_required()
 def list_colors():
     """
     Muestra la lista de colores con búsqueda, filtro y paginación.
@@ -42,6 +44,7 @@ def list_colors():
 
 
 @colors_bp.route("/create", methods=["POST"])
+@auth_required()
 def create_color():
     """
     Crea un nuevo color desde el modal.
@@ -84,6 +87,7 @@ def create_color():
 
 
 @colors_bp.route("/<int:id_color>/edit", methods=["POST"])
+@auth_required()
 def edit_color(id_color: int):
     """
     Edita un color desde el modal.
@@ -127,6 +131,7 @@ def edit_color(id_color: int):
 
 
 @colors_bp.route("/<int:id_color>/delete", methods=["POST"])
+@auth_required()
 def delete_color(id_color: int):
     """
     Toggle de estado de un color (desactivar/activar).
@@ -141,6 +146,7 @@ def delete_color(id_color: int):
 
 
 @colors_bp.route("/bulk-deactivate", methods=["POST"])
+@auth_required()
 def bulk_deactivate():
     """Desactivar múltiples colores seleccionados."""
     ids_str = request.form.get("ids", "")
@@ -155,6 +161,7 @@ def bulk_deactivate():
 
 
 @colors_bp.route("/bulk-activate", methods=["POST"])
+@auth_required()
 def bulk_activate():
     """Activar múltiples colores seleccionados."""
     ids_str = request.form.get("ids", "")
@@ -169,6 +176,7 @@ def bulk_activate():
 
 
 @colors_bp.route("/bulk-export", methods=["POST"])
+@auth_required()
 def bulk_export():
     """Exportar múltiples colores seleccionados a CSV."""
     ids_str = request.form.get("ids", "")
@@ -186,20 +194,24 @@ def bulk_export():
     writer = csv.writer(output)
     writer.writerow(["ID", "Nombre", "Codigo Hexadecimal", "Estado", "Descripcion"])
     for c in colors:
-        writer.writerow([
-            c.id,
-            c.name,
-            c.hex_code or "",
-            "Activo" if c.status else "Inactivo",
-            c.description or ""
-        ])
+        writer.writerow(
+            [
+                c.id,
+                c.name,
+                c.hex_code or "",
+                "Activo" if c.status else "Inactivo",
+                c.description or "",
+            ]
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
+
     # Prepend BOM so Excel properly recognizes UTF-8 formatting
-    csv_data = '\ufeff' + output.getvalue()
+    csv_data = "\ufeff" + output.getvalue()
 
     response = make_response(csv_data)
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-    response.headers["Content-Disposition"] = f'attachment; filename="colores_{timestamp}.csv"'
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="colores_{timestamp}.csv"'
+    )
     return response

@@ -15,13 +15,13 @@ class TestAdminAuthProtection:
         assert resp.status_code in (302, 401)
 
     def test_pos_redirects(self, client, db_session, seed_basic_data):
-        """GET /sales/pos sin login redirige."""
-        resp = client.get("/sales/pos")
+        """GET /admin/sales/pos sin login redirige."""
+        resp = client.get("/admin/sales/pos")
         assert resp.status_code in (302, 401)
 
     def test_customer_orders_redirects(self, client, db_session, seed_basic_data):
-        """GET /customer-orders/ sin login redirige."""
-        resp = client.get("/customer-orders/")
+        """GET /admin/customer-orders/ sin login redirige."""
+        resp = client.get("/admin/customer-orders/")
         assert resp.status_code in (302, 401)
 
     def test_products_admin_redirects(self, client, db_session, seed_basic_data):
@@ -74,40 +74,40 @@ class TestPOSApiWithoutAuth:
     """Verifica que la API del POS requiere autenticación."""
 
     def test_pos_cart_api_redirects(self, client, db_session, seed_basic_data):
-        """GET /sales/pos/cart sin login redirige."""
-        resp = client.get("/sales/pos/cart")
+        """GET /admin/sales/pos/cart sin login redirige."""
+        resp = client.get("/admin/sales/pos/cart")
         assert resp.status_code in (302, 401)
 
     def test_pos_add_item_redirects(self, client, db_session, seed_basic_data):
-        """POST /sales/pos/items sin login redirige."""
+        """POST /admin/sales/pos/items sin login redirige."""
         resp = client.post(
-            "/sales/pos/items",
+            "/admin/sales/pos/items",
             json={"product_id": 1, "quantity": 1},
         )
         assert resp.status_code in (302, 401)
 
     def test_pos_checkout_redirects(self, client, db_session, seed_basic_data):
-        """POST /sales/pos/checkout sin login redirige."""
+        """POST /admin/sales/pos/checkout sin login redirige."""
         resp = client.post(
-            "/sales/pos/checkout",
+            "/admin/sales/pos/checkout",
             json={"amount_given": 1000, "payment_method_id": 1},
         )
         assert resp.status_code in (302, 401)
 
     def test_pos_payment_methods_redirects(self, client, db_session, seed_basic_data):
-        """GET /sales/pos/payment-methods sin login redirige."""
-        resp = client.get("/sales/pos/payment-methods")
+        """GET /admin/sales/pos/payment-methods sin login redirige."""
+        resp = client.get("/admin/sales/pos/payment-methods")
         assert resp.status_code in (302, 401)
 
     def test_pos_customers_search_redirects(self, client, db_session, seed_basic_data):
-        """GET /sales/pos/customers?q=test sin login redirige."""
-        resp = client.get("/sales/pos/customers?q=test")
+        """GET /admin/sales/pos/customers?q=test sin login redirige."""
+        resp = client.get("/admin/sales/pos/customers?q=test")
         assert resp.status_code in (302, 401)
 
     def test_pos_create_customer_redirects(self, client, db_session, seed_basic_data):
-        """POST /sales/pos/customers sin login redirige."""
+        """POST /admin/sales/pos/customers sin login redirige."""
         resp = client.post(
-            "/sales/pos/customers",
+            "/admin/sales/pos/customers",
             json={
                 "first_name": "Test",
                 "last_name": "User",
@@ -122,9 +122,9 @@ class TestCustomerOrdersApiWithoutAuth:
     """Verifica que las rutas de órdenes de cliente requieren autenticación."""
 
     def test_orders_create_redirects(self, client, db_session, seed_basic_data):
-        """POST /customer-orders/ sin login redirige."""
+        """POST /admin/customer-orders/ sin login redirige."""
         resp = client.post(
-            "/customer-orders/",
+            "/admin/customer-orders/",
             json={
                 "customer_id": 1,
                 "items": [{"product_id": 1, "quantity": 1}],
@@ -134,17 +134,17 @@ class TestCustomerOrdersApiWithoutAuth:
         assert resp.status_code in (302, 401)
 
     def test_orders_cancel_redirects(self, client, db_session, seed_basic_data):
-        """POST /customer-orders/1/cancel sin login redirige."""
+        """POST /admin/customer-orders/1/cancel sin login redirige."""
         resp = client.post(
-            "/customer-orders/1/cancel",
+            "/admin/customer-orders/1/cancel",
             json={"reason": "test"},
         )
         assert resp.status_code in (302, 401, 404)
 
     def test_orders_status_update_redirects(self, client, db_session, seed_basic_data):
-        """PUT /customer-orders/1/status sin login redirige."""
+        """PUT /admin/customer-orders/1/status sin login redirige."""
         resp = client.put(
-            "/customer-orders/1/status",
+            "/admin/customer-orders/1/status",
             json={"status": "terminado"},
         )
         assert resp.status_code in (302, 401, 404)
