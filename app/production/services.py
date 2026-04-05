@@ -30,6 +30,20 @@ from app.models import (
 class ProductionService:
     """Servicio central para Recetas (BOM) y Producción."""
 
+    DEFAULT_PRODUCTION_VALID_STATUSES: tuple[str, ...] = (
+        "pendiente",
+        "en_proceso",
+        "terminado",
+        "cancelado",
+    )
+
+    DEFAULT_PRODUCTION_STATUS_TRANSITIONS: dict[str, tuple[str, ...]] = {
+        "pendiente": ("en_proceso", "cancelado"),
+        "en_proceso": ("terminado", "cancelado"),
+        "terminado": (),
+        "cancelado": (),
+    }
+
     @staticmethod
     def _to_decimal(value) -> Decimal:
         if value is None:
@@ -37,6 +51,22 @@ class ProductionService:
         if isinstance(value, Decimal):
             return value
         return Decimal(str(value))
+
+    @staticmethod
+    def _valid_production_statuses() -> tuple[str, ...]:
+        """Retorna estados válidos con fallback seguro para entornos desincronizados."""
+        statuses = getattr(ProductionOrder, "VALID_STATUSES", None)
+        if not statuses:
+            return ProductionService.DEFAULT_PRODUCTION_VALID_STATUSES
+        return tuple(statuses)
+
+    @staticmethod
+    def _production_status_transitions() -> dict[str, tuple[str, ...]]:
+        """Retorna transiciones permitidas con fallback seguro."""
+        transitions = getattr(ProductionOrder, "STATUS_TRANSITIONS", None)
+        if not transitions:
+            return ProductionService.DEFAULT_PRODUCTION_STATUS_TRANSITIONS
+        return transitions
 
     @staticmethod
     def _log_audit(
@@ -390,7 +420,8 @@ class ProductionService:
     @staticmethod
     def get_allowed_status_transitions(order: ProductionOrder) -> tuple[str, ...]:
         """Retorna los estados destino permitidos para una orden de producción."""
-        return ProductionOrder.STATUS_TRANSITIONS.get(order.status, ())
+        transitions = ProductionService._production_status_transitions()
+        return transitions.get(order.status, ())
 
     @staticmethod
     def initialize_material_plan_for_order(
@@ -686,13 +717,15 @@ class ProductionService:
         order = ProductionService.get_production_order_by_id(production_order_id)
 
         target_status = (new_status or "").strip()
-        if target_status not in ProductionOrder.VALID_STATUSES:
+        valid_statuses = ProductionService._valid_production_statuses()
+        if target_status not in valid_statuses:
             raise ValidationError("Estado de producción inválido")
 
         if order.status == target_status:
             return order
 
-        allowed = ProductionOrder.STATUS_TRANSITIONS.get(order.status, ())
+        transitions = ProductionService._production_status_transitions()
+        allowed = transitions.get(order.status, ())
         if target_status not in allowed:
             raise ConflictError(
                 f"No se puede cambiar de '{order.status}' a '{target_status}'"
