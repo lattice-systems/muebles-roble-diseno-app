@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 from io import StringIO
 from flask import flash, redirect, render_template, request, url_for, make_response
+from flask_security import auth_required
 from . import woods_types_bp
 from .forms import WoodTypeForm
 from .services import WoodTypeService
@@ -13,6 +14,7 @@ from app.exceptions import ConflictError
 
 
 @woods_types_bp.route("/", methods=["GET"])
+@auth_required()
 def list_wood_types():
     """
     Muestra la lista de tipos de madera del catálogo filtrada y paginada.
@@ -40,6 +42,7 @@ def list_wood_types():
 
 
 @woods_types_bp.route("/create", methods=["POST"])
+@auth_required()
 def create_wood_type():
     """
     Crea un nuevo tipo de madera y maneja el modal de creación.
@@ -76,6 +79,7 @@ def create_wood_type():
 
 
 @woods_types_bp.route("/<int:id_wood_type>/edit", methods=["POST"])
+@auth_required()
 def edit_wood_type(id_wood_type: int):
     """
     Actualiza un tipo de madera existente manejado a través de modales.
@@ -113,6 +117,7 @@ def edit_wood_type(id_wood_type: int):
 
 
 @woods_types_bp.route("/<int:id_wood_type>/delete", methods=["POST"])
+@auth_required()
 def delete_wood_type(id_wood_type: int):
     """
     Alterna el estado (Activo/Inactivo) de un tipo de madera existente.
@@ -132,6 +137,7 @@ def delete_wood_type(id_wood_type: int):
 
 
 @woods_types_bp.route("/bulk-deactivate", methods=["POST"])
+@auth_required()
 def bulk_deactivate():
     """
     Desactiva múltiples tipos de madera a la vez.
@@ -161,6 +167,7 @@ def bulk_deactivate():
 
 
 @woods_types_bp.route("/bulk-activate", methods=["POST"])
+@auth_required()
 def bulk_activate():
     """
     Activa múltiples tipos de madera a la vez.
@@ -190,6 +197,7 @@ def bulk_activate():
 
 
 @woods_types_bp.route("/bulk-export", methods=["POST"])
+@auth_required()
 def bulk_export():
     """Exportar múltiples tipos de madera seleccionados a CSV."""
     ids_str = request.form.get("ids", "")
@@ -207,15 +215,14 @@ def bulk_export():
     writer = csv.writer(output)
     writer.writerow(["ID", "Nombre", "Estado", "Descripcion"])
     for w in wood_types:
-        writer.writerow([
-            w.id,
-            w.name,
-            "Activo" if w.status else "Inactivo",
-            w.description or ""
-        ])
+        writer.writerow(
+            [w.id, w.name, "Activo" if w.status else "Inactivo", w.description or ""]
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    response = make_response('\ufeff' + output.getvalue())
+    response = make_response("\ufeff" + output.getvalue())
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-    response.headers["Content-Disposition"] = f'attachment; filename="tipos_madera_{timestamp}.csv"'
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="tipos_madera_{timestamp}.csv"'
+    )
     return response

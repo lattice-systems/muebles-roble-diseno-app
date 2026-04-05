@@ -3,6 +3,7 @@ Rutas/Endpoints para el módulo de roles.
 """
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_security import auth_required
 
 from . import roles_bp
 from .forms import RoleForm
@@ -11,6 +12,7 @@ from app.exceptions import ConflictError, NotFoundError, ValidationError
 
 
 @roles_bp.route("/", methods=["GET"])
+@auth_required()
 def list_roles():
     """
     Muestra la lista de roles del catálogo.
@@ -23,6 +25,7 @@ def list_roles():
 
 
 @roles_bp.route("/create", methods=["GET", "POST"])
+@auth_required()
 def create_role():
     """
     Muestra el formulario y crea un nuevo rol en el catálogo.
@@ -49,6 +52,7 @@ def create_role():
 
 
 @roles_bp.route("/<int:id_role>/edit", methods=["GET", "POST"])
+@auth_required()
 def edit_role(id_role: int):
     """
     Muestra el formulario pre-poblado y actualiza un rol existente.
@@ -85,6 +89,7 @@ def edit_role(id_role: int):
 
 
 @roles_bp.route("/<int:id_role>/delete", methods=["POST"])
+@auth_required()
 def delete_role(id_role: int):
     """
     Ejecuta la eliminación lógica de un rol.
