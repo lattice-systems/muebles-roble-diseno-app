@@ -44,12 +44,10 @@ class CustomerOrderService:
         Returns:
             Pagination: Objeto de paginación de SQLAlchemy.
         """
-        query = (
-            Order.query.options(
-                selectinload(Order.customer),
-                selectinload(Order.items).selectinload(OrderItem.product),
-                selectinload(Order.created_by),
-            )
+        query = Order.query.options(
+            selectinload(Order.customer),
+            selectinload(Order.items).selectinload(OrderItem.product),
+            selectinload(Order.created_by),
         )
 
         if status:
@@ -99,13 +97,17 @@ class CustomerOrderService:
             nd = log.new_data or {}
             pd = log.previous_data or {}
             if str(nd.get("id")) == str(order_id) or str(pd.get("id")) == str(order_id):
-                result.append({
-                    "timestamp": log.timestamp.isoformat() if log.timestamp else None,
-                    "action": log.action,
-                    "user_id": log.user_id,
-                    "previous_data": pd,
-                    "new_data": nd,
-                })
+                result.append(
+                    {
+                        "timestamp": (
+                            log.timestamp.isoformat() if log.timestamp else None
+                        ),
+                        "action": log.action,
+                        "user_id": log.user_id,
+                        "previous_data": pd,
+                        "new_data": nd,
+                    }
+                )
         return result
 
     # ------------------------------------------------------------------ #
@@ -141,9 +143,7 @@ class CustomerOrderService:
 
         if search_term:
             s = f"%{search_term.strip()}%"
-            query = query.filter(
-                or_(Product.name.ilike(s), Product.sku.ilike(s))
-            )
+            query = query.filter(or_(Product.name.ilike(s), Product.sku.ilike(s)))
 
         return query.order_by(Product.name.asc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -207,7 +207,9 @@ class CustomerOrderService:
 
             product = Product.query.filter_by(id=product_id, status=True).first()
             if not product:
-                raise ValueError(f"Producto con ID {product_id} no encontrado o inactivo.")
+                raise ValueError(
+                    f"Producto con ID {product_id} no encontrado o inactivo."
+                )
 
             subtotal = product.price * quantity
             total += subtotal
@@ -239,14 +241,16 @@ class CustomerOrderService:
             db.session.add(item)
 
         # Auditoría
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="INSERT",
-            user_id=created_by_id,
-            timestamp=datetime.now(),
-            previous_data=None,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="INSERT",
+                user_id=created_by_id,
+                timestamp=datetime.now(),
+                previous_data=None,
+                new_data=order.to_dict(),
+            )
+        )
 
         db.session.commit()
         return order
@@ -284,14 +288,16 @@ class CustomerOrderService:
         order.cancelled_by_id = user_id
         order.cancelled_reason = reason.strip()
 
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="UPDATE",
-            user_id=user_id,
-            timestamp=datetime.now(),
-            previous_data=prev_data,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="UPDATE",
+                user_id=user_id,
+                timestamp=datetime.now(),
+                previous_data=prev_data,
+                new_data=order.to_dict(),
+            )
+        )
 
         db.session.commit()
         return order
@@ -308,10 +314,11 @@ class CustomerOrderService:
         """
         Genera órdenes de producción (una por OrderItem) y avanza el estado.
 
-        - Verifica stock por item.
-        - Si hay stock suficiente, lo descuenta del inventario.
-        - Si no, igual crea la ProductionOrder (la producción repondrá stock).
-        - Cambia estado de la orden a 'en_produccion'.
+        - Reserva stock existente de producto terminado por item.
+        - Si hay faltante, crea ProductionOrder solo por la cantidad faltante.
+        - Inicializa consumo planificado de materiales con la receta BOM.
+        - Si no hay faltantes, marca la orden como 'terminado'.
+        - Si hay faltantes, marca la orden como 'en_produccion'.
 
         Returns:
             Lista de ProductionOrder creadas.
@@ -335,36 +342,51 @@ class CustomerOrderService:
         prev_data = order.to_dict()
         production_orders = []
 
+        # Import local para evitar ciclos entre módulos
+        from app.production.services import ProductionService
+
         for item in order.items:
             inv = ProductInventory.query.filter_by(product_id=item.product_id).first()
-            available = inv.stock if inv else 0
+            available = int(inv.stock) if inv and inv.stock is not None else 0
 
-            # Descontar inventario si hay stock suficiente
-            if inv and available >= item.quantity:
-                inv.stock -= item.quantity
+            reserved_qty = min(available, int(item.quantity))
+            missing_qty = int(item.quantity) - reserved_qty
 
-            prod_order = ProductionOrder(
-                product_id=item.product_id,
-                quantity=item.quantity,
-                status="pendiente",
-                scheduled_date=order.estimated_delivery_date or date.today(),
-                customer_order_id=order.id,
-            )
-            db.session.add(prod_order)
-            production_orders.append(prod_order)
+            # Reservar inventario terminado disponible
+            if inv and reserved_qty > 0:
+                inv.stock = int(inv.stock) - reserved_qty
 
-        order.status = "en_produccion"
+            # Solo producir faltante
+            if missing_qty > 0:
+                prod_order = ProductionOrder(
+                    product_id=item.product_id,
+                    quantity=missing_qty,
+                    status="pendiente",
+                    scheduled_date=order.estimated_delivery_date or date.today(),
+                    customer_order_id=order.id,
+                    created_by=user_id,
+                    updated_by=user_id,
+                )
+                db.session.add(prod_order)
+                db.session.flush()
+
+                ProductionService.initialize_material_plan_for_order(prod_order)
+                production_orders.append(prod_order)
+
+        order.status = "en_produccion" if production_orders else "terminado"
 
         db.session.flush()
 
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="UPDATE",
-            user_id=user_id,
-            timestamp=datetime.now(),
-            previous_data=prev_data,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="UPDATE",
+                user_id=user_id,
+                timestamp=datetime.now(),
+                previous_data=prev_data,
+                new_data=order.to_dict(),
+            )
+        )
 
         db.session.commit()
         return production_orders
@@ -408,27 +430,27 @@ class CustomerOrderService:
         # Al entregar, verificar que producción haya terminado todos los ítems
         if new_status == "entregado" and order.production_orders:
             pendientes = [
-                po for po in order.production_orders
-                if po.status != "terminado"
+                po for po in order.production_orders if po.status != "terminado"
             ]
             if pendientes:
                 productos = ", ".join(
-                    po.product.name if po.product else f"#{po.id}"
-                    for po in pendientes
+                    po.product.name if po.product else f"#{po.id}" for po in pendientes
                 )
                 raise ValueError(
                     f"No se puede entregar: {len(pendientes)} orden(es) de producción "
                     f"aún no están terminadas ({productos})."
                 )
 
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="UPDATE",
-            user_id=user_id,
-            timestamp=datetime.now(),
-            previous_data=prev_data,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="UPDATE",
+                user_id=user_id,
+                timestamp=datetime.now(),
+                previous_data=prev_data,
+                new_data=order.to_dict(),
+            )
+        )
 
         db.session.commit()
         return order
@@ -466,6 +488,7 @@ class CustomerOrderService:
             from datetime import timedelta
             from app.models.customer import Customer
             from app.sales.freight_config import calculate_freight, LOCAL_DELIVERY_DAYS
+
             customer = Customer.query.get(customer_id)
             freight = calculate_freight(customer, total)
             days = freight.get("delivery_days") or LOCAL_DELIVERY_DAYS
@@ -495,22 +518,28 @@ class CustomerOrderService:
             unit_price = item_data.get("price")
             if unit_price is None:
                 subtotal = item_data.get("subtotal", 0)
-                unit_price = Decimal(str(subtotal)) / quantity if quantity else Decimal("0")
-            db.session.add(OrderItem(
-                order_id=order.id,
-                product_id=int(product_id),
-                quantity=quantity,
-                price=Decimal(str(unit_price)),
-            ))
+                unit_price = (
+                    Decimal(str(subtotal)) / quantity if quantity else Decimal("0")
+                )
+            db.session.add(
+                OrderItem(
+                    order_id=order.id,
+                    product_id=int(product_id),
+                    quantity=quantity,
+                    price=Decimal(str(unit_price)),
+                )
+            )
 
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="INSERT",
-            user_id=employee_id,
-            timestamp=datetime.now(),
-            previous_data=None,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="INSERT",
+                user_id=employee_id,
+                timestamp=datetime.now(),
+                previous_data=None,
+                new_data=order.to_dict(),
+            )
+        )
 
         # Commit — la Sale ya fue committed por SaleService, aquí guardamos la Order
         db.session.commit()
@@ -534,6 +563,7 @@ class CustomerOrderService:
         """
         if not estimated_delivery_date:
             from datetime import timedelta
+
             estimated_delivery_date = date.today() + timedelta(days=14)
 
         order = Order(
@@ -551,21 +581,25 @@ class CustomerOrderService:
         db.session.flush()
 
         for item_data in cart_items:
-            db.session.add(OrderItem(
-                order_id=order.id,
-                product_id=item_data["product_id"],
-                quantity=item_data["quantity"],
-                price=Decimal(str(item_data["price"])),
-            ))
+            db.session.add(
+                OrderItem(
+                    order_id=order.id,
+                    product_id=item_data["product_id"],
+                    quantity=item_data["quantity"],
+                    price=Decimal(str(item_data["price"])),
+                )
+            )
 
-        db.session.add(AuditLog(
-            table_name="orders",
-            action="INSERT",
-            user_id=None,
-            timestamp=datetime.now(),
-            previous_data=None,
-            new_data=order.to_dict(),
-        ))
+        db.session.add(
+            AuditLog(
+                table_name="orders",
+                action="INSERT",
+                user_id=None,
+                timestamp=datetime.now(),
+                previous_data=None,
+                new_data=order.to_dict(),
+            )
+        )
 
         db.session.commit()
         return order

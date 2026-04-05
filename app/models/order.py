@@ -65,7 +65,7 @@ class Order(db.Model):
 
     # Transiciones permitidas por estado
     STATUS_TRANSITIONS: dict = {
-        "pendiente": ("en_produccion", "cancelado"),
+        "pendiente": ("en_produccion", "terminado", "cancelado"),
         "en_produccion": ("terminado",),
         "terminado": ("entregado",),
         "entregado": (),

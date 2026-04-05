@@ -49,7 +49,14 @@ class CostService:
 
     @staticmethod
     def _get_latest_finished_production(product_id: int):
-        final_statuses = ["finalizada", "finished", "completed", "completada"]
+        final_statuses = [
+            "terminado",
+            "finalizado",
+            "finalizada",
+            "finished",
+            "completed",
+            "completada",
+        ]
 
         return (
             ProductionOrder.query.filter(

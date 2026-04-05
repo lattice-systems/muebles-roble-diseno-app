@@ -14,9 +14,7 @@ class ProductionOrder(AuditMixin, db.Model):
     scheduled_date = db.Column(db.Date, nullable=False)
 
     # FK hacia la orden de cliente que originó esta orden de producción
-    customer_order_id = db.Column(
-        db.Integer, db.ForeignKey("orders.id"), nullable=True
-    )
+    customer_order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=True)
 
     product = db.relationship("Product", back_populates="production_orders")
     customer_order = db.relationship(
@@ -29,6 +27,24 @@ class ProductionOrder(AuditMixin, db.Model):
         cascade="all, delete-orphan",
     )
 
+    VALID_STATUSES = (
+        "pendiente",
+        "en_proceso",
+        "terminado",
+        "cancelado",
+    )
+
+    STATUS_TRANSITIONS: dict = {
+        "pendiente": ("en_proceso", "cancelado"),
+        "en_proceso": ("terminado", "cancelado"),
+        "terminado": (),
+        "cancelado": (),
+    }
+
+    def can_transition_to(self, new_status: str) -> bool:
+        """Valida si el cambio de estado solicitado es permitido."""
+        return new_status in self.STATUS_TRANSITIONS.get(self.status, ())
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -38,6 +54,6 @@ class ProductionOrder(AuditMixin, db.Model):
             "scheduled_date": (
                 self.scheduled_date.isoformat() if self.scheduled_date else None
             ),
-             **self._audit_dict(),
+            **self._audit_dict(),
             "customer_order_id": self.customer_order_id,
         }
