@@ -17,7 +17,7 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
     MONGO_DBNAME = os.getenv("MONGO_DBNAME", "roble_reports")
 
@@ -112,3 +112,26 @@ class Config:
     # Have session and remember cookie be samesite (flask/flask_login)
     REMEMBER_COOKIE_SAMESITE = "strict"
     SESSION_COOKIE_SAMESITE = "strict"
+
+
+class TestingConfig(Config):
+    """Configuración para entorno de pruebas (SQLite in-memory)."""
+
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    WTF_CSRF_ENABLED = False
+    SECRET_KEY = "test-secret-key"
+    SECURITY_PASSWORD_SALT = "test-salt"
+
+    # Deshabilitar mail real en tests
+    MAIL_SUPPRESS_SEND = True
+    MAIL_SERVER = "localhost"
+    MAIL_PORT = 25
+
+    # Flask-Security simplificado para tests
+    SECURITY_TWO_FACTOR = False
+    SECURITY_TOTP_SECRETS = {"1": "test-totp-secret"}
+    SECURITY_EMAIL_SENDER = "test@test.com"
+    SECURITY_SEND_REGISTER_EMAIL = False
+    SECURITY_SEND_PASSWORD_CHANGE_EMAIL = False
+    SECURITY_SEND_PASSWORD_RESET_EMAIL = False
