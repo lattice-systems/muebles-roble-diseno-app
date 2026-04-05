@@ -37,23 +37,30 @@ SEED_USERS: dict[str, dict[str, str]] = {
     ROLE_ADMIN: {
         "role_name": "Administrador",
         "full_name": "Usuario Administrador",
-        "email": "admin@roble.local",
+        "email": "admin@roble.com",
     },
     ROLE_PRODUCTION: {
         "role_name": "Producción",
         "full_name": "Usuario Producción",
-        "email": "produccion@roble.local",
+        "email": "produccion@roble.com",
     },
     ROLE_SALES: {
         "role_name": "Ventas",
         "full_name": "Usuario Ventas",
-        "email": "ventas@roble.local",
+        "email": "ventas@roble.com",
     },
     ROLE_CLIENT: {
         "role_name": "Cliente",
         "full_name": "Usuario Cliente",
-        "email": "cliente@roble.local",
+        "email": "cliente@roble.com",
     },
+}
+
+LEGACY_LOCAL_EMAILS: dict[str, str] = {
+    ROLE_ADMIN: "admin@roble.local",
+    ROLE_PRODUCTION: "produccion@roble.local",
+    ROLE_SALES: "ventas@roble.local",
+    ROLE_CLIENT: "cliente@roble.local",
 }
 
 
@@ -95,6 +102,7 @@ def _get_canonical_roles() -> tuple[dict[str, Role], int]:
 
 
 def _upsert_user(
+    role_key: str,
     seed_data: dict[str, str],
     role: Role,
     password: str,
@@ -102,8 +110,14 @@ def _upsert_user(
 ) -> dict[str, Any]:
     email = seed_data["email"].strip().lower()
     full_name = seed_data["full_name"].strip()
+    legacy_email = LEGACY_LOCAL_EMAILS.get(role_key, "").strip().lower()
 
     user = User.query.filter(User.email.ilike(email)).first()
+    used_legacy_email = False
+    if user is None and legacy_email and legacy_email != email:
+        user = User.query.filter(User.email.ilike(legacy_email)).first()
+        used_legacy_email = user is not None
+
     if user is None:
         db.session.add(
             User(
@@ -114,9 +128,20 @@ def _upsert_user(
                 status=True,
             )
         )
-        return {"created": 1, "updated": 0, "password_reset": 0, "was_created": True}
+        return {
+            "created": 1,
+            "updated": 0,
+            "password_reset": 0,
+            "was_created": True,
+            "migrated_email": 0,
+        }
 
     changed = False
+    migrated_email = 0
+    if user.email.strip().lower() != email:
+        user.email = email
+        changed = True
+        migrated_email = 1
     if user.full_name != full_name:
         user.full_name = full_name
         changed = True
@@ -138,6 +163,7 @@ def _upsert_user(
         "updated": 1 if changed else 0,
         "password_reset": password_reset,
         "was_created": False,
+        "migrated_email": migrated_email if used_legacy_email or migrated_email else 0,
     }
 
 
@@ -155,6 +181,7 @@ def seed_users_by_role() -> None:
         created = 0
         updated = 0
         password_reset = 0
+        migrated_emails = 0
         user_password_map: dict[str, str] = {}
 
         for role_key, seed_data in SEED_USERS.items():
@@ -165,6 +192,7 @@ def seed_users_by_role() -> None:
                 continue
 
             result = _upsert_user(
+                role_key=role_key,
                 seed_data=seed_data,
                 role=role,
                 password=password,
@@ -173,6 +201,7 @@ def seed_users_by_role() -> None:
             created += result["created"]
             updated += result["updated"]
             password_reset += result["password_reset"]
+            migrated_emails += result["migrated_email"]
             user_password_map[seed_data["role_name"]] = (
                 password
                 if result["was_created"] or reset_passwords
@@ -186,6 +215,7 @@ def seed_users_by_role() -> None:
         print(f"- Usuarios creados: {created}")
         print(f"- Usuarios actualizados: {updated}")
         print(f"- Passwords reseteados: {password_reset}")
+        print(f"- Emails migrados (.local -> .com): {migrated_emails}")
 
         if missing_roles:
             missing_csv = ", ".join(missing_roles)
