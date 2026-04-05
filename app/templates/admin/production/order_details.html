@@ -95,6 +95,9 @@
       <div class="p-4 2xl:p-6 border-b border-default-medium">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading">Consumo de materiales</h3>
         <p class="text-xs 2xl:text-sm text-body">Registra cantidad usada real y merma aplicada por material.</p>
+        <p class="text-xs 2xl:text-sm text-body mt-1">
+          El consumo planeado se toma de la BOM al crear la orden de producción; cambios posteriores en la BOM aplican a nuevas órdenes.
+        </p>
       </div>
       {% if order.material_consumptions %}
         <form method="post"
@@ -106,6 +109,7 @@
                 <tr>
                   <th class="px-6 py-4">Material</th>
                   <th class="px-6 py-4">Planeado</th>
+                  <th class="px-6 py-4">Stock actual</th>
                   <th class="px-6 py-4">Usado real</th>
                   <th class="px-6 py-4">Merma %</th>
                   <th class="px-6 py-4">Costo unitario</th>
@@ -124,6 +128,16 @@
                              value="{{ item.raw_material_id }}">
                     </td>
                     <td class="px-6 py-4 text-heading font-medium">{{ "%.3f" | format(item.quantity_planned | float) }}</td>
+                    <td class="px-6 py-4">
+                      {% if item.raw_material and item.raw_material.stock is not none %}
+                        <div class="flex flex-col">
+                          <span class="text-heading font-medium">{{ "%.3f" | format(item.raw_material.stock | float) }}</span>
+                          <span class="text-xs text-body">{{ item.raw_material.unit.abbreviation if item.raw_material.unit else '' }}</span>
+                        </div>
+                      {% else %}
+                        <span class="text-body">—</span>
+                      {% endif %}
+                    </td>
                     <td class="px-6 py-4">
                       <input type="number"
                              step="0.001"
