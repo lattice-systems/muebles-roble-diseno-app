@@ -271,22 +271,27 @@ def edit_bom(bom_id: int):
         form.product_id.data = bom.product_id
         form.version.data = bom.version
         form.description.data = bom.description
-    elif form.validate_on_submit():
-        try:
-            items_data = _parse_bom_items_from_request()
-            ProductionService.update_bom(
-                bom_id=bom.id,
-                version=form.version.data,
-                description=form.description.data,
-                items_data=items_data,
-                user_id=current_user.id,
-            )
-            flash("Receta actualizada correctamente", "success")
-            return redirect(url_for("production.bom_details", bom_id=bom.id))
-        except (ValidationError, ConflictError, NotFoundError) as e:
-            flash(e.message, "error")
     elif request.method == "POST":
-        flash("Por favor corrige los errores del formulario", "error")
+        # El producto no es editable en esta vista (campo disabled en UI);
+        # lo fijamos desde el BOM para evitar errores de validación por campo faltante.
+        form.product_id.data = bom.product_id
+
+        if form.validate_on_submit():
+            try:
+                items_data = _parse_bom_items_from_request()
+                ProductionService.update_bom(
+                    bom_id=bom.id,
+                    version=form.version.data,
+                    description=form.description.data,
+                    items_data=items_data,
+                    user_id=current_user.id,
+                )
+                flash("Receta actualizada correctamente", "success")
+                return redirect(url_for("production.bom_details", bom_id=bom.id))
+            except (ValidationError, ConflictError, NotFoundError) as e:
+                flash(e.message, "error")
+        else:
+            flash("Por favor corrige los errores del formulario", "error")
 
     return render_template(
         "admin/production/edit_bom.html",
