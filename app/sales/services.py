@@ -19,6 +19,7 @@ from app.models.product import Product
 from app.models.product_inventory import ProductInventory
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
+from app.shared.inventory_service import InventoryService
 
 
 class SaleService:
@@ -132,7 +133,12 @@ class SaleService:
         """
         Crea un nuevo cliente.
         """
-        if not data.get("first_name") or not data.get("last_name") or not data.get("email") or not data.get("phone"):
+        if (
+            not data.get("first_name")
+            or not data.get("last_name")
+            or not data.get("email")
+            or not data.get("phone")
+        ):
             raise ValueError("Nombre, apellidos, correo y teléfono son obligatorios.")
 
         existing = Customer.query.filter_by(email=data.get("email")).first()
@@ -145,15 +151,26 @@ class SaleService:
         neighborhood = data.get("neighborhood") or data.get("neighborhood_select") or ""
 
         if requires_freight:
-            required_freight = ["zip_code", "state", "city", "street", "exterior_number"]
+            required_freight = [
+                "zip_code",
+                "state",
+                "city",
+                "street",
+                "exterior_number",
+            ]
             # To give friendly error messages:
             es_names = {
-                "zip_code": "Código Postal", "state": "Estado", "city": "Ciudad",
-                "street": "Calle", "exterior_number": "Num Exterior"
+                "zip_code": "Código Postal",
+                "state": "Estado",
+                "city": "Ciudad",
+                "street": "Calle",
+                "exterior_number": "Num Exterior",
             }
             for field in required_freight:
                 if not data.get(field) or not str(data.get(field)).strip():
-                    raise ValueError(f"Falta el campo obligatorio de flete: {es_names[field]}")
+                    raise ValueError(
+                        f"Falta el campo obligatorio de flete: {es_names[field]}"
+                    )
             if not neighborhood.strip():
                 raise ValueError("Falta el campo obligatorio de flete: Colonia")
 
@@ -216,7 +233,9 @@ class SaleService:
 
     @staticmethod
     def checkout_sale(
-        sale_id: int, amount_given: float, payment_method_id: int,
+        sale_id: int,
+        amount_given: float,
+        payment_method_id: int,
         freight_cost: Decimal = Decimal("0"),
     ) -> dict:
         sale = SaleService.get_active_sale(sale_id)
@@ -236,25 +255,13 @@ class SaleService:
 
         # Reducir stock (RF-VENT-03 / 05)
         for item in sale.items:
-            inv = (
-                item.product.inventory_records[0]
-                if item.product.inventory_records
-                else None
+            InventoryService.deduct_stock(
+                product_id=item.product_id,
+                quantity=item.quantity,
+                product_name=(
+                    item.product.name if item.product else f"ID {item.product_id}"
+                ),
             )
-            # fallback local query if lazy
-            if not inv:
-                from app.models.product_inventory import ProductInventory
-
-                inv = ProductInventory.query.filter_by(
-                    product_id=item.product_id
-                ).first()
-            if inv:
-                inv.stock -= item.quantity
-                if inv.stock < 0:
-                    db.session.rollback()
-                    raise ValueError(
-                        f"Inventario negativo detectado para el artículo {item.product.name}"
-                    )
 
         sale.payment_method_id = payment_method_id
         sale.active = False
@@ -285,10 +292,12 @@ class SaleService:
         if not cart_items:
             raise ValueError("El carrito está vacío no hay nada que cobrar.")
 
-        calculated_total = sum(Decimal(str(item["price"])) * item["quantity"] for item in cart_items)
+        calculated_total = sum(
+            Decimal(str(item["price"])) * item["quantity"] for item in cart_items
+        )
         # Sumar flete al total
         total_with_freight = calculated_total + freight_cost
-        
+
         if amount_given < float(total_with_freight):
             raise ValueError(
                 f"Monto insuficiente. Faltan ${(float(total_with_freight) - amount_given):,.2f}"
@@ -316,27 +325,22 @@ class SaleService:
             new_data=sale.to_dict(),
         )
         db.session.add(audit)
-        
+
         # Procesar items y reducir stock
-        from app.models.product_inventory import ProductInventory
         from app.models.product import Product
-        
+
         for item in cart_items:
             product = Product.query.get(item["product_id"])
             if not product:
                 db.session.rollback()
                 raise ValueError(f"El producto con ID {item['product_id']} no existe.")
-                
-            inv = ProductInventory.query.filter_by(product_id=product.id).first()
-            if inv:
-                inv.stock -= item["quantity"]
-                if inv.stock < 0:
-                    db.session.rollback()
-                    raise ValueError(f"Inventario negativo detectado para el artículo {product.name}")
-            else:
-                db.session.rollback()
-                raise ValueError(f"El producto {product.name} no tiene inventario.")
-                
+
+            InventoryService.deduct_stock(
+                product_id=product.id,
+                quantity=item["quantity"],
+                product_name=product.name,
+            )
+
             new_item = SaleItem(
                 sale_id=sale.id,
                 product_id=product.id,
@@ -344,7 +348,7 @@ class SaleService:
                 price=item["price"],
             )
             db.session.add(new_item)
-            
+
         payment = Payment(payment_type="SALE", id_sale=sale.id, amount=amount_given)
         db.session.add(payment)
 
@@ -358,6 +362,7 @@ class SaleService:
             "freight_cost": float(freight_cost),
             "sale_id": sale.id,
         }
+
 
 class SaleItemService:
     """Servicio para gestionar los detalles de venta (carrito) del POS."""

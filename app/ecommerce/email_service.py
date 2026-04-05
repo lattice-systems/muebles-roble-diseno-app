@@ -1,4 +1,4 @@
-"""Servicio de correo para confirmacion de pedidos ecommerce."""
+"""Servicio de correo para confirmación de pedidos ecommerce."""
 
 from __future__ import annotations
 
@@ -22,11 +22,11 @@ def _get_logo_path() -> str:
 
 
 def send_ecommerce_order_email(order, freight: dict, products_total: float) -> None:
-    """Envia confirmacion por correo para una orden de ecommerce."""
+    """Envía confirmación por correo para una orden de ecommerce."""
     customer = order.customer
     if not customer or not customer.email:
         logger.warning(
-            "No se envio email para orden ecommerce #%s: cliente sin email.",
+            "No se envió email para orden ecommerce #%s: cliente sin email.",
             order.id,
         )
         return
@@ -43,7 +43,7 @@ def send_ecommerce_order_email(order, freight: dict, products_total: float) -> N
     iva = products_total - subtotal
 
     payment_method = (
-        order.payment_method.name if order.payment_method is not None else "Sin metodo"
+        order.payment_method.name if order.payment_method is not None else "Sin método"
     )
     order_date = (
         order.order_date.strftime("%d/%m/%Y %H:%M") if order.order_date else "-"
@@ -74,12 +74,14 @@ def send_ecommerce_order_email(order, freight: dict, products_total: float) -> N
             try:
                 logo_cid = "company_logo"
                 html_body = render_template(
-                    "utils/ecommerce_order_email.html",
+                    "utils/order_confirmation_email.html",
+                    source="ecommerce",
                     customer_name=customer_name,
                     folio=f"{order_id:06d}",
                     order_date=order_date,
                     estimated_delivery=estimated_delivery,
                     payment_method=payment_method,
+                    employee_name=None,
                     items=items,
                     subtotal=subtotal,
                     iva=iva,
@@ -88,11 +90,13 @@ def send_ecommerce_order_email(order, freight: dict, products_total: float) -> N
                     freight_free=bool(freight.get("free", False)),
                     freight_cost=freight_cost,
                     total=order_total,
+                    amount_received=None,
+                    change=None,
                     logo_cid=logo_cid,
                 )
 
                 msg = Message(
-                    subject=f"Confirmacion de pedido #{order_id:06d} - Roble y Diseno",
+                    subject=f"Confirmación de pedido #{order_id:06d} — Roble y Diseño",
                     recipients=[customer_email],
                     html=html_body,
                 )

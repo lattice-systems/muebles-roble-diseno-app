@@ -356,11 +356,43 @@ def checkout_success():
     order_total = float(order.total or 0)
     freight_cost = max(order_total - products_total, 0.0)
 
+    # Desglose IVA (alineado con POS)
+    iva_rate = 0.16
+    subtotal_sin_iva = (
+        round(products_total / (1 + iva_rate), 2) if products_total else 0.0
+    )
+    iva = round(products_total - subtotal_sin_iva, 2)
+
+    # Datos de envío del cliente
+    customer = order.customer
+    shipping_address = None
+    if customer and customer.requires_freight:
+        parts = [
+            customer.street or "",
+            f"#{ customer.exterior_number}" if customer.exterior_number else "",
+            f"Int. {customer.interior_number}" if customer.interior_number else "",
+        ]
+        line1 = " ".join(p for p in parts if p).strip()
+        line2_parts = [
+            customer.neighborhood or "",
+            f"C.P. {customer.zip_code}" if customer.zip_code else "",
+        ]
+        line2 = ", ".join(p for p in line2_parts if p)
+        line3_parts = [
+            customer.city or "",
+            customer.state or "",
+        ]
+        line3 = ", ".join(p for p in line3_parts if p)
+        shipping_address = {"line1": line1, "line2": line2, "line3": line3}
+
     return render_template(
         "store/checkout_success.html",
         order=order,
         products_total=products_total,
+        subtotal_sin_iva=subtotal_sin_iva,
+        iva=iva,
         freight_cost=freight_cost,
+        shipping_address=shipping_address,
         active_section="",
     )
 

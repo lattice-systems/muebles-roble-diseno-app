@@ -19,7 +19,7 @@ from app.models.furniture_type import FurnitureType
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_color import ProductColor
-from app.models.product_inventory import ProductInventory
+from app.shared.inventory_service import InventoryService
 
 
 class EcommerceService:
@@ -774,7 +774,6 @@ class EcommerceService:
         order_total = products_total + freight_cost
 
         normalized_items: list[dict[str, object]] = []
-        stock_updates: list[tuple[ProductInventory, int, str]] = []
 
         for item in cart_items:
             product_payload = item.get("product") or {}
@@ -786,14 +785,6 @@ class EcommerceService:
             if quantity <= 0:
                 raise ValueError(f"Cantidad invalida para '{product_name}'.")
 
-            inventory = ProductInventory.query.filter_by(product_id=product_id).first()
-            if not inventory or inventory.stock < quantity:
-                available = inventory.stock if inventory else 0
-                raise ValueError(
-                    f"Stock insuficiente para '{product_name}'. "
-                    f"Disponible: {available}, solicitado: {quantity}."
-                )
-
             normalized_items.append(
                 {
                     "product_id": product_id,
@@ -801,14 +792,25 @@ class EcommerceService:
                     "price": float(unit_price),
                 }
             )
-            stock_updates.append((inventory, quantity, product_name))
 
-        for inventory, quantity, product_name in stock_updates:
-            inventory.stock -= quantity
-            if inventory.stock < 0:
-                raise ValueError(
-                    f"Inventario negativo detectado para '{product_name}'."
-                )
+        # Descontar stock usando servicio compartido
+        for norm_item in normalized_items:
+            product_payload = next(
+                (
+                    ci.get("product") or {}
+                    for ci in cart_items
+                    if int((ci.get("product") or {}).get("id", 0))
+                    == norm_item["product_id"]
+                ),
+                {},
+            )
+            InventoryService.deduct_stock(
+                product_id=norm_item["product_id"],
+                quantity=norm_item["quantity"],
+                product_name=str(
+                    product_payload.get("title") or f"ID {norm_item['product_id']}"
+                ),
+            )
 
         estimated_delivery_date = date.today()
         delivery_days = int(freight_data.get("delivery_days") or 0)
