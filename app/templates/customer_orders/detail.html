@@ -1,620 +1,789 @@
 {% extends "layouts/admin.html" %}
-{% block title %}Orden #{{ "%04d" | format(order.id) }} | Furniture Store{% endblock title %}
-
+{% block title %}
+  Orden #{{ "%04d" | format(order.id) }} | Furniture Store
+{% endblock title %}
 {% block content %}
-<div class="flex flex-col gap-4">
-
-  {# ── Breadcrumb ── #}
-  <nav class="flex items-center gap-1.5 text-xs text-body" aria-label="Breadcrumb">
-    <a href="{{ url_for('customer_orders.index') }}" class="hover:text-heading transition-colors">Órdenes de Cliente</a>
-    <svg class="w-3 h-3 text-body" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg>
-    <span class="text-heading font-medium">Orden #{{ "%04d" | format(order.id) }}</span>
-  </nav>
-
-  {# ── Alertas de feedback ── #}
-  <div id="actionAlert" class="hidden items-center p-3 text-sm rounded-base border" style="background:#fef2f2;border-color:#fca5a5;color:#991b1b;" role="alert">
-    <svg class="shrink-0 inline w-4 h-4 me-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/></svg>
-    <span id="actionAlertMsg"></span>
-  </div>
-  <div id="actionSuccess" class="hidden items-center p-3 text-sm rounded-base border" style="background:#f0fdf4;border-color:#86efac;color:#166534;" role="alert">
-    <svg class="shrink-0 inline w-4 h-4 me-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>
-    <span id="actionSuccessMsg"></span>
-  </div>
-
-  {# ══════════════════════════════════════════════════════════ #}
-  {# ── Card principal: Info + Acciones                       ── #}
-  {# ══════════════════════════════════════════════════════════ #}
-  <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-6">
-    {# Grid: info (flex-1) | acciones (220px fijo) #}
-    <div style="display:grid; grid-template-columns: 1fr 220px; gap: 1.5rem; align-items: start;">
-
-      {# ── Columna izquierda: Datos de la orden ── #}
-      <div style="min-width:0;">
-        {# Título + badges de estado / origen #}
-        <div class="flex flex-wrap items-center gap-2 mb-1">
-          <h1 class="text-xl font-bold text-heading">Orden #{{ "%04d" | format(order.id) }}</h1>
-
-          {# Badge estado — clases del design system #}
-          {% if order.status == 'pendiente' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
-          {% elif order.status == 'en_produccion' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Producción</span>
-          {% elif order.status == 'terminado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
-          {% elif order.status == 'entregado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default text-heading text-xs font-medium rounded bg-neutral-primary-soft">Entregado</span>
-          {% elif order.status == 'cancelado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
-          {% endif %}
-          {# Badge origen #}
-          <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">
-            {{ {'pos':'POS','ecommerce':'E-commerce','manual':'Manual'}.get(order.source, order.source) }}
-          </span>
-        </div>
-
-        <p class="text-xs text-body mb-4">
-          Creada el {{ order.order_date.strftime('%d/%m/%Y a las %H:%M') if order.order_date else '—' }}
-          {% if order.created_by %}&nbsp;·&nbsp;por <span class="font-medium text-heading">{{ order.created_by.full_name }}</span>{% endif %}
-        </p>
-
-        {# Datos clave en fila horizontal con flex-wrap #}
-        <div style="display:flex; flex-wrap:wrap; gap: 1.25rem 2.5rem;">
-          <div>
-            <p class="text-xs font-medium text-body mb-0.5">Cliente</p>
-            <p class="text-sm font-semibold text-heading">{{ order.customer.full_name }}</p>
-            <p class="text-xs text-body">{{ order.customer.email }}</p>
-            {% if order.customer.phone %}<p class="text-xs text-body">{{ order.customer.phone }}</p>{% endif %}
-          </div>
-          <div>
-            <p class="text-xs font-medium text-body mb-0.5">Entrega estimada</p>
-            <p class="text-sm font-semibold text-heading">
-              {{ order.estimated_delivery_date.strftime('%d/%m/%Y') if order.estimated_delivery_date else '—' }}
-            </p>
-          </div>
-          <div>
-            <p class="text-xs font-medium text-body mb-0.5">Total de la orden</p>
-            <p class="text-2xl font-extrabold tracking-tight text-heading">${{ "%.2f" | format(order.total | float) }}</p>
-          </div>
-          {% if order.notes %}
-          <div style="max-width:280px;">
-            <p class="text-xs font-medium text-body mb-0.5">Notas</p>
-            <p class="text-xs text-body">{{ order.notes }}</p>
-          </div>
-          {% endif %}
-        </div>
-
-        {# Alerta de cancelación #}
-        {% if order.cancelled_reason %}
-        <div class="flex items-start gap-2 p-3 rounded-base border mt-4 text-sm"
-             style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">
-          <svg class="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/></svg>
-          <div>
-            <span class="font-semibold">Cancelada:</span> {{ order.cancelled_reason }}
-            <span class="block text-xs mt-0.5" style="color:#b91c1c;">
-              por {{ order.cancelled_by.full_name if order.cancelled_by else 'Sistema' }}
-              el {{ order.cancelled_at.strftime('%d/%m/%Y %H:%M') if order.cancelled_at else '' }}
+  <div class="flex flex-col gap-4">
+    {# ── Breadcrumb ── #}
+    <nav class="flex items-center gap-1.5 text-xs text-body"
+         aria-label="Breadcrumb">
+      <a href="{{ url_for('customer_orders.index') }}"
+         class="hover:text-heading transition-colors">Órdenes de Cliente</a>
+      <svg class="w-3 h-3 text-body" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
+      </svg>
+      <span class="text-heading font-medium">Orden #{{ "%04d" | format(order.id) }}</span>
+    </nav>
+    {# ── Alertas de feedback ── #}
+    <div id="actionAlert"
+         class="hidden items-center p-3 text-sm rounded-base border"
+         style="background:#fef2f2;
+                border-color:#fca5a5;
+                color:#991b1b"
+         role="alert">
+      <svg class="shrink-0 inline w-4 h-4 me-2"
+           fill="currentColor"
+           viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+      </svg>
+      <span id="actionAlertMsg"></span>
+    </div>
+    <div id="actionSuccess"
+         class="hidden items-center p-3 text-sm rounded-base border"
+         style="background:#f0fdf4;
+                border-color:#86efac;
+                color:#166534"
+         role="alert">
+      <svg class="shrink-0 inline w-4 h-4 me-2"
+           fill="currentColor"
+           viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+      </svg>
+      <span id="actionSuccessMsg"></span>
+    </div>
+    {# ══════════════════════════════════════════════════════════ #}
+    {# ── Card principal: Info + Acciones                       ── #}
+    {# ══════════════════════════════════════════════════════════ #}
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-6">
+      {# Grid: info (flex-1) | acciones (220px fijo) #}
+      <div style="display:grid;
+                  grid-template-columns: 1fr 220px;
+                  gap: 1.5rem;
+                  align-items: start">
+        {# ── Columna izquierda: Datos de la orden ── #}
+        <div style="min-width:0;">
+          {# Título + badges de estado / origen #}
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h1 class="text-xl font-bold text-heading">Orden #{{ "%04d" | format(order.id) }}</h1>
+            {# Badge estado — clases del design system #}
+            {% if order.status == 'pendiente' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
+            {% elif order.status == 'en_produccion' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Producción</span>
+            {% elif order.status == 'terminado' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
+            {% elif order.status == 'entregado' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default text-heading text-xs font-medium rounded bg-neutral-primary-soft">Entregado</span>
+            {% elif order.status == 'cancelado' %}
+              <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
+            {% endif %}
+            {# Badge origen #}
+            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">
+              {{ {'pos':'POS','ecommerce':'E-commerce','manual':'Manual'}.get(order.source, order.source) }}
             </span>
           </div>
+          <p class="text-xs text-body mb-4">
+            Creada el {{ order.order_date.strftime("%d/%m/%Y a las %H:%M") if order.order_date else '—' }}
+            {% if order.created_by %}
+              &nbsp;·&nbsp;por <span class="font-medium text-heading">{{ order.created_by.full_name }}</span>
+            {% endif %}
+          </p>
+          {# Datos clave en fila horizontal con flex-wrap #}
+          <div style="display:flex; flex-wrap:wrap; gap: 1.25rem 2.5rem;">
+            <div>
+              <p class="text-xs font-medium text-body mb-0.5">Cliente</p>
+              <p class="text-sm font-semibold text-heading">{{ order.customer.full_name }}</p>
+              <p class="text-xs text-body">{{ order.customer.email }}</p>
+              {% if order.customer.phone %}<p class="text-xs text-body">{{ order.customer.phone }}</p>{% endif %}
+            </div>
+            <div>
+              <p class="text-xs font-medium text-body mb-0.5">Entrega estimada</p>
+              <p class="text-sm font-semibold text-heading">
+                {{ order.estimated_delivery_date.strftime("%d/%m/%Y") if order.estimated_delivery_date else '—' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-body mb-0.5">Total de la orden</p>
+              <p class="text-2xl font-extrabold tracking-tight text-heading">${{ "%.2f" | format(order.total | float) }}</p>
+            </div>
+            {% if order.notes %}
+              <div style="max-width:280px;">
+                <p class="text-xs font-medium text-body mb-0.5">Notas</p>
+                <p class="text-xs text-body">{{ order.notes }}</p>
+              </div>
+            {% endif %}
+          </div>
+          {# Alerta de cancelación #}
+          {% if order.cancelled_reason %}
+            <div class="flex items-start gap-2 p-3 rounded-base border mt-4 text-sm"
+                 style="background:#fee2e2;
+                        border-color:#fca5a5;
+                        color:#991b1b">
+              <svg class="w-4 h-4 mt-0.5 shrink-0"
+                   fill="currentColor"
+                   viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
+              </svg>
+              <div>
+                <span class="font-semibold">Cancelada:</span> {{ order.cancelled_reason }}
+                <span class="block text-xs mt-0.5" style="color:#b91c1c;">
+                  por {{ order.cancelled_by.full_name if order.cancelled_by else 'Sistema' }}
+                  el {{ order.cancelled_at.strftime("%d/%m/%Y %H:%M") if order.cancelled_at else '' }}
+                </span>
+              </div>
+            </div>
+          {% endif %}
         </div>
+        {# ── Columna derecha: Acciones + Stepper de progreso ── #}
+        <div class="flex flex-col gap-3">
+          <p class="text-sm font-semibold text-heading"
+             style="border-bottom:1px solid var(--color-border-default,#e5e7eb);
+                    padding-bottom:0.5rem">Acciones</p>
+          {# ── Botón de ticket de venta (si viene del POS) ── #}
+          {% if order.sale_id %}
+            <a href="{{ url_for('sales.ticket', sale_id=order.sale_id) }}"
+               target="_blank"
+               class="w-full flex items-center justify-center gap-2 text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              <svg class="w-4 h-4 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9h3m-3 3h3m-3 3h3m-6 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-8.5 7h17a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-17a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z" />
+              </svg>
+              Ver / Imprimir Ticket
+            </a>
+          {% endif %}
+          {% if order.status == 'pendiente' %}
+            <button type="button"
+                    id="btnSendToProduction"
+                    class="w-full flex items-center justify-center gap-2 text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.248 19C3.22 15.77 5.275 8.232 12.466 8.232M9.906 6l2.56 2.232-2.56 2.232M15.748 19H17v-5.086a1 1 0 0 0-.183-.583l-4.015-5.415A1 1 0 0 0 11.985 7.5H8.716" />
+              </svg>
+              Enviar a Producción
+            </button>
+            <button type="button"
+                    id="btnOpenCancelModal"
+                    class="w-full flex items-center justify-center gap-2 text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+              </svg>
+              Cancelar Orden
+            </button>
+          {% elif order.status == 'en_produccion' %}
+            {# Producción es quien marca como terminado — ahora enlazamos al módulo #}
+            <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
+                 style="background:#eff6ff;
+                        border-color:#bfdbfe;
+                        color:#1d4ed8">
+              <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              <span>
+                En proceso de fabricación. Gestiona el avance desde
+                <a href="{{ url_for('production.orders_index') }}"
+                   class="font-semibold underline">Órdenes de Producción</a>.
+              </span>
+            </div>
+          {% elif order.status == 'terminado' %}
+            {# Producción terminó — verificar si todas las POs están terminadas #}
+            {% set pos_pendientes = order.production_orders | selectattr('status', 'ne', 'terminado') | list %}
+            <div class="flex items-center gap-2 p-3 rounded-base border text-xs"
+                 style="background:#f0fdf4;
+                        border-color:#86efac;
+                        color:#166534">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+              </svg>
+              <span><strong>¡Listo para entregar!</strong> Producción completó el pedido.</span>
+            </div>
+            {% if pos_pendientes %}
+              {# Hay órdenes de producción aún sin terminar — botón bloqueado con advertencia #}
+              <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
+                   style="background:#fffbeb;
+                          border-color:#fde68a;
+                          color:#92400e">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                </svg>
+                <span>{{ pos_pendientes | length }} orden(es) de producción aún no están completadas.</span>
+              </div>
+              <button type="button"
+                      disabled
+                      class="w-full flex items-center justify-center gap-2 text-body bg-neutral-secondary-medium box-border border border-default-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 opacity-50 cursor-not-allowed focus:outline-none">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                </svg>
+                Marcar como Entregado
+              </button>
+            {% else %}
+              <button type="button"
+                      id="btnAdvanceStatus"
+                      data-new-status="entregado"
+                      class="w-full flex items-center justify-center gap-2 text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                </svg>
+                Marcar como Entregado
+              </button>
+            {% endif %}
+          {% elif order.status == 'entregado' %}
+            <div class="flex items-center gap-2 p-3 rounded-base border text-sm"
+                 style="background:#f0fdf4;
+                        border-color:#86efac;
+                        color:#166534">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+              </svg>
+              <span class="font-medium text-xs">Orden entregada al cliente.</span>
+            </div>
+          {% elif order.status == 'cancelado' %}
+            <div class="flex items-center gap-2 p-3 rounded-base border text-sm"
+                 style="background:#fee2e2;
+                        border-color:#fca5a5;
+                        color:#991b1b">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
+              </svg>
+              <span class="font-medium text-xs">Orden cancelada.</span>
+            </div>
+          {% endif %}
+          {# ── Stepper de progreso ── #}
+          <div class="mt-2">
+            <p class="text-xs font-semibold text-body mb-2"
+               style="text-transform:uppercase;
+                      letter-spacing:0.05em">Progreso</p>
+            {% set steps = [('pendiente', 'Pendiente'), ('en_produccion', 'En Producción'), ('terminado', 'Terminado'), ('entregado', 'Entregado')] %}
+            {% set statuses_order = ["pendiente", "en_produccion", "terminado", "entregado"] %}
+            {% set current_idx = statuses_order.index(order.status) if order.status in statuses_order else -1 %}
+            <ol class="flex flex-col gap-2">
+              {% for s, label in steps %}
+                {% set idx = loop.index0 %}
+                {% if current_idx >= idx %}
+                  <li class="flex items-center gap-2"
+                      style="color:var(--color-fg-brand,#2563eb);
+                             font-size:0.75rem;
+                             font-weight:500">
+                    <span style="display:flex;
+                                 align-items:center;
+                                 justify-content:center;
+                                 width:20px;
+                                 height:20px;
+                                 border-radius:50%;
+                                 background:#dbeafe;
+                                 border:1.5px solid var(--color-fg-brand,#2563eb);
+                                 flex-shrink:0">
+                      {% if current_idx > idx %}
+                        <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 13 4 4L19 7" />
+                        </svg>
+                      {% else %}
+                        <span style="width:6px;
+                                     height:6px;
+                                     border-radius:50%;
+                                     background:var(--color-fg-brand,#2563eb);
+                                     display:block"></span>
+                      {% endif %}
+                    </span>
+                    {{ label }}
+                  </li>
+                {% else %}
+                  <li class="flex items-center gap-2"
+                      style="color:#9ca3af;
+                             font-size:0.75rem">
+                    <span style="display:flex;
+                                 align-items:center;
+                                 justify-content:center;
+                                 width:20px;
+                                 height:20px;
+                                 border-radius:50%;
+                                 border:1.5px solid #e5e7eb;
+                                 flex-shrink:0">
+                      <span style="width:6px;
+                                   height:6px;
+                                   border-radius:50%;
+                                   background:#e5e7eb;
+                                   display:block"></span>
+                    </span>
+                    {{ label }}
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ol>
+          </div>
+        </div>
+      </div>
+      {# /grid header #}
+    </div>
+    {# ══════════════════════════════════════════════════════════ #}
+    {# ── Sección inferior: Productos + Historial              ── #}
+    {# ══════════════════════════════════════════════════════════ #}
+    <div style="display:grid;
+                grid-template-columns: 1fr 320px;
+                gap: 1rem;
+                align-items: start">
+      {# ── Columna principal: Tablas ── #}
+      <div class="flex flex-col gap-4">
+        {# ── Tabla de productos (estilo Flowbite del proyecto) ── #}
+        <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+          <table class="w-full text-sm text-left text-body">
+            <caption class="p-5 text-base font-semibold text-left text-heading">
+              Productos de la Orden
+              <p class="mt-1 text-sm font-normal text-body">{{ order.items | length }} producto(s) incluido(s) en este pedido.</p>
+            </caption>
+            <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
+              <tr>
+                <th scope="col" class="px-6 py-3 font-medium">Producto</th>
+                <th scope="col" class="px-6 py-3 font-medium">SKU</th>
+                <th scope="col" class="px-6 py-3 font-medium text-center">Cant.</th>
+                <th scope="col" class="px-6 py-3 font-medium text-right">P. Unitario</th>
+                <th scope="col" class="px-6 py-3 font-medium text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items %}
+                <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium transition-colors">
+                  <th scope="row"
+                      class="px-6 py-4 font-medium text-heading whitespace-nowrap">{{ item.product.name }}</th>
+                  <td class="px-6 py-4 font-mono text-xs">{{ item.product.sku }}</td>
+                  <td class="px-6 py-4 text-center">{{ item.quantity }}</td>
+                  <td class="px-6 py-4 text-right">${{ "%.2f" | format(item.price | float) }}</td>
+                  <td class="px-6 py-4 text-right font-semibold text-heading">
+                    ${{ "%.2f" | format((item.price * item.quantity) | float) }}
+                  </td>
+                </tr>
+              {% else %}
+                <tr class="bg-neutral-primary-soft">
+                  <td colspan="5" class="px-6 py-8 text-center text-body">Sin productos registrados.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="bg-neutral-secondary-medium border-t border-default-medium">
+                <td colspan="4"
+                    class="px-6 py-3 text-sm font-semibold text-heading text-right">Total:</td>
+                <td class="px-6 py-3 text-sm font-extrabold text-heading text-right">${{ "%.2f" | format(order.total | float) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        {# ── Tabla de órdenes de producción (si existen) ── #}
+        {% if order.production_orders %}
+          <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+            <table class="w-full text-sm text-left text-body">
+              <caption class="p-5 text-base font-semibold text-left text-heading">
+                Órdenes de Producción Generadas
+                <p class="mt-1 text-sm font-normal text-body">
+                  {{ order.production_orders | length }} orden(es) de producción asociadas a este pedido.
+                </p>
+              </caption>
+              <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
+                <tr>
+                  <th scope="col" class="px-6 py-3 font-medium"># Prod.</th>
+                  <th scope="col" class="px-6 py-3 font-medium">Producto</th>
+                  <th scope="col" class="px-6 py-3 font-medium text-center">Cant.</th>
+                  <th scope="col" class="px-6 py-3 font-medium">Estado</th>
+                  <th scope="col" class="px-6 py-3 font-medium">Fecha prog.</th>
+                  <th scope="col" class="px-6 py-3 font-medium text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for po in order.production_orders %}
+                  <tr class="bg-neutral-primary-soft {% if not loop.last %}border-b border-default{% endif %} hover:bg-neutral-secondary-medium transition-colors">
+                    <th scope="row"
+                        class="px-6 py-4 font-medium text-heading whitespace-nowrap font-mono text-xs">
+                      #{{ "%04d" | format(po.id) }}
+                    </th>
+                    <td class="px-6 py-4 text-heading">{{ po.product.name }}</td>
+                    <td class="px-6 py-4 text-center">{{ po.quantity }}</td>
+                    <td class="px-6 py-4">
+                      {% if po.status == 'pendiente' %}
+                        <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
+                      {% elif po.status == 'en_proceso' or po.status == 'en proceso' %}
+                        <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Proceso</span>
+                      {% elif po.status == 'terminado' %}
+                        <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
+                      {% elif po.status == 'cancelado' %}
+                        <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
+                      {% else %}
+                        <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">{{ po.status | title }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-xs">{{ po.scheduled_date.strftime("%d/%m/%Y") if po.scheduled_date else '—' }}</td>
+                    <td class="px-6 py-4 text-right">
+                      <a href="{{ url_for('production.order_details', order_id=po.id) }}"
+                         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs px-2.5 py-1.5 focus:outline-none">
+                        Ver detalle
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% endif %}
       </div>
-
-      {# ── Columna derecha: Acciones + Stepper de progreso ── #}
-      <div class="flex flex-col gap-3">
-        <p class="text-sm font-semibold text-heading" style="border-bottom:1px solid var(--color-border-default,#e5e7eb);padding-bottom:0.5rem;">Acciones</p>
-
-        {# ── Botón de ticket de venta (si viene del POS) ── #}
-        {% if order.sale_id %}
-        <a href="{{ url_for('sales.ticket', sale_id=order.sale_id) }}" target="_blank"
-           class="w-full flex items-center justify-center gap-2 text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9h3m-3 3h3m-3 3h3m-6 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-8.5 7h17a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-17a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
-          </svg>
-          Ver / Imprimir Ticket
-        </a>
-        {% endif %}
-
-        {% if order.status == 'pendiente' %}
-          <button type="button" id="btnSendToProduction"
-                  class="w-full flex items-center justify-center gap-2 text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.248 19C3.22 15.77 5.275 8.232 12.466 8.232M9.906 6l2.56 2.232-2.56 2.232M15.748 19H17v-5.086a1 1 0 0 0-.183-.583l-4.015-5.415A1 1 0 0 0 11.985 7.5H8.716"/></svg>
-            Enviar a Producción
-          </button>
-          <button type="button" id="btnOpenCancelModal"
-                  class="w-full flex items-center justify-center gap-2 text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
-            Cancelar Orden
-          </button>
-
-        {% elif order.status == 'en_produccion' %}
-          {# Producción es quien marca como terminado — aquí solo informamos #}
-          <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
-               style="background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;">
-            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            <span>En proceso de fabricación. El módulo de <strong>Producción</strong> marcará el pedido como terminado.</span>
-          </div>
-
-        {% elif order.status == 'terminado' %}
-          {# Producción terminó — verificar si todas las POs están terminadas #}
-          {% set pos_pendientes = order.production_orders | selectattr('status', 'ne', 'terminado') | list %}
-
-          <div class="flex items-center gap-2 p-3 rounded-base border text-xs"
-               style="background:#f0fdf4;border-color:#86efac;color:#166534;">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>
-            <span><strong>¡Listo para entregar!</strong> Producción completó el pedido.</span>
-          </div>
-
-          {% if pos_pendientes %}
-          {# Hay órdenes de producción aún sin terminar — botón bloqueado con advertencia #}
-          <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
-               style="background:#fffbeb;border-color:#fde68a;color:#92400e;">
-            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
-            <span>{{ pos_pendientes | length }} orden(es) de producción aún no están completadas.</span>
-          </div>
-          <button type="button" disabled
-                  class="w-full flex items-center justify-center gap-2 text-body bg-neutral-secondary-medium box-border border border-default-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 opacity-50 cursor-not-allowed focus:outline-none">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg>
-            Marcar como Entregado
-          </button>
-          {% else %}
-          <button type="button" id="btnAdvanceStatus" data-new-status="entregado"
-                  class="w-full flex items-center justify-center gap-2 text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg>
-            Marcar como Entregado
-          </button>
-          {% endif %}
-
-        {% elif order.status == 'entregado' %}
-          <div class="flex items-center gap-2 p-3 rounded-base border text-sm"
-               style="background:#f0fdf4;border-color:#86efac;color:#166534;">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>
-            <span class="font-medium text-xs">Orden entregada al cliente.</span>
-          </div>
-
-        {% elif order.status == 'cancelado' %}
-          <div class="flex items-center gap-2 p-3 rounded-base border text-sm"
-               style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/></svg>
-            <span class="font-medium text-xs">Orden cancelada.</span>
-          </div>
-        {% endif %}
-
-        {# ── Stepper de progreso ── #}
-        <div class="mt-2">
-          <p class="text-xs font-semibold text-body mb-2" style="text-transform:uppercase;letter-spacing:0.05em;">Progreso</p>
-          {% set steps = [('pendiente','Pendiente'),('en_produccion','En Producción'),('terminado','Terminado'),('entregado','Entregado')] %}
-          {% set statuses_order = ['pendiente','en_produccion','terminado','entregado'] %}
-          {% set current_idx = statuses_order.index(order.status) if order.status in statuses_order else -1 %}
-          <ol class="flex flex-col gap-2">
-            {% for s, label in steps %}{% set idx = loop.index0 %}
-            {% if current_idx >= idx %}
-            <li class="flex items-center gap-2" style="color:var(--color-fg-brand,#2563eb);font-size:0.75rem;font-weight:500;">
-              <span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#dbeafe;border:1.5px solid var(--color-fg-brand,#2563eb);flex-shrink:0;">
-                {% if current_idx > idx %}
-                <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 13 4 4L19 7"/></svg>
-                {% else %}
-                <span style="width:6px;height:6px;border-radius:50%;background:var(--color-fg-brand,#2563eb);display:block;"></span>
+      {# /columna principal #}
+      {# ── Columna derecha: Historial ── #}
+      <div class="bg-neutral-primary-soft block p-6 border border-default rounded-base shadow-xs">
+        <h5 class="mb-4 text-base font-semibold tracking-tight text-heading leading-8">Historial de la Orden</h5>
+        {% if history %}
+          {# Timeline estilo Flowbite con clases del proyecto #}
+          <ol class="relative border-s border-default ms-2">
+            {% for log in history %}
+              <li class="mb-6 ms-5">
+                {# Icono del paso #}
+                <span class="absolute flex items-center justify-center w-6 h-6 rounded-full -start-3 ring-4 ring-neutral-primary-soft"
+                      style="background:var(--color-bg-neutral-secondary-medium, #e5e7eb)">
+                  {% if log.action == 'INSERT' %}
+                    <svg class="w-3 h-3 text-fg-brand" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                    </svg>
+                  {% else %}
+                    <svg class="w-3 h-3 text-fg-brand" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+                    </svg>
+                  {% endif %}
+                </span>
+                <h3 class="text-xs font-semibold text-heading mb-0.5">
+                  {{ log.action | replace('INSERT', 'Orden creada') | replace('UPDATE', 'Estado actualizado') }}
+                </h3>
+                <time class="block mb-1.5 text-xs text-body">
+                  {{ log.timestamp[:16] | replace('T', ' ') if log.timestamp else '—' }}
+                </time>
+                {# Badge del estado registrado — clases del design system #}
+                {% if log.new_data and log.new_data.get('status') %}
+                  {% set ls = log.new_data.status %}
+                  {% if ls == 'pendiente' %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
+                  {% elif ls == 'en_produccion' %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Producción</span>
+                  {% elif ls == 'terminado' %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
+                  {% elif ls == 'entregado' %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default text-heading text-xs font-medium rounded bg-neutral-primary-soft">Entregado</span>
+                  {% elif ls == 'cancelado' %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">{{ ls | replace('_', ' ') | title }}</span>
+                  {% endif %}
                 {% endif %}
-              </span>
-              {{ label }}
-            </li>
-            {% else %}
-            <li class="flex items-center gap-2" style="color:#9ca3af;font-size:0.75rem;">
-              <span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid #e5e7eb;flex-shrink:0;">
-                <span style="width:6px;height:6px;border-radius:50%;background:#e5e7eb;display:block;"></span>
-              </span>
-              {{ label }}
-            </li>
-            {% endif %}
+              </li>
             {% endfor %}
           </ol>
-        </div>
+        {% else %}
+          <p class="text-xs text-body">Sin historial disponible.</p>
+        {% endif %}
       </div>
-
-    </div>{# /grid header #}
-  </div>
-
-  {# ══════════════════════════════════════════════════════════ #}
-  {# ── Sección inferior: Productos + Historial              ── #}
-  {# ══════════════════════════════════════════════════════════ #}
-  <div style="display:grid; grid-template-columns: 1fr 320px; gap: 1rem; align-items: start;">
-
-    {# ── Columna principal: Tablas ── #}
-    <div class="flex flex-col gap-4">
-
-      {# ── Tabla de productos (estilo Flowbite del proyecto) ── #}
-      <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-        <table class="w-full text-sm text-left text-body">
-          <caption class="p-5 text-base font-semibold text-left text-heading">
-            Productos de la Orden
-            <p class="mt-1 text-sm font-normal text-body">{{ order.items | length }} producto(s) incluido(s) en este pedido.</p>
-          </caption>
-          <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
-            <tr>
-              <th scope="col" class="px-6 py-3 font-medium">Producto</th>
-              <th scope="col" class="px-6 py-3 font-medium">SKU</th>
-              <th scope="col" class="px-6 py-3 font-medium text-center">Cant.</th>
-              <th scope="col" class="px-6 py-3 font-medium text-right">P. Unitario</th>
-              <th scope="col" class="px-6 py-3 font-medium text-right">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in order.items %}
-            <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium transition-colors">
-              <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">{{ item.product.name }}</th>
-              <td class="px-6 py-4 font-mono text-xs">{{ item.product.sku }}</td>
-              <td class="px-6 py-4 text-center">{{ item.quantity }}</td>
-              <td class="px-6 py-4 text-right">${{ "%.2f" | format(item.price | float) }}</td>
-              <td class="px-6 py-4 text-right font-semibold text-heading">${{ "%.2f" | format((item.price * item.quantity) | float) }}</td>
-            </tr>
-            {% else %}
-            <tr class="bg-neutral-primary-soft">
-              <td colspan="5" class="px-6 py-8 text-center text-body">Sin productos registrados.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-          <tfoot>
-            <tr class="bg-neutral-secondary-medium border-t border-default-medium">
-              <td colspan="4" class="px-6 py-3 text-sm font-semibold text-heading text-right">Total:</td>
-              <td class="px-6 py-3 text-sm font-extrabold text-heading text-right">${{ "%.2f" | format(order.total | float) }}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      {# ── Tabla de órdenes de producción (si existen) ── #}
-      {% if order.production_orders %}
-      <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-        <table class="w-full text-sm text-left text-body">
-          <caption class="p-5 text-base font-semibold text-left text-heading">
-            Órdenes de Producción Generadas
-            <p class="mt-1 text-sm font-normal text-body">{{ order.production_orders | length }} orden(es) de producción asociadas a este pedido.</p>
-          </caption>
-          <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
-            <tr>
-              <th scope="col" class="px-6 py-3 font-medium"># Prod.</th>
-              <th scope="col" class="px-6 py-3 font-medium">Producto</th>
-              <th scope="col" class="px-6 py-3 font-medium text-center">Cant.</th>
-              <th scope="col" class="px-6 py-3 font-medium">Estado</th>
-              <th scope="col" class="px-6 py-3 font-medium">Fecha prog.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for po in order.production_orders %}
-            <tr class="bg-neutral-primary-soft {% if not loop.last %}border-b border-default{% endif %} hover:bg-neutral-secondary-medium transition-colors">
-              <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap font-mono text-xs">#{{ "%04d" | format(po.id) }}</th>
-              <td class="px-6 py-4 text-heading">{{ po.product.name }}</td>
-              <td class="px-6 py-4 text-center">{{ po.quantity }}</td>
-              <td class="px-6 py-4">
-                {% if po.status == 'pendiente' %}
-                  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
-                {% elif po.status == 'en_proceso' or po.status == 'en proceso' %}
-                  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Proceso</span>
-                {% elif po.status == 'terminado' %}
-                  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
-                {% elif po.status == 'cancelado' %}
-                  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
-                {% else %}
-                  <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">{{ po.status | title }}</span>
-                {% endif %}
-              </td>
-              <td class="px-6 py-4 text-xs">{{ po.scheduled_date.strftime('%d/%m/%Y') if po.scheduled_date else '—' }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% endif %}
-
-    </div>{# /columna principal #}
-
-    {# ── Columna derecha: Historial ── #}
-    <div class="bg-neutral-primary-soft block p-6 border border-default rounded-base shadow-xs">
-      <h5 class="mb-4 text-base font-semibold tracking-tight text-heading leading-8">Historial de la Orden</h5>
-
-      {% if history %}
-      {# Timeline estilo Flowbite con clases del proyecto #}
-      <ol class="relative border-s border-default ms-2">
-        {% for log in history %}
-        <li class="mb-6 ms-5">
-          {# Icono del paso #}
-          <span class="absolute flex items-center justify-center w-6 h-6 rounded-full -start-3 ring-4 ring-neutral-primary-soft"
-                style="background:var(--color-bg-neutral-secondary-medium, #e5e7eb);">
-            {% if log.action == 'INSERT' %}
-            <svg class="w-3 h-3 text-fg-brand" fill="currentColor" viewBox="0 0 20 20"><path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/></svg>
-            {% else %}
-            <svg class="w-3 h-3 text-fg-brand" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>
-            {% endif %}
-          </span>
-
-          <h3 class="text-xs font-semibold text-heading mb-0.5">
-            {{ log.action | replace('INSERT', 'Orden creada') | replace('UPDATE', 'Estado actualizado') }}
-          </h3>
-          <time class="block mb-1.5 text-xs text-body">
-            {{ log.timestamp[:16] | replace('T', ' ') if log.timestamp else '—' }}
-          </time>
-
-          {# Badge del estado registrado — clases del design system #}
-          {% if log.new_data and log.new_data.get('status') %}
-          {% set ls = log.new_data.status %}
-          {% if ls == 'pendiente' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-warning-subtle text-fg-warning text-xs font-medium rounded bg-warning-soft">Pendiente</span>
-          {% elif ls == 'en_produccion' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">En Producción</span>
-          {% elif ls == 'terminado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-success-subtle text-fg-success-strong text-xs font-medium rounded bg-success-soft">Terminado</span>
-          {% elif ls == 'entregado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default text-heading text-xs font-medium rounded bg-neutral-primary-soft">Entregado</span>
-          {% elif ls == 'cancelado' %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-danger-subtle text-fg-danger-strong text-xs font-medium rounded bg-danger-soft">Cancelado</span>
-          {% else %}
-            <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">{{ ls | replace('_',' ') | title }}</span>
-          {% endif %}
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ol>
-      {% else %}
-        <p class="text-xs text-body">Sin historial disponible.</p>
-      {% endif %}
     </div>
-
-  </div>{# /grid inferior #}
-
-</div>
-
-{# ── Config data para JS ── #}
-<div id="detailConfig" class="hidden"
-  data-csrf="{{ csrf_token() }}"
-  data-order-id="{{ order.id }}"
-  data-url-cancel="{{ url_for('customer_orders.cancel', order_id=order.id) }}"
-  data-url-production="{{ url_for('customer_orders.send_to_production', order_id=order.id) }}"
-  data-url-status="{{ url_for('customer_orders.update_status', order_id=order.id) }}"
-></div>
+    {# /grid inferior #}
+  </div>
+  {# ── Config data para JS ── #}
+  <div id="detailConfig"
+       class="hidden"
+       data-csrf="{{ csrf_token() }}"
+       data-order-id="{{ order.id }}"
+       data-url-cancel="{{ url_for('customer_orders.cancel', order_id=order.id) }}"
+       data-url-production="{{ url_for('customer_orders.send_to_production', order_id=order.id) }}"
+       data-url-status="{{ url_for('customer_orders.update_status', order_id=order.id) }}"></div>
 {% endblock content %}
-
 {% block modals %}
-
-{# ─────────────────── Modal: Cancelar orden ─────────────────── #}
-<div id="cancelModal" tabindex="-1" aria-hidden="true"
-     class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center"
-     style="background:rgba(0,0,0,0.5);">
-  <div class="relative p-4 w-full max-w-md">
-    <div class="bg-neutral-primary-soft rounded-base border border-default shadow-xs">
-      {# Cabecera #}
-      <div class="flex items-center justify-between p-5 border-b border-default">
-        <h3 class="text-base font-semibold text-heading">Cancelar Orden #{{ "%04d" | format(order.id) }}</h3>
-        <button type="button" id="btnCloseCancelModal"
-                class="text-body hover:text-heading rounded-base p-1 hover:bg-neutral-secondary-medium focus:outline-none">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
-        </button>
-      </div>
-      {# Cuerpo #}
-      <div class="p-5">
-        <p class="text-sm text-body mb-4">Esta acción no se puede deshacer. La orden pasará a estado <strong class="text-heading">Cancelado</strong>.</p>
-        <div id="cancelAlertBox" class="hidden mb-3 p-3 text-sm rounded-base border"
-             style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;"></div>
-        <div class="mb-4">
-          <label for="cancelReason" class="block mb-1.5 text-sm font-medium text-heading">
-            Motivo <span style="color:#ef4444;">*</span>
-          </label>
-          <textarea id="cancelReason" rows="3"
-                    class="block p-2.5 w-full text-sm text-heading bg-neutral-secondary-medium rounded-base border border-default focus:outline-none focus:ring-2 focus:ring-brand-medium resize-none"
-                    placeholder="Describe el motivo de cancelación..."></textarea>
-        </div>
-        <div class="flex justify-end gap-2">
-          <button type="button" id="btnCloseCancelModal2"
-                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Volver
-          </button>
-          <button type="button" id="btnConfirmCancel"
-                  class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Confirmar cancelación
+  {# ─────────────────── Modal: Cancelar orden ─────────────────── #}
+  <div id="cancelModal"
+       tabindex="-1"
+       aria-hidden="true"
+       class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center"
+       style="background:rgba(0,0,0,0.5)">
+    <div class="relative p-4 w-full max-w-md">
+      <div class="bg-neutral-primary-soft rounded-base border border-default shadow-xs">
+        {# Cabecera #}
+        <div class="flex items-center justify-between p-5 border-b border-default">
+          <h3 class="text-base font-semibold text-heading">Cancelar Orden #{{ "%04d" | format(order.id) }}</h3>
+          <button type="button"
+                  id="btnCloseCancelModal"
+                  class="text-body hover:text-heading rounded-base p-1 hover:bg-neutral-secondary-medium focus:outline-none">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-{# ─────────────────── Modal: Enviar a Producción ─────────────────── #}
-<div id="productionModal" tabindex="-1" aria-hidden="true"
-     class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center"
-     style="background:rgba(0,0,0,0.5);">
-  <div class="relative p-4 w-full max-w-md">
-    <div class="bg-neutral-primary-soft rounded-base border border-default shadow-xs">
-      {# Cabecera #}
-      <div class="flex items-center justify-between p-5 border-b border-default">
-        <h3 class="text-base font-semibold text-heading">Enviar a Producción</h3>
-        <button type="button" id="btnCloseProductionModal"
-                class="text-body hover:text-heading rounded-base p-1 hover:bg-neutral-secondary-medium focus:outline-none">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
-        </button>
-      </div>
-      {# Cuerpo #}
-      <div class="p-5">
-        <p class="text-sm text-body mb-4">
-          Se generarán <strong class="text-heading">{{ order.items | length }} orden(es) de producción</strong>, una por cada producto. El estado cambiará a
-          <span class="font-semibold text-fg-brand">En Producción</span>.
-        </p>
-
-        {# Lista de productos estilo card pequeña #}
-        <ul class="space-y-2 mb-4">
-          {% for item in order.items %}
-          <li class="bg-neutral-secondary-medium border border-default rounded-base px-4 py-2.5 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 shrink-0 text-fg-brand" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-              <span class="text-sm font-medium text-heading">{{ item.product.name }}</span>
-            </div>
-            <span class="text-xs text-body">× {{ item.quantity }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-
-        <div id="productionAlertBox" class="hidden mb-3 p-3 text-sm rounded-base border"
-             style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;"></div>
-
-        <div class="flex justify-end gap-2">
-          <button type="button" id="btnCloseProductionModal2"
-                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Cancelar
-          </button>
-          <button type="button" id="btnConfirmProduction"
-                  class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
-            Confirmar
-          </button>
+        {# Cuerpo #}
+        <div class="p-5">
+          <p class="text-sm text-body mb-4">
+            Esta acción no se puede deshacer. La orden pasará a estado <strong class="text-heading">Cancelado</strong>.
+          </p>
+          <div id="cancelAlertBox"
+               class="hidden mb-3 p-3 text-sm rounded-base border"
+               style="background:#fee2e2;
+                      border-color:#fca5a5;
+                      color:#991b1b"></div>
+          <div class="mb-4">
+            <label for="cancelReason"
+                   class="block mb-1.5 text-sm font-medium text-heading">
+              Motivo <span style="color:#ef4444;">*</span>
+            </label>
+            <textarea id="cancelReason"
+                      rows="3"
+                      class="block p-2.5 w-full text-sm text-heading bg-neutral-secondary-medium rounded-base border border-default focus:outline-none focus:ring-2 focus:ring-brand-medium resize-none"
+                      placeholder="Describe el motivo de cancelación..."></textarea>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button"
+                    id="btnCloseCancelModal2"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Volver
+            </button>
+            <button type="button"
+                    id="btnConfirmCancel"
+                    class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Confirmar cancelación
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+  {# ─────────────────── Modal: Enviar a Producción ─────────────────── #}
+  <div id="productionModal"
+       tabindex="-1"
+       aria-hidden="true"
+       class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center"
+       style="background:rgba(0,0,0,0.5)">
+    <div class="relative p-4 w-full max-w-md">
+      <div class="bg-neutral-primary-soft rounded-base border border-default shadow-xs">
+        {# Cabecera #}
+        <div class="flex items-center justify-between p-5 border-b border-default">
+          <h3 class="text-base font-semibold text-heading">Enviar a Producción</h3>
+          <button type="button"
+                  id="btnCloseProductionModal"
+                  class="text-body hover:text-heading rounded-base p-1 hover:bg-neutral-secondary-medium focus:outline-none">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+          </button>
+        </div>
+        {# Cuerpo #}
+        <div class="p-5">
+          <p class="text-sm text-body mb-4">
+            Se generarán <strong class="text-heading">{{ order.items | length }} orden(es) de producción</strong>, una por cada producto. El estado cambiará a
+            <span class="font-semibold text-fg-brand">En Producción</span>.
+          </p>
+          {# Lista de productos estilo card pequeña #}
+          <ul class="space-y-2 mb-4">
+            {% for item in order.items %}
+              <li class="bg-neutral-secondary-medium border border-default rounded-base px-4 py-2.5 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 shrink-0 text-fg-brand"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  <span class="text-sm font-medium text-heading">{{ item.product.name }}</span>
+                </div>
+                <span class="text-xs text-body">× {{ item.quantity }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          <div id="productionAlertBox"
+               class="hidden mb-3 p-3 text-sm rounded-base border"
+               style="background:#fee2e2;
+                      border-color:#fca5a5;
+                      color:#991b1b"></div>
+          <div class="flex justify-end gap-2">
+            <button type="button"
+                    id="btnCloseProductionModal2"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Cancelar
+            </button>
+            <button type="button"
+                    id="btnConfirmProduction"
+                    class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {# ─────────────────── JavaScript ─────────────────── #}
+  <script>
+      (() => {
+          "use strict";
 
-{# ─────────────────── JavaScript ─────────────────── #}
-<script>
-(() => {
-  "use strict";
+          const cfg = document.getElementById("detailConfig");
+          if (!cfg) return;
+          const CSRF = cfg.dataset.csrf;
 
-  const cfg = document.getElementById("detailConfig");
-  if (!cfg) return;
-  const CSRF = cfg.dataset.csrf;
+          let submitting = false;
 
-  let submitting = false;
+          function showAlert(msg) {
+              const el = document.getElementById("actionAlert");
+              const ok = document.getElementById("actionSuccess");
+              document.getElementById("actionAlertMsg").textContent = msg;
+              ok.classList.remove("flex");
+              ok.classList.add("hidden");
+              el.classList.remove("hidden");
+              el.classList.add("flex");
+              el.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest"
+              });
+          }
 
-  function showAlert(msg) {
-    const el  = document.getElementById("actionAlert");
-    const ok  = document.getElementById("actionSuccess");
-    document.getElementById("actionAlertMsg").textContent = msg;
-    ok.classList.remove("flex"); ok.classList.add("hidden");
-    el.classList.remove("hidden"); el.classList.add("flex");
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-  function showSuccess(msg) {
-    const el  = document.getElementById("actionSuccess");
-    const err = document.getElementById("actionAlert");
-    document.getElementById("actionSuccessMsg").textContent = msg;
-    err.classList.remove("flex"); err.classList.add("hidden");
-    el.classList.remove("hidden"); el.classList.add("flex");
-  }
+          function showSuccess(msg) {
+              const el = document.getElementById("actionSuccess");
+              const err = document.getElementById("actionAlert");
+              document.getElementById("actionSuccessMsg").textContent = msg;
+              err.classList.remove("flex");
+              err.classList.add("hidden");
+              el.classList.remove("hidden");
+              el.classList.add("flex");
+          }
 
-  /* ── Modal helpers ── */
-  const cancelModal     = document.getElementById("cancelModal");
-  const productionModal = document.getElementById("productionModal");
+          /* ── Modal helpers ── */
+          const cancelModal = document.getElementById("cancelModal");
+          const productionModal = document.getElementById("productionModal");
 
-  const openModal  = m => m.classList.remove("hidden");
-  const closeModal = m => m.classList.add("hidden");
+          const openModal = m => m.classList.remove("hidden");
+          const closeModal = m => m.classList.add("hidden");
 
-  document.getElementById("btnOpenCancelModal")?.addEventListener("click", () => {
-    document.getElementById("cancelReason").value = "";
-    document.getElementById("cancelAlertBox").classList.add("hidden");
-    openModal(cancelModal);
-  });
-  [document.getElementById("btnCloseCancelModal"),
-   document.getElementById("btnCloseCancelModal2")]
-    .forEach(b => b?.addEventListener("click", () => closeModal(cancelModal)));
+          document.getElementById("btnOpenCancelModal")?.addEventListener("click", () => {
+              document.getElementById("cancelReason").value = "";
+              document.getElementById("cancelAlertBox").classList.add("hidden");
+              openModal(cancelModal);
+          });
+          [document.getElementById("btnCloseCancelModal"),
+              document.getElementById("btnCloseCancelModal2")
+          ]
+          .forEach(b => b?.addEventListener("click", () => closeModal(cancelModal)));
 
-  document.getElementById("btnSendToProduction")?.addEventListener("click", () => {
-    document.getElementById("productionAlertBox").classList.add("hidden");
-    openModal(productionModal);
-  });
-  [document.getElementById("btnCloseProductionModal"),
-   document.getElementById("btnCloseProductionModal2")]
-    .forEach(b => b?.addEventListener("click", () => closeModal(productionModal)));
+          document.getElementById("btnSendToProduction")?.addEventListener("click", () => {
+              document.getElementById("productionAlertBox").classList.add("hidden");
+              openModal(productionModal);
+          });
+          [document.getElementById("btnCloseProductionModal"),
+              document.getElementById("btnCloseProductionModal2")
+          ]
+          .forEach(b => b?.addEventListener("click", () => closeModal(productionModal)));
 
-  [cancelModal, productionModal].forEach(m =>
-    m?.addEventListener("click", e => { if (e.target === m) closeModal(m); })
-  );
+          [cancelModal, productionModal].forEach(m =>
+              m?.addEventListener("click", e => {
+                  if (e.target === m) closeModal(m);
+              })
+          );
 
-  /* ── Cancelar ── */
-  document.getElementById("btnConfirmCancel")?.addEventListener("click", async () => {
-    if (submitting) return;
-    const reason   = document.getElementById("cancelReason").value.trim();
-    const alertBox = document.getElementById("cancelAlertBox");
-    if (!reason) {
-      alertBox.textContent = "El motivo es obligatorio.";
-      alertBox.classList.remove("hidden"); return;
-    }
-    alertBox.classList.add("hidden");
-    submitting = true;
-    const btn = document.getElementById("btnConfirmCancel");
-    btn.disabled = true; btn.textContent = "Cancelando...";
-    try {
-      const res  = await fetch(cfg.dataset.urlCancel, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
-        body: JSON.stringify({ reason }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        closeModal(cancelModal);
-        showSuccess("Orden cancelada. Recargando...");
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alertBox.textContent = data.error || "Error al cancelar.";
-        alertBox.classList.remove("hidden");
-        submitting = false; btn.disabled = false; btn.textContent = "Confirmar cancelación";
-      }
-    } catch {
-      alertBox.textContent = "Error de red."; alertBox.classList.remove("hidden");
-      submitting = false; btn.disabled = false; btn.textContent = "Confirmar cancelación";
-    }
-  });
+          /* ── Cancelar ── */
+          document.getElementById("btnConfirmCancel")?.addEventListener("click", async () => {
+              if (submitting) return;
+              const reason = document.getElementById("cancelReason").value.trim();
+              const alertBox = document.getElementById("cancelAlertBox");
+              if (!reason) {
+                  alertBox.textContent = "El motivo es obligatorio.";
+                  alertBox.classList.remove("hidden");
+                  return;
+              }
+              alertBox.classList.add("hidden");
+              submitting = true;
+              const btn = document.getElementById("btnConfirmCancel");
+              btn.disabled = true;
+              btn.textContent = "Cancelando...";
+              try {
+                  const res = await fetch(cfg.dataset.urlCancel, {
+                      method: "POST",
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": CSRF
+                      },
+                      body: JSON.stringify({
+                          reason
+                      }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                      closeModal(cancelModal);
+                      showSuccess("Orden cancelada. Recargando...");
+                      setTimeout(() => window.location.reload(), 1500);
+                  } else {
+                      alertBox.textContent = data.error || "Error al cancelar.";
+                      alertBox.classList.remove("hidden");
+                      submitting = false;
+                      btn.disabled = false;
+                      btn.textContent = "Confirmar cancelación";
+                  }
+              } catch {
+                  alertBox.textContent = "Error de red.";
+                  alertBox.classList.remove("hidden");
+                  submitting = false;
+                  btn.disabled = false;
+                  btn.textContent = "Confirmar cancelación";
+              }
+          });
 
-  /* ── Enviar a producción ── */
-  document.getElementById("btnConfirmProduction")?.addEventListener("click", async () => {
-    if (submitting) return;
-    submitting = true;
-    const alertBox = document.getElementById("productionAlertBox");
-    alertBox.classList.add("hidden");
-    const btn = document.getElementById("btnConfirmProduction");
-    btn.disabled = true; btn.textContent = "Enviando...";
-    try {
-      const res  = await fetch(cfg.dataset.urlProduction, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        closeModal(productionModal);
-        showSuccess(`${data.production_orders_created} orden(es) de producción generadas. Recargando...`);
-        setTimeout(() => window.location.reload(), 1800);
-      } else {
-        alertBox.textContent = data.error || "Error al enviar.";
-        alertBox.classList.remove("hidden");
-        submitting = false; btn.disabled = false; btn.textContent = "Confirmar";
-      }
-    } catch {
-      alertBox.textContent = "Error de red."; alertBox.classList.remove("hidden");
-      submitting = false; btn.disabled = false; btn.textContent = "Confirmar";
-    }
-  });
+          /* ── Enviar a producción ── */
+          document.getElementById("btnConfirmProduction")?.addEventListener("click", async () => {
+              if (submitting) return;
+              submitting = true;
+              const alertBox = document.getElementById("productionAlertBox");
+              alertBox.classList.add("hidden");
+              const btn = document.getElementById("btnConfirmProduction");
+              btn.disabled = true;
+              btn.textContent = "Enviando...";
+              try {
+                  const res = await fetch(cfg.dataset.urlProduction, {
+                      method: "POST",
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": CSRF
+                      },
+                      body: JSON.stringify({}),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                      closeModal(productionModal);
+                      showSuccess(`${data.production_orders_created} orden(es) de producción generadas. Recargando...`);
+                      setTimeout(() => window.location.reload(), 1800);
+                  } else {
+                      alertBox.textContent = data.error || "Error al enviar.";
+                      alertBox.classList.remove("hidden");
+                      submitting = false;
+                      btn.disabled = false;
+                      btn.textContent = "Confirmar";
+                  }
+              } catch {
+                  alertBox.textContent = "Error de red.";
+                  alertBox.classList.remove("hidden");
+                  submitting = false;
+                  btn.disabled = false;
+                  btn.textContent = "Confirmar";
+              }
+          });
 
-  /* ── Avanzar estado (terminado / entregado) ── */
-  document.getElementById("btnAdvanceStatus")?.addEventListener("click", async function () {
-    if (submitting) return;
-    submitting = true;
-    const newStatus = this.dataset.newStatus;
-    const origText  = this.textContent.trim();
-    this.disabled = true; this.textContent = "Actualizando...";
-    try {
-      const res  = await fetch(cfg.dataset.urlStatus, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showSuccess("Estado actualizado. Recargando...");
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        showAlert(data.error || "Error al actualizar el estado.");
-        submitting = false; this.disabled = false; this.textContent = origText;
-      }
-    } catch {
-      showAlert("Error de red al actualizar el estado.");
-      submitting = false; this.disabled = false; this.textContent = origText;
-    }
-  });
-})();
-</script>
+          /* ── Avanzar estado (terminado / entregado) ── */
+          document.getElementById("btnAdvanceStatus")?.addEventListener("click", async function() {
+              if (submitting) return;
+              submitting = true;
+              const newStatus = this.dataset.newStatus;
+              const origText = this.textContent.trim();
+              this.disabled = true;
+              this.textContent = "Actualizando...";
+              try {
+                  const res = await fetch(cfg.dataset.urlStatus, {
+                      method: "PUT",
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": CSRF
+                      },
+                      body: JSON.stringify({
+                          status: newStatus
+                      }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                      showSuccess("Estado actualizado. Recargando...");
+                      setTimeout(() => window.location.reload(), 1500);
+                  } else {
+                      showAlert(data.error || "Error al actualizar el estado.");
+                      submitting = false;
+                      this.disabled = false;
+                      this.textContent = origText;
+                  }
+              } catch {
+                  showAlert("Error de red al actualizar el estado.");
+                  submitting = false;
+                  this.disabled = false;
+                  this.textContent = origText;
+              }
+          });
+      })();
+  </script>
 {% endblock modals %}

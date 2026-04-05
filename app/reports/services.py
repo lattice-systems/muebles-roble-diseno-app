@@ -5,12 +5,20 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from app.costs.services import CostService
-from app.models import Order, OrderItem, Product, ProductionOrder, ProductionOrderMaterial, Sale, SaleItem
+from app.models import Order, OrderItem, ProductionOrder, Sale, SaleItem
 from .mongo_service import ensure_report_indexes, get_report_collections
 
 
 class ReportService:
     TAX_RATE = Decimal("0.16")
+    PRODUCTION_COMPLETED_STATUSES = [
+        "terminado",
+        "finalizado",
+        "finalizada",
+        "finished",
+        "completed",
+        "completada",
+    ]
 
     @staticmethod
     def _to_decimal(value) -> Decimal:
@@ -45,7 +53,9 @@ class ReportService:
         return names[target_date.weekday()]
 
     @staticmethod
-    def _build_recent_sale_row(source: str, record_id: int, record_date, total, payment_method_name: str | None):
+    def _build_recent_sale_row(
+        source: str, record_id: int, record_date, total, payment_method_name: str | None
+    ):
         total_decimal = ReportService._to_decimal(total)
         subtotal = total_decimal / (Decimal("1.00") + ReportService.TAX_RATE)
         iva = total_decimal - subtotal
@@ -66,20 +76,19 @@ class ReportService:
         target_date = target_date or date.today()
         start_dt, end_dt = ReportService._start_end_for_day(target_date)
 
-        sales = (
-            Sale.query.filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt)
-            .all()
-        )
-        orders = (
-            Order.query.filter(Order.order_date >= start_dt, Order.order_date <= end_dt)
-            .all()
-        )
+        sales = Sale.query.filter(
+            Sale.sale_date >= start_dt, Sale.sale_date <= end_dt
+        ).all()
+        orders = Order.query.filter(
+            Order.order_date >= start_dt, Order.order_date <= end_dt
+        ).all()
 
         pos_total = sum(ReportService._to_decimal(s.total) for s in sales)
         ecommerce_total = sum(
             ReportService._to_decimal(o.total)
             for o in orders
-            if str(o.status).lower() not in {"cancelada", "cancelled", "rechazada", "rejected"}
+            if str(o.status).lower()
+            not in {"cancelada", "cancelled", "rechazada", "rejected"}
         )
         grand_total = pos_total + ecommerce_total
 
@@ -91,11 +100,18 @@ class ReportService:
                 if sale.payment_method is not None
                 else "Sin método"
             )
-            payment_methods[method_name]["amount"] += ReportService._to_decimal(sale.total)
+            payment_methods[method_name]["amount"] += ReportService._to_decimal(
+                sale.total
+            )
             payment_methods[method_name]["count"] += 1
 
         for order in orders:
-            if str(order.status).lower() in {"cancelada", "cancelled", "rechazada", "rejected"}:
+            if str(order.status).lower() in {
+                "cancelada",
+                "cancelled",
+                "rechazada",
+                "rejected",
+            }:
                 continue
 
             method_name = (
@@ -103,7 +119,9 @@ class ReportService:
                 if order.payment_method is not None
                 else "Sin método"
             )
-            payment_methods[method_name]["amount"] += ReportService._to_decimal(order.total)
+            payment_methods[method_name]["amount"] += ReportService._to_decimal(
+                order.total
+            )
             payment_methods[method_name]["count"] += 1
 
         payment_methods_data = [
@@ -190,7 +208,12 @@ class ReportService:
             row["estimated_profit"] = row["revenue"] - row["estimated_total_cost"]
 
         for item in order_items:
-            if str(item.order.status).lower() in {"cancelada", "cancelled", "rechazada", "rejected"}:
+            if str(item.order.status).lower() in {
+                "cancelada",
+                "cancelled",
+                "rechazada",
+                "rejected",
+            }:
                 continue
 
             product = item.product
@@ -234,8 +257,12 @@ class ReportService:
                     "product_name": row["product_name"],
                     "quantity_sold": row["quantity_sold"],
                     "revenue": ReportService._money(row["revenue"]),
-                    "estimated_unit_cost": ReportService._money(row["estimated_unit_cost"]),
-                    "estimated_total_cost": ReportService._money(row["estimated_total_cost"]),
+                    "estimated_unit_cost": ReportService._money(
+                        row["estimated_unit_cost"]
+                    ),
+                    "estimated_total_cost": ReportService._money(
+                        row["estimated_total_cost"]
+                    ),
                     "estimated_profit": ReportService._money(row["estimated_profit"]),
                 }
             )
@@ -278,12 +305,17 @@ class ReportService:
 
             pos_total = sum(
                 ReportService._to_decimal(s.total)
-                for s in Sale.query.filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
+                for s in Sale.query.filter(
+                    Sale.sale_date >= start_dt, Sale.sale_date <= end_dt
+                ).all()
             )
             ecommerce_total = sum(
                 ReportService._to_decimal(o.total)
-                for o in Order.query.filter(Order.order_date >= start_dt, Order.order_date <= end_dt).all()
-                if str(o.status).lower() not in {"cancelada", "cancelled", "rechazada", "rejected"}
+                for o in Order.query.filter(
+                    Order.order_date >= start_dt, Order.order_date <= end_dt
+                ).all()
+                if str(o.status).lower()
+                not in {"cancelada", "cancelled", "rechazada", "rejected"}
             )
 
             total = pos_total + ecommerce_total
@@ -316,7 +348,9 @@ class ReportService:
         return doc
 
     @staticmethod
-    def generate_top_products_snapshot(date_from: date | None = None, date_to: date | None = None) -> dict:
+    def generate_top_products_snapshot(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> dict:
         date_to = date_to or date.today()
         date_from = date_from or (date_to - timedelta(days=29))
 
@@ -357,7 +391,12 @@ class ReportService:
             rows[product.id]["pos_quantity"] += qty
 
         for item in order_items:
-            if str(item.order.status).lower() in {"cancelada", "cancelled", "rechazada", "rejected"}:
+            if str(item.order.status).lower() in {
+                "cancelada",
+                "cancelled",
+                "rechazada",
+                "rejected",
+            }:
                 continue
 
             product = item.product
@@ -415,7 +454,9 @@ class ReportService:
         return doc
 
     @staticmethod
-    def generate_recent_sales_snapshot(target_date: date | None = None, limit: int = 10) -> dict:
+    def generate_recent_sales_snapshot(
+        target_date: date | None = None, limit: int = 10
+    ) -> dict:
         target_date = target_date or date.today()
         start_dt, end_dt = ReportService._start_end_for_day(target_date)
 
@@ -433,7 +474,9 @@ class ReportService:
                     record_id=sale.id,
                     record_date=sale.sale_date,
                     total=sale.total,
-                    payment_method_name=sale.payment_method.name if sale.payment_method else None,
+                    payment_method_name=(
+                        sale.payment_method.name if sale.payment_method else None
+                    ),
                 )
             )
 
@@ -443,7 +486,12 @@ class ReportService:
             .all()
         )
         for order in orders:
-            if str(order.status).lower() in {"cancelada", "cancelled", "rechazada", "rejected"}:
+            if str(order.status).lower() in {
+                "cancelada",
+                "cancelled",
+                "rechazada",
+                "rejected",
+            }:
                 continue
 
             rows.append(
@@ -452,7 +500,9 @@ class ReportService:
                     record_id=order.id,
                     record_date=order.order_date,
                     total=order.total,
-                    payment_method_name=order.payment_method.name if order.payment_method else None,
+                    payment_method_name=(
+                        order.payment_method.name if order.payment_method else None
+                    ),
                 )
             )
 
@@ -484,7 +534,7 @@ class ReportService:
         daily_profit = ReportService.generate_daily_profit_snapshot(target_date)
 
         completed_production_orders = ProductionOrder.query.filter(
-            ProductionOrder.status.in_(["finalizada", "finished", "completed", "completada"])
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES)
         ).count()
 
         doc = {
@@ -518,7 +568,9 @@ class ReportService:
             date_from=target_date - timedelta(days=29),
             date_to=target_date,
         )
-        recent_sales = ReportService.generate_recent_sales_snapshot(target_date, limit=10)
+        recent_sales = ReportService.generate_recent_sales_snapshot(
+            target_date, limit=10
+        )
         general = ReportService.generate_general_snapshot(target_date)
 
         return {
@@ -531,7 +583,9 @@ class ReportService:
         }
 
     @staticmethod
-    def get_dashboard(target_date: date | None = None, force_refresh: bool = False) -> dict:
+    def get_dashboard(
+        target_date: date | None = None, force_refresh: bool = False
+    ) -> dict:
         target_date = target_date or date.today()
         ensure_report_indexes()
         collections = get_report_collections()
@@ -539,19 +593,38 @@ class ReportService:
         if force_refresh:
             return ReportService.refresh_dashboard_snapshots(target_date)
 
-        daily_sales = collections["daily_sales"].find_one({"report_date": target_date.isoformat()})
-        daily_profit = collections["daily_profit"].find_one({"report_date": target_date.isoformat()})
-        weekly_sales = collections["weekly_sales"].find_one({"report_date": target_date.isoformat()})
-        recent_sales = collections["recent_sales"].find_one({"report_date": target_date.isoformat()})
+        daily_sales = collections["daily_sales"].find_one(
+            {"report_date": target_date.isoformat()}
+        )
+        daily_profit = collections["daily_profit"].find_one(
+            {"report_date": target_date.isoformat()}
+        )
+        weekly_sales = collections["weekly_sales"].find_one(
+            {"report_date": target_date.isoformat()}
+        )
+        recent_sales = collections["recent_sales"].find_one(
+            {"report_date": target_date.isoformat()}
+        )
         top_products = collections["top_products"].find_one(
             {
                 "date_from": (target_date - timedelta(days=29)).isoformat(),
                 "date_to": target_date.isoformat(),
             }
         )
-        general = collections["general"].find_one({"report_date": target_date.isoformat()})
+        general = collections["general"].find_one(
+            {"report_date": target_date.isoformat()}
+        )
 
-        if not all([daily_sales, daily_profit, weekly_sales, recent_sales, top_products, general]):
+        if not all(
+            [
+                daily_sales,
+                daily_profit,
+                weekly_sales,
+                recent_sales,
+                top_products,
+                general,
+            ]
+        ):
             return ReportService.refresh_dashboard_snapshots(target_date)
 
         return {
@@ -562,25 +635,29 @@ class ReportService:
             "recent_sales": recent_sales,
             "general": general,
         }
-    
+
     @staticmethod
-    def get_raw_material_consumption_report(date_from: date | None = None, date_to: date | None = None) -> dict:
+    def get_raw_material_consumption_report(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> dict:
         date_to = date_to or date.today()
         date_from = date_from or (date_to - timedelta(days=29))
 
-        rows = defaultdict(lambda: {
-            "raw_material_id": None,
-            "raw_material_name": "",
-            "unit": "",
-            "quantity_used": Decimal("0"),
-            "estimated_waste": Decimal("0"),
-            "products": [],
-        })
+        rows = defaultdict(
+            lambda: {
+                "raw_material_id": None,
+                "raw_material_name": "",
+                "unit": "",
+                "quantity_used": Decimal("0"),
+                "estimated_waste": Decimal("0"),
+                "products": [],
+            }
+        )
 
         orders = ProductionOrder.query.filter(
             ProductionOrder.scheduled_date >= date_from,
             ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(["finalizada", "finished", "completed", "completada"])
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
         ).all()
 
         for order in orders:
@@ -591,28 +668,33 @@ class ReportService:
                 rows[key]["raw_material_id"] = rm.id
                 rows[key]["raw_material_name"] = rm.name
                 rows[key]["unit"] = rm.unit.abbreviation if rm.unit else ""
-                rows[key]["quantity_used"] += ReportService._to_decimal(material.quantity_used)
-                rows[key]["estimated_waste"] += (
-                    ReportService._to_decimal(material.quantity_used) *
-                    (ReportService._to_decimal(material.waste_applied) / Decimal("100"))
+                rows[key]["quantity_used"] += ReportService._to_decimal(
+                    material.quantity_used
                 )
+                rows[key]["estimated_waste"] += ReportService._to_decimal(
+                    material.quantity_used
+                ) * (ReportService._to_decimal(material.waste_applied) / Decimal("100"))
 
-                rows[key]["products"].append({
-                    "product_id": order.product.id,
-                    "product_name": order.product.name,
-                    "produced_quantity": order.quantity,
-                })
+                rows[key]["products"].append(
+                    {
+                        "product_id": order.product.id,
+                        "product_name": order.product.name,
+                        "produced_quantity": order.quantity,
+                    }
+                )
 
         items = []
         for value in rows.values():
-            items.append({
-                "raw_material_id": value["raw_material_id"],
-                "raw_material_name": value["raw_material_name"],
-                "unit": value["unit"],
-                "quantity_used": ReportService._money(value["quantity_used"]),
-                "estimated_waste": ReportService._money(value["estimated_waste"]),
-                "products": value["products"],
-            })
+            items.append(
+                {
+                    "raw_material_id": value["raw_material_id"],
+                    "raw_material_name": value["raw_material_name"],
+                    "unit": value["unit"],
+                    "quantity_used": ReportService._money(value["quantity_used"]),
+                    "estimated_waste": ReportService._money(value["estimated_waste"]),
+                    "products": value["products"],
+                }
+            )
 
         items.sort(key=lambda x: x["quantity_used"], reverse=True)
 
@@ -623,17 +705,21 @@ class ReportService:
         }
 
     @staticmethod
-    def get_general_report(date_from: date | None = None, date_to: date | None = None) -> dict:
+    def get_general_report(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> dict:
         date_to = date_to or date.today()
         date_from = date_from or (date_to - timedelta(days=29))
 
         dashboard = ReportService.get_dashboard(target_date=date.today())
-        consumption = ReportService.get_raw_material_consumption_report(date_from, date_to)
+        consumption = ReportService.get_raw_material_consumption_report(
+            date_from, date_to
+        )
 
         completed_orders = ProductionOrder.query.filter(
             ProductionOrder.scheduled_date >= date_from,
             ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(["finalizada", "finished", "completed", "completada"])
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
         ).count()
 
         return {
@@ -641,8 +727,12 @@ class ReportService:
             "date_to": date_to.isoformat(),
             "summary": {
                 "sales_total": dashboard["daily_sales"]["totals"]["grand_total"],
-                "estimated_profit_total": dashboard["daily_profit"]["estimated_profit_total"],
-                "transactions_count": dashboard["daily_sales"]["totals"]["transactions_count"],
+                "estimated_profit_total": dashboard["daily_profit"][
+                    "estimated_profit_total"
+                ],
+                "transactions_count": dashboard["daily_sales"]["totals"][
+                    "transactions_count"
+                ],
                 "completed_production_orders": completed_orders,
                 "raw_materials_consumed": len(consumption["items"]),
             },
