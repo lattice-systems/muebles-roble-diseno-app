@@ -693,19 +693,66 @@ class ProductionService:
         if customer_order.status != "en_produccion":
             return
 
-        if any(po.status != "terminado" for po in customer_order.production_orders):
+        production_orders = list(customer_order.production_orders)
+        if not production_orders:
             return
 
-        previous_data = customer_order.to_dict()
-        customer_order.status = "terminado"
+        active_statuses = {"pendiente", "en_proceso"}
+        finished_statuses = {
+            "terminado",
+            "finalizado",
+            "finalizada",
+            "finished",
+            "completed",
+            "completada",
+        }
+        canceled_statuses = {"cancelado"}
 
-        ProductionService._log_audit(
-            table_name="orders",
-            action="UPDATE",
-            user_id=user_id,
-            previous_data=previous_data,
-            new_data=customer_order.to_dict(),
-        )
+        statuses = {po.status for po in production_orders}
+
+        # Si aún hay órdenes activas, la orden cliente debe continuar en producción.
+        if statuses & active_statuses:
+            return
+
+        # Si todas quedaron canceladas, cancelar también la orden cliente.
+        if statuses.issubset(canceled_statuses):
+            previous_data = customer_order.to_dict()
+            customer_order.status = "cancelado"
+            customer_order.cancelled_at = datetime.now()
+            customer_order.cancelled_by_id = user_id
+            customer_order.cancelled_reason = (
+                customer_order.cancelled_reason
+                or "Todas las órdenes de producción asociadas fueron canceladas"
+            )
+
+            ProductionService._log_audit(
+                table_name="orders",
+                action="UPDATE",
+                user_id=user_id,
+                previous_data=previous_data,
+                new_data=customer_order.to_dict(),
+            )
+            return
+
+        # Si no hay activas y existe al menos una terminada, dar la orden por terminada.
+        if (
+            statuses <= (finished_statuses | canceled_statuses)
+            and statuses & finished_statuses
+        ):
+            previous_data = customer_order.to_dict()
+            customer_order.status = "terminado"
+
+            ProductionService._log_audit(
+                table_name="orders",
+                action="UPDATE",
+                user_id=user_id,
+                previous_data=previous_data,
+                new_data=customer_order.to_dict(),
+            )
+            return
+
+        # Cualquier otro escenario queda para revisión manual.
+        return
 
     @staticmethod
     def change_production_order_status(
@@ -746,7 +793,7 @@ class ProductionService:
             order.status = target_status
             order.updated_by = user_id
 
-            if target_status == "terminado":
+            if target_status in ("terminado", "cancelado"):
                 ProductionService._sync_customer_order_status(order, user_id)
 
             ProductionService._log_audit(
