@@ -1,9 +1,27 @@
 from flask import current_app
+from pymongo import MongoClient
+
+
+def get_mongo_client():
+    client = current_app.extensions.get("mongo_client")
+    if client is None:
+        mongo_uri = current_app.config.get("MONGO_URI")
+        if not mongo_uri:
+            raise RuntimeError("MONGO_URI is not configured")
+
+        client = MongoClient(mongo_uri)
+        current_app.extensions["mongo_client"] = client
+
+    return client
 
 
 def get_mongo_db():
-    client = current_app.extensions["mongo_client"]
-    return client[current_app.config["MONGO_DBNAME"]]
+    db_name = current_app.config.get("MONGO_DBNAME")
+    if not db_name:
+        raise RuntimeError("MONGO_DBNAME is not configured")
+
+    client = get_mongo_client()
+    return client[db_name]
 
 
 def get_report_collections():
