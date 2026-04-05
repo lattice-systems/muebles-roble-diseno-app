@@ -1,0 +1,114 @@
+{% extends "layouts/admin.html" %}
+{% from "admin/components/table_header.html" import table_header %}
+{% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
+{% block title %}
+  Admin - Producción
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Órdenes de producción" %}
+    {% set admin_header_subtitle = "Controla y da seguimiento a las órdenes de fabricación" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+      {% call table_header(url_for('production.orders_index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por producto o SKU', search_label='Buscar', hidden_fields=[('status', status_filter)]) %}
+        <form method="get"
+              action="{{ url_for('production.orders_index') }}"
+              class="shrink-0 w-44">
+          <input type="hidden" name="q" value="{{ search_term }}">
+          <select name="status"
+                  onchange="this.form.submit()"
+                  class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos los estados</option>
+            <option value="pendiente"
+                    {% if status_filter == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="en_proceso"
+                    {% if status_filter == 'en_proceso' %}selected{% endif %}>En proceso</option>
+            <option value="terminado"
+                    {% if status_filter == 'terminado' %}selected{% endif %}>Terminado</option>
+            <option value="cancelado"
+                    {% if status_filter == 'cancelado' %}selected{% endif %}>Cancelado</option>
+          </select>
+        </form>
+        <a href="{{ url_for('production.boms_index') }}"
+           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
+          Recetas BOM
+        </a>
+        <a href="{{ url_for('production.create_order') }}"
+           class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
+          Nueva orden
+        </a>
+      {% endcall %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Orden</th>
+              <th class="px-6 py-4">Producto</th>
+              <th class="px-6 py-4">Cantidad</th>
+              <th class="px-6 py-4">Estado</th>
+              <th class="px-6 py-4">Fecha programada</th>
+              <th class="px-6 py-4">Orden cliente</th>
+              <th class="px-6 py-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
+                <td class="px-6 py-4 font-mono text-xs text-heading">#{{ "%04d" | format(order.id) }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="font-medium text-heading">{{ order.product.name if order.product else '—' }}</span>
+                    <span class="text-body text-xs">{{ order.product.sku if order.product else '—' }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-heading font-medium">{{ order.quantity }}</td>
+                <td class="px-6 py-4">
+                  {% if order.status == 'pendiente' %}
+                    {{ status_badge('Pendiente', 'warning') }}
+                  {% elif order.status == 'en_proceso' %}
+                    {{ status_badge('En proceso', 'info') }}
+                  {% elif order.status == 'terminado' %}
+                    {{ status_badge('Terminado', 'success') }}
+                  {% elif order.status == 'cancelado' %}
+                    {{ status_badge('Cancelado', 'danger') }}
+                  {% else %}
+                    {{ status_badge(order.status|replace('_',' ') |title, 'neutral') }}
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">{{ order.scheduled_date.strftime("%d/%m/%Y") if order.scheduled_date else '—' }}</td>
+                <td class="px-6 py-4">
+                  {% if order.customer_order_id %}
+                    <a href="{{ url_for('customer_orders.detail', order_id=order.customer_order_id) }}"
+                       class="text-fg-brand-strong hover:underline">#{{ "%04d" | format(order.customer_order_id) }}</a>
+                  {% else %}
+                    <span class="text-body">Manual</span>
+                  {% endif %}
+                </td>
+                {{ row_actions_cell_start("px-6 py-4 text-right") }}
+                {{ row_actions_group_start("flex justify-end") }}
+                {% call row_actions_dropdown('actionsProductionDropdownButton-' ~ order.id, 'actionsProductionDropdown-' ~ order.id, 'Opciones', 'w-44') %}
+                  <li>
+                    <a href="{{ url_for('production.order_details', order_id=order.id) }}"
+                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                      Ver detalle
+                    </a>
+                  </li>
+                {% endcall %}
+                {{ row_actions_group_end() }}
+                {{ row_actions_cell_end() }}
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-body">No hay órdenes de producción registradas.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ table_footer(pagination, 'production.orders_index', {'q': search_term, 'status': status_filter}) }}
+    </div>
+  </div>
+{% endblock content %}

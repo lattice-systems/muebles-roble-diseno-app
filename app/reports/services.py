@@ -17,6 +17,14 @@ from .mongo_service import ensure_report_indexes, get_report_collections
 
 class ReportService:
     TAX_RATE = Decimal("0.16")
+    PRODUCTION_COMPLETED_STATUSES = [
+        "terminado",
+        "finalizado",
+        "finalizada",
+        "finished",
+        "completed",
+        "completada",
+    ]
 
     @staticmethod
     def _to_decimal(value) -> Decimal:
@@ -548,9 +556,7 @@ class ReportService:
         daily_profit = ReportService.generate_daily_profit_snapshot(target_date)
 
         completed_production_orders = ProductionOrder.query.filter(
-            ProductionOrder.status.in_(
-                ["finalizada", "finished", "completed", "completada"]
-            )
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES)
         ).count()
 
         doc = {
@@ -673,9 +679,7 @@ class ReportService:
         orders = ProductionOrder.query.filter(
             ProductionOrder.scheduled_date >= date_from,
             ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(
-                ["finalizada", "finished", "completed", "completada"]
-            ),
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
         ).all()
 
         for order in orders:
@@ -737,9 +741,7 @@ class ReportService:
         completed_orders = ProductionOrder.query.filter(
             ProductionOrder.scheduled_date >= date_from,
             ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(
-                ["finalizada", "finished", "completed", "completada"]
-            ),
+            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
         ).count()
 
         return {

@@ -126,4 +126,8 @@ def create_app():
 
     app.register_blueprint(customer_orders_bp, url_prefix="/customer-orders")
 
+    from .production import production_bp
+
+    app.register_blueprint(production_bp, url_prefix="/admin/production")
+
     return app

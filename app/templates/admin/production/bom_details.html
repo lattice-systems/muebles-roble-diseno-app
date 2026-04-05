@@ -1,0 +1,85 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalle receta BOM
+{% endblock title %}
+{% block content %}
+  <div class="max-w-6xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Receta #" ~ ("%04d" | format(bom.id)) %}
+    {% set admin_header_subtitle = "Detalle de materiales para fabricación" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div>
+          <p class="text-xs text-body">Producto</p>
+          <p class="text-sm font-semibold text-heading">{{ bom.product.name if bom.product else '—' }}</p>
+          <p class="text-xs text-body">{{ bom.product.sku if bom.product else '—' }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Versión</p>
+          <p class="text-sm font-semibold text-heading">{{ bom.version }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Materiales</p>
+          <p class="text-sm font-semibold text-heading">{{ bom.items | length }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Actualizado</p>
+          <p class="text-sm font-semibold text-heading">
+            {{ bom.updated_at.strftime("%d/%m/%Y %H:%M") if bom.updated_at else '—' }}
+          </p>
+        </div>
+      </div>
+      {% if bom.description %}
+        <div class="mt-4 p-3 bg-neutral-secondary-soft border border-default-medium rounded-base text-xs 2xl:text-sm text-body">
+          {{ bom.description }}
+        </div>
+      {% endif %}
+    </div>
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default overflow-hidden">
+      <div class="p-4 2xl:p-6 border-b border-default-medium">
+        <h3 class="text-sm 2xl:text-base font-semibold text-heading">Materiales de la receta</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Materia prima</th>
+              <th class="px-6 py-4">Unidad</th>
+              <th class="px-6 py-4">Cantidad requerida</th>
+              <th class="px-6 py-4">Merma estimada %</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in bom.items %}
+              <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
+                <td class="px-6 py-4 text-heading font-medium">{{ item.raw_material.name if item.raw_material else '—' }}</td>
+                <td class="px-6 py-4">
+                  {{ item.raw_material.unit.abbreviation if item.raw_material and item.raw_material.unit else '—' }}
+                </td>
+                <td class="px-6 py-4">{{ "%.3f" | format(item.quantity_required | float) }}</td>
+                <td class="px-6 py-4">
+                  {{ "%.2f" | format(item.raw_material.waste_percentage | float) if item.raw_material and item.raw_material.waste_percentage is not none else '0.00' }}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-body">No hay materiales registrados en esta receta.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-2.5">
+      <a href="{{ url_for('production.boms_index') }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+        Volver
+      </a>
+      <a href="{{ url_for('production.edit_bom', bom_id=bom.id) }}"
+         class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+        Editar receta
+      </a>
+    </div>
+  </div>
+{% endblock content %}

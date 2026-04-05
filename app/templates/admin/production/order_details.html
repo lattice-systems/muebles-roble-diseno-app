@@ -1,0 +1,179 @@
+{% extends "layouts/admin.html" %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
+{% block title %}
+  Admin - Orden de producción #{{ "%04d" | format(order.id) }}
+{% endblock title %}
+{% block content %}
+  <div class="max-w-7xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Orden de producción #" ~ ("%04d" | format(order.id)) %}
+    {% set admin_header_subtitle = "Seguimiento de consumo de materiales y avance de fabricación" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div>
+          <p class="text-xs text-body">Producto</p>
+          <p class="text-sm font-semibold text-heading">{{ order.product.name if order.product else '—' }}</p>
+          <p class="text-xs text-body">{{ order.product.sku if order.product else '—' }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Cantidad</p>
+          <p class="text-sm font-semibold text-heading">{{ order.quantity }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Fecha programada</p>
+          <p class="text-sm font-semibold text-heading">
+            {{ order.scheduled_date.strftime("%d/%m/%Y") if order.scheduled_date else '—' }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Estado</p>
+          <p>
+            {% if order.status == 'pendiente' %}
+              {{ status_badge('Pendiente', 'warning') }}
+            {% elif order.status == 'en_proceso' %}
+              {{ status_badge('En proceso', 'info') }}
+            {% elif order.status == 'terminado' %}
+              {{ status_badge('Terminado', 'success') }}
+            {% elif order.status == 'cancelado' %}
+              {{ status_badge('Cancelado', 'danger') }}
+            {% else %}
+              {{ status_badge(order.status|replace('_', ' ') |title, 'neutral') }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      {% if order.customer_order_id %}
+        <div class="mt-4 p-3 bg-brand-softer border border-brand-soft rounded-base text-xs 2xl:text-sm text-body">
+          Esta orden proviene de la orden de cliente
+          <a href="{{ url_for('customer_orders.detail', order_id=order.customer_order_id) }}"
+             class="font-semibold text-fg-brand-strong hover:underline">#{{ "%04d" | format(order.customer_order_id) }}</a>.
+        </div>
+      {% endif %}
+    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
+        <h3 class="text-sm 2xl:text-base font-semibold text-heading mb-3">Cambio de estado</h3>
+        {% if allowed_statuses %}
+          <form method="post"
+                action="{{ url_for('production.update_order_status', order_id=order.id) }}"
+                class="flex items-end gap-2.5">
+            {{ status_form.hidden_tag() }}
+            <div class="flex-1">
+              <label for="{{ status_form.status.id }}"
+                     class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Nuevo estado</label>
+              <select id="{{ status_form.status.id }}"
+                      name="{{ status_form.status.name }}"
+                      class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                {% for value, label in status_form.status.choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <button type="submit"
+                    class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+              Aplicar
+            </button>
+          </form>
+        {% else %}
+          <p class="text-xs 2xl:text-sm text-body">Esta orden no tiene más transiciones disponibles.</p>
+        {% endif %}
+      </div>
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
+        <h3 class="text-sm 2xl:text-base font-semibold text-heading mb-3">Acciones rápidas</h3>
+        <div class="flex flex-wrap gap-2.5">
+          <a href="{{ url_for('production.orders_index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver al listado
+          </a>
+          <a href="{{ url_for('production.boms_index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Ver recetas BOM
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default overflow-hidden">
+      <div class="p-4 2xl:p-6 border-b border-default-medium">
+        <h3 class="text-sm 2xl:text-base font-semibold text-heading">Consumo de materiales</h3>
+        <p class="text-xs 2xl:text-sm text-body">Registra cantidad usada real y merma aplicada por material.</p>
+        <p class="text-xs 2xl:text-sm text-body mt-1">
+          El consumo planeado se toma de la BOM al crear la orden de producción; cambios posteriores en la BOM aplican a nuevas órdenes.
+        </p>
+      </div>
+      {% if order.material_consumptions %}
+        <form method="post"
+              action="{{ url_for('production.update_order_materials', order_id=order.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-body">
+              <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+                <tr>
+                  <th class="px-6 py-4">Material</th>
+                  <th class="px-6 py-4">Planeado</th>
+                  <th class="px-6 py-4">Stock actual</th>
+                  <th class="px-6 py-4">Usado real</th>
+                  <th class="px-6 py-4">Merma %</th>
+                  <th class="px-6 py-4">Costo unitario</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.material_consumptions %}
+                  <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                        <span class="text-heading font-medium">{{ item.raw_material.name if item.raw_material else '—' }}</span>
+                        <span class="text-xs text-body">{{ item.raw_material.unit.abbreviation if item.raw_material and item.raw_material.unit else '' }}</span>
+                      </div>
+                      <input type="hidden"
+                             name="raw_material_id[]"
+                             value="{{ item.raw_material_id }}">
+                    </td>
+                    <td class="px-6 py-4 text-heading font-medium">{{ "%.3f" | format(item.quantity_planned | float) }}</td>
+                    <td class="px-6 py-4">
+                      {% if item.raw_material and item.raw_material.stock is not none %}
+                        <div class="flex flex-col">
+                          <span class="text-heading font-medium">{{ "%.3f" | format(item.raw_material.stock | float) }}</span>
+                          <span class="text-xs text-body">{{ item.raw_material.unit.abbreviation if item.raw_material.unit else '' }}</span>
+                        </div>
+                      {% else %}
+                        <span class="text-body">—</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                      <input type="number"
+                             step="0.001"
+                             min="0"
+                             name="quantity_used[]"
+                             value="{{ "%.3f" | format(item.quantity_used | float) }}"
+                             {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                             class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                    </td>
+                    <td class="px-6 py-4">
+                      <input type="number"
+                             step="0.01"
+                             min="0"
+                             max="100"
+                             name="waste_applied[]"
+                             value="{{ "%.2f" | format(item.waste_applied | float) }}"
+                             {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                             class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                    </td>
+                    <td class="px-6 py-4">${{ "%.2f" | format(item.unit_cost | float) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="p-4 2xl:p-6 border-t border-default-medium flex justify-end">
+            <button type="submit"
+                    {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                    class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              Guardar consumos
+            </button>
+          </div>
+        </form>
+      {% else %}
+        <div class="p-6 text-body text-sm">Esta orden aún no tiene materiales planificados desde receta BOM.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock content %}
