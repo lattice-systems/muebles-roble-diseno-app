@@ -440,7 +440,7 @@ def resolve_action_permission(action_map: dict[str, str], action_key: str = "act
 # Enforzamiento global (deny-by-default)
 # ---------------------------------------------------------------------------
 
-INTERNAL_PREFIXES = ("/admin", "/sales", "/customer-orders")
+INTERNAL_PREFIXES = ("/admin",)
 
 EndpointPermission = str | Iterable[str] | Callable[[], str | Iterable[str] | None]
 

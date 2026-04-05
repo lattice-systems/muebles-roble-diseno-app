@@ -92,8 +92,19 @@ def create_customer():
     """
     try:
         data = request.get_json()
-        if not data or not data.get("first_name") or not data.get("last_name") or not data.get("email") or not data.get("phone"):
-            return jsonify({"error": "Nombre, apellidos, correo y teléfono son obligatorios."}), 400
+        if (
+            not data
+            or not data.get("first_name")
+            or not data.get("last_name")
+            or not data.get("email")
+            or not data.get("phone")
+        ):
+            return (
+                jsonify(
+                    {"error": "Nombre, apellidos, correo y teléfono son obligatorios."}
+                ),
+                400,
+            )
 
         customer = SaleService.create_customer(data)
         return jsonify({"success": True, "customer": customer.to_dict()})
@@ -101,6 +112,7 @@ def create_customer():
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500
 
@@ -142,10 +154,12 @@ def update_customer_data(customer_id):
         customer.interior_number = data.get("interior_number", customer.interior_number)
 
         from app.extensions import db
+
         db.session.commit()
         return jsonify({"success": True, "customer": customer.to_dict()})
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error al actualizar: {str(e)}"}), 500
 
@@ -162,12 +176,14 @@ def get_cart():
     freight = calculate_freight(customer, Decimal(str(subtotal)))
 
     total_with_freight = subtotal + freight["cost"]
-    return jsonify({
-        "items": cart, 
-        "total": total_with_freight, 
-        "products_total": subtotal, 
-        **freight
-    })
+    return jsonify(
+        {
+            "items": cart,
+            "total": total_with_freight,
+            "products_total": subtotal,
+            **freight,
+        }
+    )
 
 
 @sales_bp.route("/pos/items", methods=["POST"])
@@ -194,23 +210,30 @@ def add_item():
         new_qty = current_qty + quantity
 
         if new_qty > available_stock:
-            return jsonify({
-                "error": f"Stock insuficiente para '{product.name}'. Disponible: {available_stock}, solicitado: {new_qty}."
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Stock insuficiente para '{product.name}'. Disponible: {available_stock}, solicitado: {new_qty}."
+                    }
+                ),
+                400,
+            )
 
         if existing:
             existing["quantity"] = new_qty
             existing["subtotal"] = float(product.price) * new_qty
         else:
-            cart.append({
-                "id": product_id,
-                "product_id": product_id,
-                "name": product.name,
-                "sku": product.sku,
-                "price": float(product.price),
-                "quantity": quantity,
-                "subtotal": float(product.price) * quantity,
-            })
+            cart.append(
+                {
+                    "id": product_id,
+                    "product_id": product_id,
+                    "name": product.name,
+                    "sku": product.sku,
+                    "price": float(product.price),
+                    "quantity": quantity,
+                    "subtotal": float(product.price) * quantity,
+                }
+            )
 
         session["pos_cart"] = cart
         return jsonify({"success": True})
@@ -233,13 +256,19 @@ def update_item(item_id):
             return jsonify({"error": "Detalle no encontrado en el carrito."}), 404
 
         from app.models.product_inventory import ProductInventory
+
         inventory = ProductInventory.query.filter_by(product_id=item_id).first()
         available_stock = inventory.stock if inventory else 0
 
         if quantity > available_stock:
-            return jsonify({
-                "error": f"Stock insuficiente. Disponible: {available_stock}, solicitado: {quantity}."
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Stock insuficiente. Disponible: {available_stock}, solicitado: {quantity}."
+                    }
+                ),
+                400,
+            )
 
         existing["quantity"] = quantity
         existing["subtotal"] = existing["price"] * quantity
@@ -257,11 +286,13 @@ def remove_item(item_id):
     session["pos_cart"] = cart
     return jsonify({"success": True})
 
+
 @sales_bp.route("/pos/cart/clear", methods=["DELETE"])
 @auth_required()
 def clear_cart():
     session.pop("pos_cart", None)
     return jsonify({"success": True})
+
 
 @sales_bp.route("/pos/checkout", methods=["POST"])
 @auth_required()
@@ -272,7 +303,10 @@ def checkout():
 
     customer_id = session.get("pos_customer_id")
     if not customer_id:
-        return jsonify({"error": "Debes asignar un cliente antes de confirmar el cobro."}), 400
+        return (
+            jsonify({"error": "Debes asignar un cliente antes de confirmar el cobro."}),
+            400,
+        )
 
     try:
         data = request.get_json()
@@ -293,20 +327,24 @@ def checkout():
             cart_items=cart,
             amount_given=amount_given,
             payment_method_id=payment_method_id,
-            freight_cost=freight_cost
+            freight_cost=freight_cost,
         )
 
         # Enviar email de confirmación
         from app.models.payment import Payment as PaymentModel
         from app.models.sale import Sale as SaleModel
         from app.models.sale_item import SaleItem as SaleItemModel
+
         completed_sale = SaleModel.query.get(result["sale_id"])
         completed_items = SaleItemModel.query.filter_by(sale_id=result["sale_id"]).all()
-        completed_payment = PaymentModel.query.filter_by(id_sale=result["sale_id"]).first()
+        completed_payment = PaymentModel.query.filter_by(
+            id_sale=result["sale_id"]
+        ).first()
         send_purchase_email(completed_sale, completed_items, completed_payment, freight)
 
         # Auto-crear Orden de Cliente (HU-14)
         from app.customer_orders.services import CustomerOrderService
+
         CustomerOrderService.create_from_pos(
             customer_id=customer_id,
             cart_items=cart,
@@ -324,6 +362,7 @@ def checkout():
         return jsonify({"error": str(e)}), 400
     except Exception:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": "Error interno del servidor. Revisa el log."}), 500
 
@@ -347,20 +386,27 @@ def lookup_cp(cp):
     result = CopomexService.lookup_cp(cp)
 
     if result is None:
-        return jsonify({
-            "error": True,
-            "message": "Código postal no encontrado o inválido.",
-        }), 404
+        return (
+            jsonify(
+                {
+                    "error": True,
+                    "message": "Código postal no encontrado o inválido.",
+                }
+            ),
+            404,
+        )
 
-    return jsonify({
-        "error": False,
-        "estado": result["estado"],
-        "municipio": result["municipio"],
-        "colonias": result["colonias"],
-    })
+    return jsonify(
+        {
+            "error": False,
+            "estado": result["estado"],
+            "municipio": result["municipio"],
+            "colonias": result["colonias"],
+        }
+    )
 
 
-@sales_bp.route("/sales/<int:sale_id>/ticket", methods=["GET"])
+@sales_bp.route("/<int:sale_id>/ticket", methods=["GET"])
 @auth_required()
 def ticket(sale_id):
     """Renderiza el ticket térmico para imprimir."""
@@ -378,7 +424,9 @@ def ticket(sale_id):
 
     return render_template(
         "sales/ticket.html",
-        sale=sale, items=items, payment=payment,
-        freight=freight, products_total=float(products_total),
+        sale=sale,
+        items=items,
+        payment=payment,
+        freight=freight,
+        products_total=float(products_total),
     )
-

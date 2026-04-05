@@ -124,11 +124,11 @@ def create_app():
 
     from .sales import sales_bp
 
-    app.register_blueprint(sales_bp, url_prefix="/sales")
+    app.register_blueprint(sales_bp, url_prefix="/admin/sales")
 
     from .customer_orders import customer_orders_bp
 
-    app.register_blueprint(customer_orders_bp, url_prefix="/customer-orders")
+    app.register_blueprint(customer_orders_bp, url_prefix="/admin/customer-orders")
 
     from .production import production_bp
 
