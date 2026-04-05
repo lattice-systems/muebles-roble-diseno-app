@@ -159,6 +159,47 @@ http://127.0.0.1:5000
 
 ---
 
+## 🌱 Datos Iniciales (Seeds)
+
+El dataset inicial oficial de categorias, productos, colores, tipos de madera, BOM y costos se define en:
+
+- `docs/INITIAL_SEED_BLUEPRINT.md`
+
+Orden recomendado de siembra:
+
+```bash
+venv/bin/python scripts/seed_units.py
+venv/bin/python scripts/seed_raw_materials.py
+venv/bin/python scripts/seed_wood_types.py
+venv/bin/python scripts/seed_products.py
+venv/bin/python scripts/seed_product_colors.py
+venv/bin/python scripts/seed_payment_methods.py
+venv/bin/python scripts/seed_purchase.py
+venv/bin/python scripts/seed_bom.py
+venv/bin/python scripts/seed_inventory.py
+venv/bin/python scripts/seed_users_by_role.py
+```
+
+Opción rápida (una sola corrida):
+
+```bash
+venv/bin/python scripts/seed_all.py
+```
+
+Opcional (si no quieres crear usuarios RBAC en esa corrida):
+
+```bash
+venv/bin/python scripts/seed_all.py --without-users
+```
+
+Notas:
+
+- Los scripts estan disenados para ser idempotentes en entorno de desarrollo.
+- `Muebles personalizados` permanece como categoria activa sin productos iniciales (intencional).
+- El costo de fabricacion depende de la cadena `BOM + purchase_order_items`.
+
+---
+
 ## 🧪 Pruebas y Cobertura
 
 El proyecto incluye una suite completa de pruebas automatizadas con **138 tests** organizados en tres niveles:

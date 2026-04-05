@@ -6,7 +6,6 @@ Uso:
 """
 
 import os
-import random
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,28 +15,16 @@ from app.extensions import db
 from app.models.color import Color
 from app.models.product import Product
 from app.models.product_color import ProductColor
+from seed_dataset import BASE_COLORS, PRODUCTS
 
-BASE_COLORS = [
-    {"name": "Blanco", "hex_code": "#F5F5F5"},
-    {"name": "Negro", "hex_code": "#1F2937"},
-    {"name": "Gris", "hex_code": "#9CA3AF"},
-    {"name": "Marrón", "hex_code": "#8B5E3C"},
-    {"name": "Beige", "hex_code": "#D6C6A8"},
-    {"name": "Azul Marino", "hex_code": "#1E3A8A"},
-    {"name": "Verde Oliva", "hex_code": "#6B8E23"},
-    {"name": "Terracota", "hex_code": "#B95D3C"},
-]
 
-CATEGORY_COLOR_HINTS = {
-    "Silla": ["Negro", "Gris", "Marrón"],
-    "Mesa": ["Marrón", "Beige", "Negro"],
-    "Sofa": ["Gris", "Beige", "Azul Marino"],
-    "Cama": ["Beige", "Gris", "Blanco"],
-    "Estante": ["Marrón", "Negro", "Blanco"],
-    "Armario": ["Marrón", "Blanco", "Gris"],
-    "Escritorio": ["Marrón", "Negro", "Gris"],
-    "Comoda": ["Marrón", "Beige", "Blanco"],
-}
+def _build_palette_by_sku() -> dict[str, list[str]]:
+    palette_by_sku: dict[str, list[str]] = {}
+    for product in PRODUCTS:
+        palette = [name for name in product.get("color_palette", []) if name]
+        if palette:
+            palette_by_sku[product["sku"]] = palette
+    return palette_by_sku
 
 
 def seed_product_colors():
@@ -45,6 +32,7 @@ def seed_product_colors():
     with app.app_context():
         color_ids_by_name: dict[str, int] = {}
         created_colors = 0
+        updated_colors = 0
 
         for data in BASE_COLORS:
             color = Color.query.filter(
@@ -59,52 +47,69 @@ def seed_product_colors():
                 db.session.add(color)
                 db.session.flush()
                 created_colors += 1
-            elif not color.status:
+            else:
+                color.hex_code = data["hex_code"]
+                if not color.status:
+                    updated_colors += 1
                 color.status = True
 
             color_ids_by_name[color.name] = color.id
 
-        products = Product.query.order_by(Product.id).all()
+        palette_by_sku = _build_palette_by_sku()
+        products = (
+            Product.query.filter(Product.sku.in_(palette_by_sku.keys()))
+            .order_by(Product.id)
+            .all()
+        )
+
         if not products:
             db.session.commit()
             print("\nNo hay productos para relacionar colores.\n")
             return
 
         created_relations = 0
+        removed_relations = 0
         for product in products:
-            existing_relations = ProductColor.query.filter_by(
-                product_id=product.id
-            ).count()
-            if existing_relations > 0:
+            target_names = palette_by_sku.get(product.sku, [])
+            target_ids = {color_ids_by_name[name] for name in target_names}
+            if not target_ids:
                 continue
 
-            category = (
-                product.furniture_type.title if product.furniture_type else "General"
-            )
-            suggested_names = CATEGORY_COLOR_HINTS.get(
-                category, ["Gris", "Marrón", "Negro"]
-            )
-            selectable = [name for name in suggested_names if name in color_ids_by_name]
+            existing_relations = ProductColor.query.filter_by(
+                product_id=product.id
+            ).all()
+            existing_ids = {relation.color_id for relation in existing_relations}
 
-            if len(selectable) < 2:
-                selectable = list(color_ids_by_name.keys())
+            for relation in existing_relations:
+                if relation.color_id not in target_ids:
+                    db.session.delete(relation)
+                    removed_relations += 1
 
-            chosen_count = min(3, max(2, len(selectable)))
-            chosen_names = random.sample(selectable, k=chosen_count)
-
-            for name in chosen_names:
+            for color_id in target_ids - existing_ids:
                 db.session.add(
                     ProductColor(
                         product_id=product.id,
-                        color_id=color_ids_by_name[name],
+                        color_id=color_id,
                     )
                 )
                 created_relations += 1
 
+        # Productos fuera del dataset no deben conservar relaciones de color activas.
+        legacy_products = Product.query.filter(
+            ~Product.sku.in_(palette_by_sku.keys())
+        ).all()
+        for product in legacy_products:
+            removed = ProductColor.query.filter_by(product_id=product.id).delete(
+                synchronize_session=False
+            )
+            removed_relations += removed
+
         db.session.commit()
         print(
             f"\nColores creados: {created_colors}. "
-            f"Relaciones producto-color creadas: {created_relations}.\n"
+            f"Colores reactivados/actualizados: {updated_colors}. "
+            f"Relaciones producto-color creadas: {created_relations}. "
+            f"Relaciones producto-color removidas: {removed_relations}.\n"
         )
 
 
