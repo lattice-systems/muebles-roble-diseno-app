@@ -6,12 +6,15 @@ from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
 
 
-def create_app():
+def create_app(config_class=None):
     """
     Factory de la aplicación Flask.
 
     Crea y configura la instancia de la aplicación Flask,
     inicializa extensiones y registra blueprints.
+
+    Args:
+        config_class: Clase de configuración a usar (default: Config).
 
     Returns:
         Flask: Instancia configurada de la aplicación
@@ -20,7 +23,7 @@ def create_app():
     app = Flask(__name__)
 
     # Initialize environment variables
-    app.config.from_object(Config)
+    app.config.from_object(config_class or Config)
 
     # Initialize extensions
     db.init_app(app)
