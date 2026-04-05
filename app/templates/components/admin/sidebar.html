@@ -116,11 +116,11 @@
       "dropdown-supplies") }}
       {{ sidebar_dropdown("Producción",
             [
-            {"label": "Recetas (BOM)", "href": "#", "icon": icon_recipe},
-            {"label": "Producción", "href": "#", "icon": icon_production},
-            ],
-            icon_production_main,
-            "dropdown-production") }}
+            {"label": "Recetas (BOM)", "href": url_for('production.boms_index') , "icon": icon_recipe, "active": request.endpoint and request.endpoint.startswith('production.bom')},
+      {"label": "Producción", "href": url_for('production.orders_index'), "icon": icon_production, "active": request.endpoint and request.endpoint.startswith('production.order')},
+      ],
+      icon_production_main,
+      "dropdown-production") }}
       {{ sidebar_dropdown("Ventas",
             [
             {"label": "POS", "href": url_for('sales.pos') , "icon": icon_pos, "active": request.endpoint and request.endpoint.startswith('sales.')},

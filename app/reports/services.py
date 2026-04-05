@@ -17,6 +17,14 @@ from .mongo_service import ensure_report_indexes, get_report_collections
 
 class ReportService:
     TAX_RATE = Decimal("0.16")
+    PRODUCTION_COMPLETED_STATUSES = [
+        "terminado",
+        "finalizado",
+        "finalizada",
+        "finished",
+        "completed",
+        "completada",
+    ]
 
     @staticmethod
     def _to_decimal(value) -> Decimal:

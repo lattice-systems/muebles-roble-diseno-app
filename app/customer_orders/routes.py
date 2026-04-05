@@ -7,13 +7,15 @@ from datetime import datetime
 from flask import jsonify, render_template, request, url_for
 from flask_security import auth_required, current_user
 
+from app.exceptions import AppException
+
 from . import customer_orders_bp
 from .services import CustomerOrderService
-
 
 # --------------------------------------------------------------------------- #
 #  Vistas HTML                                                                 #
 # --------------------------------------------------------------------------- #
+
 
 @customer_orders_bp.route("/", methods=["GET"])
 @auth_required()
@@ -45,6 +47,7 @@ def index():
     )
 
     from app.models.order import Order
+
     return render_template(
         "customer_orders/index.html",
         orders=pagination.items,
@@ -59,7 +62,6 @@ def index():
     )
 
 
-
 @customer_orders_bp.route("/<int:order_id>", methods=["GET"])
 @auth_required()
 def detail(order_id: int):
@@ -67,6 +69,7 @@ def detail(order_id: int):
     order = CustomerOrderService.get_order_by_id(order_id)
     history = CustomerOrderService.get_order_history(order_id)
     from app.models.order import Order
+
     return render_template(
         "customer_orders/detail.html",
         order=order,
@@ -78,6 +81,7 @@ def detail(order_id: int):
 # --------------------------------------------------------------------------- #
 #  API JSON                                                                    #
 # --------------------------------------------------------------------------- #
+
 
 @customer_orders_bp.route("/", methods=["POST"])
 @auth_required()
@@ -98,7 +102,10 @@ def create():
             return jsonify({"error": "El cliente es obligatorio."}), 400
 
         if not estimated_delivery_date_str:
-            return jsonify({"error": "La fecha estimada de entrega es obligatoria."}), 400
+            return (
+                jsonify({"error": "La fecha estimada de entrega es obligatoria."}),
+                400,
+            )
 
         estimated_delivery_date = datetime.strptime(
             estimated_delivery_date_str, "%Y-%m-%d"
@@ -113,15 +120,18 @@ def create():
             source="manual",
             created_by_id=current_user.id,
         )
-        return jsonify({
-            "success": True,
-            "order_id": order.id,
-            "redirect_url": url_for("customer_orders.detail", order_id=order.id),
-        })
+        return jsonify(
+            {
+                "success": True,
+                "order_id": order.id,
+                "redirect_url": url_for("customer_orders.detail", order_id=order.id),
+            }
+        )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
@@ -146,6 +156,7 @@ def cancel(order_id: int):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
@@ -159,15 +170,20 @@ def send_to_production(order_id: int):
             order_id=order_id,
             user_id=current_user.id,
         )
-        return jsonify({
-            "success": True,
-            "production_orders_created": len(prod_orders),
-            "production_order_ids": [p.id for p in prod_orders],
-        })
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify(
+            {
+                "success": True,
+                "production_orders_created": len(prod_orders),
+                "production_order_ids": [p.id for p in prod_orders],
+            }
+        )
+    except (ValueError, AppException) as e:
+        message = e.message if isinstance(e, AppException) else str(e)
+        status_code = e.status_code if isinstance(e, AppException) else 400
+        return jsonify({"error": message}), status_code
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
@@ -192,6 +208,7 @@ def update_status(order_id: int):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
@@ -213,11 +230,13 @@ def search_products_api():
     result = []
     for p in pagination.items:
         stock = p.inventory_records[0].stock if p.inventory_records else 0
-        result.append({
-            "id": p.id,
-            "sku": p.sku,
-            "name": p.name,
-            "price": float(p.price),
-            "stock": stock,
-        })
+        result.append(
+            {
+                "id": p.id,
+                "sku": p.sku,
+                "name": p.name,
+                "price": float(p.price),
+                "stock": stock,
+            }
+        )
     return jsonify(result)

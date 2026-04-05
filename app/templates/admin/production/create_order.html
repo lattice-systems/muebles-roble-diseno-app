@@ -1,0 +1,57 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Nueva orden de producción
+{% endblock title %}
+{% block content %}
+  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Nueva orden de producción" %}
+    {% set admin_header_subtitle = "Registra una orden manual para fabricar un producto" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
+      <form method="post"
+            action="{{ url_for('production.create_order') }}"
+            class="flex flex-col gap-4 2xl:gap-6">
+        {{ form.hidden_tag() }}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 2xl:gap-4 items-start">
+          <div class="flex flex-col gap-1 md:col-span-2">
+            <label for="{{ form.product_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.product_id.label.text }}</label>
+            {{ form.product_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.product_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.quantity.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.quantity.label.text }}</label>
+            {{ form.quantity(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", min="1") }}
+            {% for error in form.quantity.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4 items-start">
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.scheduled_date.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.scheduled_date.label.text }}</label>
+            {{ form.scheduled_date(type='date', class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.scheduled_date.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
+          <a href="{{ url_for('production.orders_index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Volver
+          </a>
+          <button type="submit"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+            Registrar orden
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
