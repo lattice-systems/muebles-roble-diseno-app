@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Compra — Roble y Diseño</title>
+    <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  </head>
+  <body style="margin:0;
+               padding:0;
+               background-color:#f3f4f6;
+               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+               -webkit-text-size-adjust:100%;
+               -ms-text-size-adjust:100%">
+    <!-- Wrapper -->
+    <table role="presentation"
+           width="100%"
+           cellpadding="0"
+           cellspacing="0"
+           style="background-color:#f3f4f6">
+      <tr>
+        <td align="center" style="padding: 32px 16px;">
+          <!-- Main Container -->
+          <table role="presentation"
+                 width="600"
+                 cellpadding="0"
+                 cellspacing="0"
+                 style="max-width:600px;
+                        width:100%;
+                        background-color:#ffffff;
+                        border-radius:12px;
+                        overflow:hidden;
+                        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)">
+            <!-- Header con gradiente -->
+            <tr>
+              <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b7dab 100%);
+                         padding: 36px 32px;
+                         text-align: center">
+                {% if logo_cid %}
+                  <img src="cid:{{ logo_cid }}"
+                       alt="Roble y Diseño"
+                       width="160"
+                       style="display:block;
+                              margin: 0 auto 16px;
+                              max-width:160px;
+                              height:auto">
+                {% endif %}
+                {% if source == 'ecommerce' %}
+                  <h1 style="margin:0;
+                             color:#ffffff;
+                             font-size:22px;
+                             font-weight:700;
+                             letter-spacing: 0.5px">Pedido confirmado</h1>
+                  <p style="margin: 8px 0 0;
+                            color:#d1e3f6;
+                            font-size:14px;
+                            font-weight:400">Gracias por comprar en Roble y Diseño.</p>
+                {% else %}
+                  <h1 style="margin:0;
+                             color:#ffffff;
+                             font-size:22px;
+                             font-weight:700;
+                             letter-spacing: 0.5px">
+                    ¡Gracias por
+                    tu compra!
+                  </h1>
+                  <p style="margin: 8px 0 0;
+                            color:#d1e3f6;
+                            font-size:14px;
+                            font-weight:400">
+                    Tu pedido ha sido procesado
+                    exitosamente
+                  </p>
+                {% endif %}
+              </td>
+            </tr>
+            <!-- Saludo -->
+            <tr>
+              <td style="padding: 28px 32px 8px;">
+                <p style="margin:0; color:#374151; font-size:15px; line-height:1.6;">
+                  Hola <strong style="color:#1e3a5f;">{{ customer_name }}</strong>,
+                </p>
+                <p style="margin:8px 0 0;
+                          color:#6b7280;
+                          font-size:14px;
+                          line-height:1.6">
+                  {% if source == 'ecommerce' %}
+                    Recibimos tu pedido correctamente. Te compartimos el resumen de tu compra.
+                  {% else %}
+                    Es un placer confirmar tu compra en <strong>Roble y Diseño</strong>. A continuación encontrarás el
+                    detalle de tu transacción.
+                  {% endif %}
+                </p>
+              </td>
+            </tr>
+            <!-- Info de la venta (badges) -->
+            <tr>
+              <td style="padding: 16px 32px;">
+                <table role="presentation"
+                       width="100%"
+                       cellpadding="0"
+                       cellspacing="0"
+                       style="background-color:#f8fafc;
+                              border: 1px solid #e5e7eb;
+                              border-radius:8px">
+                  <tr>
+                    <td style="padding: 16px 20px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="padding: 4px 0;">
+                            <span style="display:inline-block;
+                                         background-color:#e0ecf8;
+                                         color:#1e3a5f;
+                                         font-size:11px;
+                                         font-weight:600;
+                                         padding:3px 10px;
+                                         border-radius:20px;
+                                         letter-spacing:0.3px;
+                                         text-transform:uppercase">Folio</span>
+                            <span style="color:#374151;
+                                         font-size:14px;
+                                         font-weight:600;
+                                         margin-left:8px">#{{ folio }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 4px 0;">
+                            <span style="display:inline-block;
+                                         background-color:#e0ecf8;
+                                         color:#1e3a5f;
+                                         font-size:11px;
+                                         font-weight:600;
+                                         padding:3px 10px;
+                                         border-radius:20px;
+                                         letter-spacing:0.3px;
+                                         text-transform:uppercase">Fecha</span>
+                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ order_date }}</span>
+                          </td>
+                        </tr>
+                        {% if employee_name %}
+                          <tr>
+                            <td style="padding: 4px 0;">
+                              <span style="display:inline-block;
+                                           background-color:#e0ecf8;
+                                           color:#1e3a5f;
+                                           font-size:11px;
+                                           font-weight:600;
+                                           padding:3px 10px;
+                                           border-radius:20px;
+                                           letter-spacing:0.3px;
+                                           text-transform:uppercase">Cajero</span>
+                              <span style="color:#374151; font-size:14px; margin-left:8px;">{{ employee_name }}</span>
+                            </td>
+                          </tr>
+                        {% endif %}
+                        <tr>
+                          <td style="padding: 4px 0;">
+                            <span style="display:inline-block;
+                                         background-color:#e0ecf8;
+                                         color:#1e3a5f;
+                                         font-size:11px;
+                                         font-weight:600;
+                                         padding:3px 10px;
+                                         border-radius:20px;
+                                         letter-spacing:0.3px;
+                                         text-transform:uppercase">Pago</span>
+                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ payment_method }}</span>
+                          </td>
+                        </tr>
+                        {% if estimated_delivery %}
+                          <tr>
+                            <td style="padding: 4px 0;">
+                              <span style="display:inline-block;
+                                           background-color:#e0ecf8;
+                                           color:#1e3a5f;
+                                           font-size:11px;
+                                           font-weight:600;
+                                           padding:3px 10px;
+                                           border-radius:20px;
+                                           letter-spacing:0.3px;
+                                           text-transform:uppercase">Entrega estimada</span>
+                              <span style="color:#374151; font-size:14px; margin-left:8px;">{{ estimated_delivery }}</span>
+                            </td>
+                          </tr>
+                        {% endif %}
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <!-- Encabezado de desglose -->
+            <tr>
+              <td style="padding: 8px 32px 0;">
+                <h2 style="margin:0;
+                           color:#1e3a5f;
+                           font-size:16px;
+                           font-weight:700;
+                           border-bottom: 2px solid #1e3a5f;
+                           padding-bottom:8px">Detalle de Compra</h2>
+              </td>
+            </tr>
+            <!-- Tabla de productos -->
+            <tr>
+              <td style="padding: 12px 32px;">
+                <table role="presentation"
+                       width="100%"
+                       cellpadding="0"
+                       cellspacing="0"
+                       style="border-collapse: collapse">
+                  <!-- Table header -->
+                  <tr style="background-color: #f1f5f9;">
+                    <td style="padding: 10px 12px;
+                               font-size:12px;
+                               font-weight:700;
+                               color:#475569;
+                               text-transform:uppercase;
+                               letter-spacing:0.5px;
+                               border-bottom: 1px solid #e2e8f0">Producto</td>
+                    <td style="padding: 10px 8px;
+                               font-size:12px;
+                               font-weight:700;
+                               color:#475569;
+                               text-transform:uppercase;
+                               letter-spacing:0.5px;
+                               border-bottom: 1px solid #e2e8f0;
+                               text-align:center;
+                               width:50px">Cant.</td>
+                    <td style="padding: 10px 8px;
+                               font-size:12px;
+                               font-weight:700;
+                               color:#475569;
+                               text-transform:uppercase;
+                               letter-spacing:0.5px;
+                               border-bottom: 1px solid #e2e8f0;
+                               text-align:right;
+                               width:90px">Unitario</td>
+                    <td style="padding: 10px 12px;
+                               font-size:12px;
+                               font-weight:700;
+                               color:#475569;
+                               text-transform:uppercase;
+                               letter-spacing:0.5px;
+                               border-bottom: 1px solid #e2e8f0;
+                               text-align:right;
+                               width:100px">Subtotal</td>
+                  </tr>
+                  <!-- Items -->
+                  {% for item in items %}
+                    {% if loop.index is odd %}
+                      <tr style="background-color:#ffffff;">
+                      {% else %}
+                        <tr style="background-color:#fafbfc;">
+                        {% endif %}
+                        <td style="padding: 10px 12px;
+                                   font-size:13px;
+                                   color:#374151;
+                                   border-bottom: 1px solid #f1f5f9">
+                          <strong>{{ item.name }}</strong>
+                          <br>
+                          <span style="font-size:11px; color:#9ca3af;">SKU: {{ item.sku }}</span>
+                        </td>
+                        <td style="padding: 10px 8px;
+                                   font-size:13px;
+                                   color:#374151;
+                                   text-align:center;
+                                   border-bottom: 1px solid #f1f5f9">{{ item.quantity }}</td>
+                        <td style="padding: 10px 8px;
+                                   font-size:13px;
+                                   color:#374151;
+                                   text-align:right;
+                                   border-bottom: 1px solid #f1f5f9">${{ "%.2f"|format(item.price) }}</td>
+                        <td style="padding: 10px 12px;
+                                   font-size:13px;
+                                   color:#374151;
+                                   font-weight:600;
+                                   text-align:right;
+                                   border-bottom: 1px solid #f1f5f9">${{ "%.2f"|format(item.subtotal) }}</td>
+                      </tr>
+                    {% endfor %}
+                  </table>
+                </td>
+              </tr>
+              <!-- Totales -->
+              <tr>
+                <td style="padding: 4px 32px 16px;">
+                  <table role="presentation"
+                         width="100%"
+                         cellpadding="0"
+                         cellspacing="0"
+                         style="background-color: #f8fafc;
+                                border: 1px solid #e5e7eb;
+                                border-radius:8px">
+                    <tr>
+                      <td style="padding: 16px 20px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="padding:4px 0; color:#6b7280; font-size:13px;">Subtotal (sin IVA):</td>
+                            <td style="padding:4px 0;
+                                       color:#374151;
+                                       font-size:13px;
+                                       font-weight:600;
+                                       text-align:right">${{ "%.2f"|format(subtotal) }}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:4px 0; color:#6b7280; font-size:13px;">IVA (16%):</td>
+                            <td style="padding:4px 0;
+                                       color:#374151;
+                                       font-size:13px;
+                                       font-weight:600;
+                                       text-align:right">${{ "%.2f"|format(iva) }}</td>
+                          </tr>
+                          {% if freight_zone %}
+                            <tr>
+                              <td style="padding:4px 0; color:#6b7280; font-size:13px;">Envío ({{ freight_zone }}):</td>
+                              {% if freight_free %}
+                                <td style="padding:4px 0;
+                                           font-size:13px;
+                                           font-weight:600;
+                                           text-align:right;
+                                           color:#059669">GRATIS</td>
+                              {% else %}
+                                <td style="padding:4px 0;
+                                           font-size:13px;
+                                           font-weight:600;
+                                           text-align:right;
+                                           color:#374151">${{ "%.2f"|format(freight_cost) }}</td>
+                              {% endif %}
+                            </tr>
+                          {% endif %}
+                          <tr>
+                            <td colspan="2" style="padding:8px 0 0;">
+                              <hr style="border:none; border-top: 2px solid #1e3a5f; margin:0;">
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 0 4px;
+                                       color:#1e3a5f;
+                                       font-size:18px;
+                                       font-weight:700">TOTAL:</td>
+                            <td style="padding:8px 0 4px;
+                                       color:#1e3a5f;
+                                       font-size:18px;
+                                       font-weight:700;
+                                       text-align:right">${{ "%.2f"|format(total) }}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Pago recibido / Cambio (solo POS) -->
+              {% if amount_received is defined and amount_received %}
+                <tr>
+                  <td style="padding: 0 32px 20px;">
+                    <table role="presentation"
+                           width="100%"
+                           cellpadding="0"
+                           cellspacing="0"
+                           style="background-color:#eefbf3;
+                                  border: 1px solid #bbf7d0;
+                                  border-radius:8px">
+                      <tr>
+                        <td style="padding: 14px 20px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="color:#166534; font-size:13px; font-weight:600;">Monto recibido:</td>
+                              <td style="color:#166534;
+                                         font-size:13px;
+                                         font-weight:700;
+                                         text-align:right">${{ "%.2f"|format(amount_received) }}</td>
+                            </tr>
+                            <tr>
+                              <td style="color:#166534;
+                                         font-size:13px;
+                                         font-weight:600;
+                                         padding-top:4px">Cambio:</td>
+                              <td style="color:#166534;
+                                         font-size:13px;
+                                         font-weight:700;
+                                         text-align:right;
+                                         padding-top:4px">${{ "%.2f"|format(change) }}</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              {% endif %}
+              <!-- Separador -->
+              <tr>
+                <td style="padding: 0 32px;">
+                  <hr style="border:none; border-top: 1px solid #e5e7eb; margin:0;">
+                </td>
+              </tr>
+              <!-- Mensaje de despedida -->
+              <tr>
+                <td style="padding: 24px 32px; text-align:center;">
+                  <p style="margin:0 0 6px;
+                            color:#374151;
+                            font-size:14px;
+                            font-weight:600">
+                    ¡Gracias por confiar en Roble y
+                    Diseño!
+                  </p>
+                  <p style="margin:0; color:#9ca3af; font-size:12px; line-height:1.5;">
+                    Si tienes alguna duda sobre tu compra, no dudes en contactarnos.
+                    <br>
+                    {% if source == 'ecommerce' %}
+                      Recibirás actualizaciones sobre el estado de tu pedido.
+                    {% else %}
+                      Cualquier cambio requiere este comprobante. Vigencia de 30 días.
+                    {% endif %}
+                  </p>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background-color:#1e3a5f;
+                           padding: 24px 32px;
+                           text-align:center;
+                           border-radius: 0 0 12px 12px">
+                  <p style="margin:0 0 4px;
+                            color:#ffffff;
+                            font-size:13px;
+                            font-weight:600">
+                    Roble y Diseño — Mueblería Fina
+                    S.A. de C.V.
+                  </p>
+                  <p style="margin:0; color:#94a3b8; font-size:11px; line-height:1.5;">
+                    Blvd. Universidad Tecnológica #2000, Col. Industrial, León, Gto. C.P. 37201
+                    <br>
+                    Tel: (477) 444-4444 · ventas@robleydiseno.com
+                    <br>
+                    RFC: RODI890214XYZ
+                  </p>
+                  <p style="margin:12px 0 0; color:#64748b; font-size:10px;">
+                    Este correo fue generado automáticamente. Por favor no respondas a este mensaje.
+                  </p>
+                </td>
+              </tr>
+            </table>
+            <!-- /Main Container -->
+          </td>
+        </tr>
+      </table>
+      <!-- /Wrapper -->
+    </body>
+  </html>

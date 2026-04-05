@@ -5,7 +5,13 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from app.costs.services import CostService
-from app.models import Order, OrderItem, ProductionOrder, Sale, SaleItem
+from app.models import (
+    Order,
+    OrderItem,
+    ProductionOrder,
+    Sale,
+    SaleItem,
+)
 from .mongo_service import ensure_report_indexes, get_report_collections
 
 
@@ -80,7 +86,9 @@ class ReportService:
             Sale.sale_date >= start_dt, Sale.sale_date <= end_dt
         ).all()
         orders = Order.query.filter(
-            Order.order_date >= start_dt, Order.order_date <= end_dt
+            Order.order_date >= start_dt,
+            Order.order_date <= end_dt,
+            Order.source == "ecommerce",
         ).all()
 
         pos_total = sum(ReportService._to_decimal(s.total) for s in sales)
@@ -166,7 +174,11 @@ class ReportService:
         )
         order_items = (
             OrderItem.query.join(Order)
-            .filter(Order.order_date >= start_dt, Order.order_date <= end_dt)
+            .filter(
+                Order.order_date >= start_dt,
+                Order.order_date <= end_dt,
+                Order.source == "ecommerce",
+            )
             .all()
         )
 
@@ -312,7 +324,9 @@ class ReportService:
             ecommerce_total = sum(
                 ReportService._to_decimal(o.total)
                 for o in Order.query.filter(
-                    Order.order_date >= start_dt, Order.order_date <= end_dt
+                    Order.order_date >= start_dt,
+                    Order.order_date <= end_dt,
+                    Order.source == "ecommerce",
                 ).all()
                 if str(o.status).lower()
                 not in {"cancelada", "cancelled", "rechazada", "rejected"}
@@ -366,7 +380,11 @@ class ReportService:
         )
         order_items = (
             OrderItem.query.join(Order)
-            .filter(Order.order_date >= start_dt, Order.order_date <= end_dt)
+            .filter(
+                Order.order_date >= start_dt,
+                Order.order_date <= end_dt,
+                Order.source == "ecommerce",
+            )
             .all()
         )
 
@@ -481,7 +499,11 @@ class ReportService:
             )
 
         orders = (
-            Order.query.filter(Order.order_date >= start_dt, Order.order_date <= end_dt)
+            Order.query.filter(
+                Order.order_date >= start_dt,
+                Order.order_date <= end_dt,
+                Order.source == "ecommerce",
+            )
             .order_by(Order.order_date.desc(), Order.id.desc())
             .all()
         )

@@ -81,12 +81,14 @@ def send_purchase_email(sale, items, payment, freight: dict) -> None:
             try:
                 logo_cid = "company_logo"
                 html_body = render_template(
-                    "utils/purchase_email.html",
+                    "utils/order_confirmation_email.html",
+                    source="pos",
                     customer_name=customer_name,
                     folio=folio,
-                    sale_date=sale_date,
+                    order_date=sale_date,
                     employee_name=employee_name,
                     payment_method=payment_method,
+                    estimated_delivery=None,
                     items=items_data,
                     subtotal=subtotal,
                     iva=iva,
@@ -119,13 +121,16 @@ def send_purchase_email(sale, items, payment, freight: dict) -> None:
                 mail.send(msg)
                 logger.info(
                     "Email de compra enviado a %s (venta #%s)",
-                    customer_email, sale_id,
+                    customer_email,
+                    sale_id,
                 )
 
             except Exception as exc:
                 logger.error(
                     "Error enviando email de compra (venta #%s): %s",
-                    sale_id, exc, exc_info=True,
+                    sale_id,
+                    exc,
+                    exc_info=True,
                 )
 
     thread = threading.Thread(target=_send, daemon=True)
