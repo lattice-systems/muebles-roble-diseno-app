@@ -108,9 +108,22 @@ Variables clave para 2FA con recuperación por correo (Brevo):
 - `MAIL_DEFAULT_SENDER`, `SECURITY_EMAIL_SENDER`
 - `SECURITY_TWO_FACTOR_RESCUE_MAIL`
 
+Variables para reportes (MongoDB):
+
+- `MONGO_URI`: cadena de conexión de MongoDB para snapshots analíticos.
+- `MONGO_DBNAME`: nombre de la base de datos MongoDB donde se almacenan reportes.
+
 Variables para integraciones externas:
 
 - `CLOUDINARY_URL`: URL de configuración para Cloudinary, incluyendo credenciales de API.
+
+### Error común en Reportes: `KeyError: 'mongo_client'`
+
+Si al entrar a `/admin/reports` aparece este error, normalmente el entorno local no tiene
+configuradas las variables de MongoDB (`MONGO_URI` y `MONGO_DBNAME`) o MongoDB no está disponible.
+
+El módulo de reportes inicializa el cliente de MongoDB de forma automática en
+`app/reports/mongo_service.py`, pero requiere esas variables para conectar y persistir snapshots.
 
 ---
 
