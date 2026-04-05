@@ -407,6 +407,7 @@ Navegador Web
 | [🛠️ Herramientas de Desarrollo](docs/DEVELOPMENT_TOOLS.md) | Herramientas de calidad, CI/CD y pre-commit        |
 | [📐 Arquitectura](docs/ARCHITECTURE.md)                 | Documentación detallada de la arquitectura en capas |
 | [📋 Convenciones de Código](docs/CODING_CONVENTIONS.md) | Estándares y convenciones de desarrollo             |
+| [🔐 RBAC](docs/RBAC.md)                                 | Matriz de permisos, utilidades y enforcement global |
 
 ---
 
