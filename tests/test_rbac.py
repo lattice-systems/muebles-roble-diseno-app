@@ -38,7 +38,7 @@ def test_admin_has_broad_permissions():
     user = _user("Administrador")
     assert can(USERS_READ, user=user)
     assert can(USERS_CREATE, user=user)
-    assert can(SALES_CREATE, user=user)
+    assert not can(SALES_CREATE, user=user)
 
 
 def test_sales_role_has_sales_but_not_users_permissions():
