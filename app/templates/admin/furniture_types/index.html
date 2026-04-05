@@ -136,6 +136,8 @@
                 </div>
               </th>
               <th scope="col" class="px-6 py-3 font-medium">Nombre</th>
+              <th scope="col" class="px-6 py-3 font-medium">Subtitulo</th>
+              <th scope="col" class="px-6 py-3 font-medium">Imagen</th>
               <th scope="col" class="px-6 py-3 font-medium">Estado</th>
               <th scope="col"
                   class="px-6 py-3 font-medium w-72 min-w-72 whitespace-nowrap text-center">Acciones</th>
@@ -153,6 +155,16 @@
                 </td>
                 <th scope="row"
                     class="px-6 py-4 font-medium text-heading whitespace-nowrap">{{ furniture_type.title }}</th>
+                <td class="px-6 py-4 text-body max-w-sm">{{ furniture_type.subtitle or '-' }}</td>
+                <td class="px-6 py-4">
+                  {% if furniture_type.image_url %}
+                    <img src="{{ furniture_type.image_url }}"
+                         alt="{{ furniture_type.title }}"
+                         class="h-12 w-16 rounded object-cover border border-default-medium" />
+                  {% else %}
+                    <span class="text-body">Sin imagen</span>
+                  {% endif %}
+                </td>
                 <td class="px-6 py-4">
                   {% if furniture_type.status %}
                     {{ status_badge('Activo', 'success') }}
@@ -530,6 +542,7 @@
             </button>
           </div>
           <form method="post"
+                enctype="multipart/form-data"
                 action="{{ url_for('furniture_type.edit_furniture_type', id_furniture_type=furniture_type.id_furniture_type) }}">
             {{ form.hidden_tag() }}
             <div class="px-5 py-4 space-y-4">
@@ -549,6 +562,53 @@
                   <p class="mt-1.5 text-xs text-red-600">{{ edit_form.title.errors[0] }}</p>
                 {% endif %}
               </div>
+              <div>
+                <label for="edit-subtitle-{{ furniture_type.id_furniture_type }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">Subtitulo</label>
+                <input type="text"
+                       name="subtitle"
+                       id="edit-subtitle-{{ furniture_type.id_furniture_type }}"
+                       value="{{ furniture_type.subtitle or '' }}"
+                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                       placeholder="Describe brevemente la categoria">
+                {% if show_edit_modal == furniture_type.id_furniture_type and edit_form and edit_form.subtitle.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.subtitle.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="edit-image-url-{{ furniture_type.id_furniture_type }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">URL de imagen</label>
+                <input type="url"
+                       name="image_url"
+                       id="edit-image-url-{{ furniture_type.id_furniture_type }}"
+                       value="{{ furniture_type.image_url or '' }}"
+                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                       placeholder="https://...">
+                {% if show_edit_modal == furniture_type.id_furniture_type and edit_form and edit_form.image_url.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.image_url.errors[0] }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="edit-image-file-{{ furniture_type.id_furniture_type }}"
+                       class="block mb-1.5 text-sm font-medium text-gray-900">Subir imagen</label>
+                <input type="file"
+                       name="image_file"
+                       id="edit-image-file-{{ furniture_type.id_furniture_type }}"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none">
+                <p class="mt-1 text-xs text-gray-500">Si subes archivo, reemplaza la URL manual.</p>
+                {% if show_edit_modal == furniture_type.id_furniture_type and edit_form and edit_form.image_file.errors %}
+                  <p class="mt-1.5 text-xs text-red-600">{{ edit_form.image_file.errors[0] }}</p>
+                {% endif %}
+              </div>
+              {% if furniture_type.image_url %}
+                <div>
+                  <p class="block mb-1.5 text-sm font-medium text-gray-900">Imagen actual</p>
+                  <img src="{{ furniture_type.image_url }}"
+                       alt="{{ furniture_type.title }}"
+                       class="h-20 w-28 rounded object-cover border border-gray-200">
+                </div>
+              {% endif %}
               <div>
                 <label for="edit-status-{{ furniture_type.id_furniture_type }}"
                        class="block mb-1.5 text-sm font-medium text-gray-900">
@@ -601,6 +661,7 @@
           </button>
         </div>
         <form method="post"
+              enctype="multipart/form-data"
               action="{{ url_for('furniture_type.create_furniture_type') }}">
           {{ form.hidden_tag() if form and form.hidden_tag else '' }}
           <div class="px-5 py-4 space-y-4">
@@ -631,6 +692,45 @@
                 <option value="1">Activo</option>
                 <option value="0">Inactivo</option>
               </select>
+            </div>
+            <div>
+              <label for="create-subtitle"
+                     class="block mb-1.5 text-sm font-medium text-gray-900">Subtitulo</label>
+              <input type="text"
+                     name="subtitle"
+                     id="create-subtitle"
+                     value="{{ form.subtitle.data if form and form.subtitle else '' }}"
+                     class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                     placeholder="Describe brevemente la categoria">
+              {% if show_create_modal and form and form.subtitle.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ form.subtitle.errors[0] }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <label for="create-image-url"
+                     class="block mb-1.5 text-sm font-medium text-gray-900">URL de imagen</label>
+              <input type="url"
+                     name="image_url"
+                     id="create-image-url"
+                     value="{{ form.image_url.data if form and form.image_url else '' }}"
+                     class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                     placeholder="https://...">
+              {% if show_create_modal and form and form.image_url.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ form.image_url.errors[0] }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <label for="create-image-file"
+                     class="block mb-1.5 text-sm font-medium text-gray-900">Subir imagen</label>
+              <input type="file"
+                     name="image_file"
+                     id="create-image-file"
+                     accept=".jpg,.jpeg,.png,.webp"
+                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none">
+              <p class="mt-1 text-xs text-gray-500">Si subes archivo, reemplaza la URL manual.</p>
+              {% if show_create_modal and form and form.image_file.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ form.image_file.errors[0] }}</p>
+              {% endif %}
             </div>
           </div>
           <div class="flex items-center gap-3 px-5 pb-5">
