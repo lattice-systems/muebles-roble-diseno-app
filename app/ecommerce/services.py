@@ -828,6 +828,20 @@ class EcommerceService:
         else:
             notes_parts.append("Entrega: recoleccion en tienda.")
 
+        # ── Datos de factura (opcional) ──
+        requires_invoice = (form_data.get("requires_invoice") or "") == "1"
+        if requires_invoice:
+            rfc = (form_data.get("rfc") or "").strip().upper()
+            business_name = (form_data.get("business_name") or "").strip()
+            if not rfc or not re.fullmatch(r"[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}", rfc):
+                raise ValueError(
+                    "El RFC ingresado no es válido. "
+                    "Verifica que tenga el formato correcto (ej. XAXX010101000)."
+                )
+            if not business_name:
+                raise ValueError("La razón social es obligatoria para facturación.")
+            notes_parts.append(f"[FACTURA] RFC: {rfc} | Razón social: {business_name}")
+
         final_notes = " ".join(notes_parts).strip()
 
         from app.customer_orders.services import CustomerOrderService

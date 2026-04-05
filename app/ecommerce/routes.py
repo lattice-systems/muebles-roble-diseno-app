@@ -49,6 +49,9 @@ def _build_checkout_form_data(raw_data: dict | None = None) -> dict:
         "notes": "",
         "delivery_mode": "shipping",
         "payment_method_id": "",
+        "requires_invoice": "",
+        "rfc": "",
+        "business_name": "",
     }
     if raw_data:
         for key in data:

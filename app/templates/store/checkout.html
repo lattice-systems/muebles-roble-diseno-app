@@ -32,218 +32,359 @@
              name="csrf_token"
              value="{{ csrf_token() if csrf_token else '' }}">
       <div class="flex flex-col lg:flex-row gap-16 items-start">
+        {# ── LEFT COLUMN: Form Fields ── #}
         <div class="flex-1 w-full">
-          <h2 class="text-3xl font-bold text-heading mb-8">Detalles de facturación</h2>
+          <h2 class="text-3xl font-bold text-heading mb-8">Datos del cliente</h2>
           <div class="space-y-6">
+            {# ── Personal info ── #}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-heading mb-2">Nombre</label>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Nombre <span class="text-rose-500">*</span>
+                </label>
                 <input type="text"
                        name="first_name"
                        required
                        value="{{ form_data.get('first_name', '') }}"
-                       class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                       class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
               </div>
               <div>
-                <label class="block text-sm font-medium text-heading mb-2">Apellido</label>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Apellido <span class="text-rose-500">*</span>
+                </label>
                 <input type="text"
                        name="last_name"
                        required
                        value="{{ form_data.get('last_name', '') }}"
-                       class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                       class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
               </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-heading mb-2">Nombre de la empresa (opcional)</label>
-              <input type="text"
-                     name="company"
-                     value="{{ form_data.get('company', '') }}"
-                     class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-heading mb-2">País / Región</label>
-              <div class="relative">
-                <select name="country"
-                        class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4 appearance-none text-body">
-                  <option value="MX"
-                          {% if form_data.get('country', 'MX') == 'MX' %}selected{% endif %}>México</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-heading mb-2">Teléfono</label>
-              <input type="tel"
-                     name="phone"
-                     required
-                     value="{{ form_data.get('phone', '') }}"
-                     class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-heading mb-2">Dirección de correo electrónico</label>
-              <input type="email"
-                     name="email"
-                     required
-                     value="{{ form_data.get('email', '') }}"
-                     class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
-            </div>
-            <div class="space-y-3">
-              <label class="block text-sm font-medium text-heading mb-2">Tipo de entrega</label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input type="radio"
-                       name="delivery_mode"
-                       value="shipping"
-                       {% if form_data.get('delivery_mode', 'shipping') == 'shipping' %}checked{% endif %}
-                       class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
-                <span class="text-heading font-medium">Envío a domicilio</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input type="radio"
-                       name="delivery_mode"
-                       value="pickup"
-                       {% if form_data.get('delivery_mode', 'shipping') == 'pickup' %}checked{% endif %}
-                       class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
-                <span class="text-body-subtle font-medium">Recolección en tienda</span>
-              </label>
-            </div>
-            <div id="shippingFieldsContainer" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-heading mb-2">Dirección postal</label>
-                <input type="text"
-                       id="shipping_street"
-                       name="street"
-                       value="{{ form_data.get('street', '') }}"
-                       class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Teléfono <span class="text-rose-500">*</span>
+                </label>
+                <input type="tel"
+                       name="phone"
+                       required
+                       value="{{ form_data.get('phone', '') }}"
+                       class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Pueblo / Ciudad</label>
-                  <input type="text"
-                         id="shipping_city"
-                         name="city"
-                         value="{{ form_data.get('city', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+              <div>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Correo electrónico <span class="text-rose-500">*</span>
+                </label>
+                <input type="email"
+                       name="email"
+                       required
+                       value="{{ form_data.get('email', '') }}"
+                       class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
+              </div>
+            </div>
+            {# ── Invoice toggle ── #}
+            <div class="border border-gray-200 rounded-lg p-4 bg-slate-50/50">
+              <label class="flex items-center gap-3 cursor-pointer select-none">
+                <div class="relative">
+                  <input type="checkbox"
+                         id="invoiceToggle"
+                         name="requires_invoice"
+                         value="1"
+                         {% if form_data.get('requires_invoice') == '1' %}checked{% endif %}
+                         class="sr-only peer">
+                  <div class="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-800 transition-colors">
+                  </div>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Provincia</label>
+                  <span class="text-sm font-medium text-heading">¿Requieres factura?</span>
+                  <p class="text-xs text-body-subtle mt-0.5">Proporciona tus datos fiscales para generar tu CFDI</p>
+                </div>
+              </label>
+              <div id="invoiceFields"
+                   class="mt-4 space-y-4 overflow-hidden transition-all duration-300 ease-in-out"
+                   style="{% if form_data.get('requires_invoice') != '1' %}max-height:0;
+                          opacity:0;
+                          margin-top:0;
+                          {% else %}max-height:200px;
+                          opacity:1;
+                          {% endif %}">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-heading mb-1.5">RFC</label>
+                    <input type="text"
+                           id="invoiceRfc"
+                           name="rfc"
+                           maxlength="13"
+                           placeholder="XAXX010101000"
+                           value="{{ form_data.get('rfc', '') }}"
+                           class="w-full h-11 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 text-sm uppercase transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-heading mb-1.5">Razón social</label>
+                    <input type="text"
+                           id="invoiceBusinessName"
+                           name="business_name"
+                           placeholder="Nombre o empresa"
+                           value="{{ form_data.get('business_name', '') }}"
+                           class="w-full h-11 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 text-sm transition-colors">
+                  </div>
+                </div>
+              </div>
+            </div>
+            {# ── Delivery mode ── #}
+            <div class="space-y-3">
+              <label class="block text-sm font-medium text-heading mb-2">Tipo de entrega</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 cursor-pointer border border-gray-200 rounded-lg p-4 has-checked:border-sky-800 has-checked:bg-sky-50/50 transition-colors">
+                  <input type="radio"
+                         name="delivery_mode"
+                         value="shipping"
+                         {% if form_data.get('delivery_mode', 'shipping') == 'shipping' %}checked{% endif %}
+                         class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
+                  <div>
+                    <span class="text-heading font-medium text-sm">Envío a domicilio</span>
+                    <p class="text-xs text-body-subtle mt-0.5">Recibe en tu dirección</p>
+                  </div>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer border border-gray-200 rounded-lg p-4 has-checked:border-sky-800 has-checked:bg-sky-50/50 transition-colors">
+                  <input type="radio"
+                         name="delivery_mode"
+                         value="pickup"
+                         {% if form_data.get('delivery_mode', 'shipping') == 'pickup' %}checked{% endif %}
+                         class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
+                  <div>
+                    <span class="text-heading font-medium text-sm">Recolección en tienda</span>
+                    <p class="text-xs text-body-subtle mt-0.5">León, Guanajuato</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+            {# ── Shipping address (CP-first flow) ── #}
+            <div id="shippingFieldsContainer"
+                 class="space-y-6 border border-gray-200 rounded-lg p-6 bg-white">
+              <h3 class="text-lg font-semibold text-heading flex items-center gap-2">
+                <svg class="w-5 h-5 text-sky-700"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Dirección de envío
+              </h3>
+              {# CP with autocomplete ── ROW 1 #}
+              <div>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Código postal <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <input type="text"
+                         id="shipping_zip_code"
+                         name="zip_code"
+                         inputmode="numeric"
+                         maxlength="5"
+                         placeholder="Ej. 37201"
+                         value="{{ form_data.get('zip_code', '') }}"
+                         class="w-full md:w-48 h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 pr-12 font-medium text-lg tracking-widest transition-colors">
+                  {# Spinner (hidden by default) #}
+                  <div id="cpSpinner"
+                       class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg class="animate-spin h-5 w-5 text-sky-700"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                  </div>
+                  {# Success badge #}
+                  <div id="cpSuccess"
+                       class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg class="h-5 w-5 text-emerald-600"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor"
+                         stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  {# Error badge #}
+                  <div id="cpError" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg class="h-5 w-5 text-rose-500"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor"
+                         stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                </div>
+                <p id="cpHint" class="mt-1.5 text-xs text-body-subtle">Ingresa 5 dígitos para autocompletar tu dirección</p>
+                <p id="cpErrorMsg" class="hidden mt-1.5 text-xs text-rose-600"></p>
+              </div>
+              {# Estado + Ciudad ── ROW 2 (auto-filled) #}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-heading mb-2">Estado</label>
                   <input type="text"
                          id="shipping_state"
                          name="state"
                          value="{{ form_data.get('state', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                         placeholder="Se llena automáticamente"
+                         class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors read-only:bg-slate-100 read-only:text-slate-600 read-only:cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-heading mb-2">Ciudad / Municipio</label>
+                  <input type="text"
+                         id="shipping_city"
+                         name="city"
+                         value="{{ form_data.get('city', '') }}"
+                         placeholder="Se llena automáticamente"
+                         class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors read-only:bg-slate-100 read-only:text-slate-600 read-only:cursor-not-allowed">
                 </div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Código postal</label>
-                  <input type="text"
-                         id="shipping_zip_code"
-                         name="zip_code"
-                         maxlength="5"
-                         value="{{ form_data.get('zip_code', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Colonia</label>
-                  <input type="text"
-                         id="shipping_neighborhood"
-                         name="neighborhood"
-                         list="shipping_neighborhood_list"
-                         value="{{ form_data.get('neighborhood', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
-                  <datalist id="shipping_neighborhood_list"></datalist>
-                </div>
+              {# Colonia (select dinámico) ── ROW 3 #}
+              <div>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Colonia <span class="text-rose-500">*</span>
+                </label>
+                <select id="shipping_neighborhood"
+                        name="neighborhood"
+                        class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors bg-white appearance-none"
+                        style="background-image: url('data:image/svg+xml;
+                               charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E');
+                               background-position: right 0.75rem center;
+                               background-repeat: no-repeat;
+                               background-size: 1.25rem">
+                  {% if form_data.get('neighborhood') %}
+                    <option value="{{ form_data.get('neighborhood') }}" selected>{{ form_data.get("neighborhood") }}</option>
+                  {% else %}
+                    <option value="">Ingresa tu C.P. para ver colonias</option>
+                  {% endif %}
+                </select>
               </div>
+              {# Calle ── ROW 4 #}
+              <div>
+                <label class="block text-sm font-medium text-heading mb-2">
+                  Calle <span class="text-rose-500">*</span>
+                </label>
+                <input type="text"
+                       id="shipping_street"
+                       name="street"
+                       value="{{ form_data.get('street', '') }}"
+                       placeholder="Nombre de la calle"
+                       class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
+              </div>
+              {# Nums ── ROW 5 #}
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Número exterior</label>
+                  <label class="block text-sm font-medium text-heading mb-2">
+                    Número exterior <span class="text-rose-500">*</span>
+                  </label>
                   <input type="text"
                          id="shipping_exterior_number"
                          name="exterior_number"
                          value="{{ form_data.get('exterior_number', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                         class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-heading mb-2">Número interior (opcional)</label>
+                  <label class="block text-sm font-medium text-heading mb-2">
+                    Número interior <span class="text-slate-400 font-normal">(opcional)</span>
+                  </label>
                   <input type="text"
                          name="interior_number"
                          value="{{ form_data.get('interior_number', '') }}"
-                         class="w-full h-12 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4">
+                         class="w-full h-12 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 transition-colors">
                 </div>
               </div>
             </div>
+            {# ── Notes ── #}
             <div>
+              <label class="block text-sm font-medium text-heading mb-2">
+                Notas adicionales <span class="text-slate-400 font-normal">(opcional)</span>
+              </label>
               <textarea name="notes"
-                        placeholder="Información adicional"
-                        class="w-full h-24 border border-gray-300 rounded focus:ring-sky-900 focus:border-sky-900 px-4 py-3 resize-none">{{ form_data.get('notes', '') }}</textarea>
+                        placeholder="Instrucciones de entrega, referencias, etc."
+                        class="w-full h-24 border border-gray-300 rounded-lg focus:ring-sky-900 focus:border-sky-900 px-4 py-3 resize-none transition-colors">{{ form_data.get('notes', '') }}</textarea>
             </div>
           </div>
         </div>
+        {# ── RIGHT COLUMN: Order Summary ── #}
         <div class="w-full lg:w-125 shrink-0 pt-8 lg:pt-0">
-          <div class="border-b border-gray-200 pb-6 mb-6">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="font-bold text-xl text-heading">Producto</h3>
-              <h3 class="font-bold text-xl text-heading">Total línea</h3>
-            </div>
+          <div class="border border-gray-200 rounded-lg p-6 bg-white sticky top-8">
+            <h3 class="font-bold text-xl text-heading mb-6">Resumen del pedido</h3>
             {% if cart.total_items %}
-              {% for item in cart.cart_items %}
-                <div class="flex justify-between items-center mb-4 text-sm">
-                  <span class="text-body-subtle">{{ item.product.title }} <strong class="text-heading font-medium">x {{ item.quantity }}</strong></span>
-                  <span class="font-medium text-body">Mx. {{ "{:,.2f}".format(item.subtotal) }}</span>
+              <div class="space-y-3 border-b border-gray-100 pb-6 mb-6">
+                {% for item in cart.cart_items %}
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-body-subtle">{{ item.product.title }} <strong class="text-heading font-medium">x {{ item.quantity }}</strong></span>
+                    <span class="font-medium text-body">Mx. {{ "{:,.2f}".format(item.subtotal) }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center">
+                  <span class="text-body-subtle">Subtotal (sin IVA)</span>
+                  <span class="text-body">Mx. {{ "{:,.2f}".format(cart.subtotal) }}</span>
                 </div>
-              {% endfor %}
-              <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
-                <span class="text-heading font-medium">Subtotal</span>
-                <span class="text-body font-medium">Mx. {{ "{:,.2f}".format(cart.subtotal) }}</span>
+                <div class="flex justify-between items-center">
+                  <span class="text-body-subtle">IVA (16%)</span>
+                  <span class="text-body">Mx. {{ "{:,.2f}".format(cart.iva) }}</span>
+                </div>
+                <div id="freightRow" class="flex justify-between items-center">
+                  <span class="text-body-subtle">
+                    Envío
+                    <span id="freightZoneLabel">
+                      {% if freight_quote.zone %}({{ freight_quote.zone }}){% endif %}
+                    </span>
+                  </span>
+                  <span id="freightValue" class="text-body font-medium">
+                    {% if freight_quote.free %}
+                      <span class="text-emerald-600">GRATIS</span>
+                    {% else %}
+                      Mx. {{ "{:,.2f}".format(freight_quote.cost) }}
+                    {% endif %}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                  <span class="text-heading font-semibold text-base">Total</span>
+                  <span id="checkoutTotalValue" class="text-sky-900 font-bold text-xl">Mx. {{ "{:,.2f}".format(freight_quote.total_with_freight) }}</span>
+                </div>
+                {% if freight_quote.reason %}<p class="mt-2 text-xs text-body-subtle">{{ freight_quote.reason }}</p>{% endif %}
+                {% if quote_error %}<p class="mt-2 text-xs text-rose-700">{{ quote_error }}</p>{% endif %}
               </div>
-              <div class="flex justify-between items-center mt-4">
-                <span class="text-heading font-medium">IVA (16%)</span>
-                <span class="text-body font-medium">Mx. {{ "{:,.2f}".format(cart.iva) }}</span>
-              </div>
-              <div id="freightRow" class="flex justify-between items-center mt-4">
-                <span class="text-heading font-medium">Envío <span id="freightZoneLabel">
-                  {% if freight_quote.zone %}({{ freight_quote.zone }}){% endif %}
-                </span></span>
-                <span id="freightValue" class="text-body font-medium">
-                  {% if freight_quote.free %}
-                    GRATIS
-                  {% else %}
-                    Mx. {{ "{:,.2f}".format(freight_quote.cost) }}
-                  {% endif %}
-                </span>
-              </div>
-              <div class="flex justify-between items-center mt-4">
-                <span class="text-heading font-medium">Total</span>
-                <span id="checkoutTotalValue" class="text-sky-900 font-bold text-xl">Mx. {{ "{:,.2f}".format(freight_quote.total_with_freight) }}</span>
-              </div>
-              {% if freight_quote.reason %}<p class="mt-2 text-xs text-body-subtle">{{ freight_quote.reason }}</p>{% endif %}
-              {% if quote_error %}<p class="mt-3 text-xs text-rose-700">{{ quote_error }}</p>{% endif %}
             {% else %}
               <p class="text-body-subtle text-sm py-6">Tu carrito está vacío. Agrega productos para finalizar la compra.</p>
             {% endif %}
-          </div>
-          <div class="space-y-4 mb-8">
-            {% if payment_methods %}
-              {% for method in payment_methods %}
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input type="radio"
-                         name="payment_method_id"
-                         value="{{ method.id }}"
-                         {% if form_data.get('payment_method_id') == method.id|string or (not form_data.get('payment_method_id') and loop.first) %}checked{% endif %}
-                         class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
-                  <span class="text-heading font-medium">{{ method.name }}</span>
-                </label>
-              {% endfor %}
-            {% else %}
-              <p class="text-sm text-rose-700">No hay métodos de pago disponibles para ecommerce.</p>
-            {% endif %}
-          </div>
-          <p class="text-body-subtle text-sm mb-8 leading-relaxed text-justify">
-            Tus datos personales se utilizarán para mejorar tu experiencia en este sitio web, gestionar el acceso a tu cuenta y para otros fines descritos en nuestra <a href="#" class="text-heading font-medium hover:underline">política de privacidad</a>.
-          </p>
-          <div class="flex justify-center">
-            <button type="submit"
-                    class="px-12 py-3 rounded-md border border-heading text-heading font-bold text-lg hover:bg-heading hover:text-white transition-colors duration-300 max-w-75 w-full disabled:border-gray-300 disabled:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    {% if not cart.total_items or not payment_methods %}disabled{% endif %}>Realizar pedido</button>
+            {# ── Payment methods ── #}
+            <div class="mt-6 pt-6 border-t border-gray-200">
+              <h4 class="text-sm font-semibold text-heading mb-4">Método de pago</h4>
+              {% if payment_methods %}
+                <div class="space-y-2">
+                  {% for method in payment_methods %}
+                    <label class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 has-checked:border-sky-800 has-checked:bg-sky-50/50 transition-colors">
+                      <input type="radio"
+                             name="payment_method_id"
+                             value="{{ method.id }}"
+                             {% if form_data.get('payment_method_id') == method.id|string or (not form_data.get('payment_method_id') and loop.first) %}checked{% endif %}
+                             class="w-4 h-4 text-sky-900 focus:ring-sky-900 border-gray-300">
+                      <span class="text-heading font-medium text-sm">{{ method.name }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-sm text-rose-700">No hay métodos de pago disponibles.</p>
+              {% endif %}
+            </div>
+            {# ── Submit ── #}
+            <div class="mt-6">
+              <p class="text-body-subtle text-xs mb-4 leading-relaxed">
+                Tus datos personales se utilizarán para procesar tu pedido y para los fines descritos en nuestra <a href="#" class="text-heading font-medium hover:underline">política de privacidad</a>.
+              </p>
+              <button type="submit"
+                      class="w-full py-3.5 rounded-lg bg-sky-900 text-white font-bold text-base hover:bg-sky-800 transition-colors duration-300 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      {% if not cart.total_items or not payment_methods %}disabled{% endif %}>Realizar pedido</button>
+            </div>
           </div>
         </div>
       </div>
@@ -251,136 +392,206 @@
   </section>
   <script>
       (() => {
+          /* ── DOM refs ── */
           const deliveryInputs = document.querySelectorAll('input[name="delivery_mode"]');
           const shippingContainer = document.getElementById("shippingFieldsContainer");
           const zipInput = document.getElementById("shipping_zip_code");
           const cityInput = document.getElementById("shipping_city");
           const stateInput = document.getElementById("shipping_state");
-          const neighborhoodInput = document.getElementById("shipping_neighborhood");
-          const neighborhoodList = document.getElementById("shipping_neighborhood_list");
+          const neighborhoodSelect = document.getElementById("shipping_neighborhood");
           const freightRow = document.getElementById("freightRow");
           const freightValue = document.getElementById("freightValue");
           const freightZoneLabel = document.getElementById("freightZoneLabel");
           const totalValue = document.getElementById("checkoutTotalValue");
+          const cpSpinner = document.getElementById("cpSpinner");
+          const cpSuccess = document.getElementById("cpSuccess");
+          const cpError = document.getElementById("cpError");
+          const cpHint = document.getElementById("cpHint");
+          const cpErrorMsg = document.getElementById("cpErrorMsg");
+          const invoiceToggle = document.getElementById("invoiceToggle");
+          const invoiceFields = document.getElementById("invoiceFields");
           const cartTotal = {
               {
                   cart.total | tojson
               }
           };
 
-          const fmtMoney = (value) => {
-              return `Mx. ${Number(value || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          };
+          let lastLookedUpZip = "";
+
+          /* ── Helpers ── */
+          const fmtMoney = (v) =>
+              `Mx. ${Number(v || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
           const currentDeliveryMode = () => {
-              const selected = document.querySelector('input[name="delivery_mode"]:checked');
-              return selected ? selected.value : "shipping";
+              const sel = document.querySelector('input[name="delivery_mode"]:checked');
+              return sel ? sel.value : "shipping";
           };
 
-          const updateShippingVisibility = () => {
-              const mode = currentDeliveryMode();
-              if (!shippingContainer) return;
-              if (mode === "pickup") {
-                  shippingContainer.classList.add("hidden");
-              } else {
-                  shippingContainer.classList.remove("hidden");
+          const setCpState = (state) => {
+              cpSpinner?.classList.toggle("hidden", state !== "loading");
+              cpSuccess?.classList.toggle("hidden", state !== "success");
+              cpError?.classList.toggle("hidden", state !== "error");
+              cpHint?.classList.toggle("hidden", state === "error");
+              cpErrorMsg?.classList.toggle("hidden", state !== "error");
+              if (zipInput) {
+                  zipInput.classList.toggle("border-emerald-500", state === "success");
+                  zipInput.classList.toggle("border-rose-400", state === "error");
+                  zipInput.classList.toggle("border-gray-300", state !== "success" && state !== "error");
               }
           };
 
+          /* ── Shipping visibility ── */
+          const updateShippingVisibility = () => {
+              if (!shippingContainer) return;
+              shippingContainer.classList.toggle("hidden", currentDeliveryMode() === "pickup");
+          };
+
+          /* ── Invoice toggle ── */
+          const updateInvoiceVisibility = () => {
+              if (!invoiceToggle || !invoiceFields) return;
+              const show = invoiceToggle.checked;
+              if (show) {
+                  invoiceFields.style.maxHeight = "200px";
+                  invoiceFields.style.opacity = "1";
+                  invoiceFields.style.marginTop = "1rem";
+              } else {
+                  invoiceFields.style.maxHeight = "0";
+                  invoiceFields.style.opacity = "0";
+                  invoiceFields.style.marginTop = "0";
+              }
+          };
+
+          if (invoiceToggle) {
+              invoiceToggle.addEventListener("change", updateInvoiceVisibility);
+          }
+
+          /* ── Freight quote ── */
           const renderFreight = (quote) => {
               if (!freightRow || !freightValue || !totalValue || !freightZoneLabel) return;
               const mode = currentDeliveryMode();
-              if (mode === "pickup") {
-                  freightZoneLabel.textContent = "";
+              freightZoneLabel.textContent = mode === "pickup" ? "" : (quote.zone ? `(${quote.zone})` : "");
+              if (quote.free) {
+                  freightValue.innerHTML = '<span class="text-emerald-600">GRATIS</span>';
               } else {
-                  freightZoneLabel.textContent = quote.zone ? `(${quote.zone})` : "";
+                  freightValue.textContent = fmtMoney(quote.cost);
               }
-              freightValue.textContent = quote.free ? "GRATIS" : fmtMoney(quote.cost);
               totalValue.textContent = fmtMoney(quote.total_with_freight);
           };
 
           const quoteFreight = async () => {
               if (!freightRow || !freightValue || !totalValue) return;
-
               const payload = {
                   delivery_mode: currentDeliveryMode(),
                   city: cityInput ? cityInput.value.trim() : "",
                   state: stateInput ? stateInput.value.trim() : "",
-                  cart_total: cartTotal
+                  cart_total: cartTotal,
               };
-
               try {
-                  const response = await fetch('{{ url_for("ecommerce.freight_quote") }}', {
+                  const res = await fetch('{{ url_for("ecommerce.freight_quote") }}', {
                       method: "POST",
                       headers: {
                           "Content-Type": "application/json"
                       },
-                      body: JSON.stringify(payload)
+                      body: JSON.stringify(payload),
                   });
-
-                  if (!response.ok) {
-                      if (payload.delivery_mode === "pickup") {
+                  if (!res.ok) {
+                      if (payload.delivery_mode === "pickup")
                           renderFreight({
                               cost: 0,
                               zone: null,
                               free: false,
                               total_with_freight: cartTotal
                           });
-                      }
                       return;
                   }
-
-                  const quote = await response.json();
-                  renderFreight(quote);
+                  renderFreight(await res.json());
               } catch {
-                  if (payload.delivery_mode === "pickup") {
+                  if (payload.delivery_mode === "pickup")
                       renderFreight({
                           cost: 0,
                           zone: null,
                           free: false,
                           total_with_freight: cartTotal
                       });
-                  }
               }
           };
 
-          const lookupZipCode = async () => {
-              if (!zipInput || !cityInput || !stateInput || !neighborhoodInput || !neighborhoodList) return;
+          /* ── COPOMEX CP Lookup (instant on 5 digits) ── */
+          const lookupZipCode = async (zip) => {
+              if (!zipInput || !cityInput || !stateInput || !neighborhoodSelect) return;
               if (currentDeliveryMode() !== "shipping") return;
+              if (!/^\d{5}$/.test(zip)) {
+                  if (zip.length < 5) setCpState("idle");
+                  return;
+              }
+              if (zip === lastLookedUpZip) return;
 
-              const zip = zipInput.value.trim();
-              if (!/^\d{5}$/.test(zip)) return;
+              setCpState("loading");
+              lastLookedUpZip = zip;
 
               try {
-                  const response = await fetch(`/ecommerce/api/cp/${zip}`);
-                  if (!response.ok) {
+                  const res = await fetch(`/ecommerce/api/cp/${zip}`);
+                  if (!res.ok) {
+                      setCpState("error");
+                      cpErrorMsg.textContent = "Código postal no encontrado. Verifica e intenta de nuevo.";
                       stateInput.readOnly = false;
                       cityInput.readOnly = false;
+                      lastLookedUpZip = "";
                       return;
                   }
-                  const data = await response.json();
+
+                  const data = await res.json();
+                  if (data.error) {
+                      setCpState("error");
+                      cpErrorMsg.textContent = data.message || "Código postal no válido.";
+                      stateInput.readOnly = false;
+                      cityInput.readOnly = false;
+                      lastLookedUpZip = "";
+                      return;
+                  }
+
+                  /* Auto-fill state & city */
                   stateInput.value = data.estado || "";
                   cityInput.value = data.municipio || "";
                   stateInput.readOnly = true;
                   cityInput.readOnly = true;
 
-                  neighborhoodList.innerHTML = "";
+                  /* Populate neighborhood select */
                   const colonies = Array.isArray(data.colonias) ? data.colonias : [];
+                  neighborhoodSelect.innerHTML = "";
+
+                  if (colonies.length > 1) {
+                      const placeholder = document.createElement("option");
+                      placeholder.value = "";
+                      placeholder.textContent = `Selecciona colonia (${colonies.length} disponibles)`;
+                      neighborhoodSelect.appendChild(placeholder);
+                  }
+
                   colonies.forEach((colony) => {
                       const opt = document.createElement("option");
                       opt.value = colony;
-                      neighborhoodList.appendChild(opt);
+                      opt.textContent = colony;
+                      neighborhoodSelect.appendChild(opt);
                   });
-                  if (!neighborhoodInput.value && colonies.length) {
-                      neighborhoodInput.value = colonies[0];
+
+                  if (colonies.length === 1) {
+                      neighborhoodSelect.value = colonies[0];
                   }
+
+                  setCpState("success");
                   await quoteFreight();
               } catch {
+                  setCpState("error");
+                  cpErrorMsg.textContent = "Error al consultar el código postal. Intenta de nuevo.";
                   stateInput.readOnly = false;
                   cityInput.readOnly = false;
+                  lastLookedUpZip = "";
               }
           };
 
+          /* ── Event listeners ── */
+
+          /* Delivery mode change */
           deliveryInputs.forEach((input) => {
               input.addEventListener("change", async () => {
                   updateShippingVisibility();
@@ -388,17 +599,50 @@
               });
           });
 
+          /* CP input: trigger on each keystroke, lookup when 5 digits */
+          if (zipInput) {
+              zipInput.addEventListener("input", (e) => {
+                  /* Only allow digits */
+                  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 5);
+                  const val = e.target.value;
+                  if (val.length === 5) {
+                      lookupZipCode(val);
+                  } else {
+                      setCpState("idle");
+                      lastLookedUpZip = "";
+                  }
+              });
+
+              /* Also trigger on paste */
+              zipInput.addEventListener("paste", () => {
+                  setTimeout(() => {
+                      const val = zipInput.value.replace(/\D/g, "").slice(0, 5);
+                      zipInput.value = val;
+                      if (val.length === 5) lookupZipCode(val);
+                  }, 10);
+              });
+          }
+
+          /* Neighborhood change → re-quote freight */
+          if (neighborhoodSelect) {
+              neighborhoodSelect.addEventListener("change", quoteFreight);
+          }
+
+          /* City/State manual change (fallback) */
           [cityInput, stateInput].forEach((input) => {
               if (!input) return;
               input.addEventListener("change", quoteFreight);
               input.addEventListener("blur", quoteFreight);
           });
 
-          if (zipInput) {
-              zipInput.addEventListener("blur", lookupZipCode);
-          }
-
+          /* ── Initial state ── */
           updateShippingVisibility();
+          updateInvoiceVisibility();
+
+          /* If CP already has value on page load, trigger lookup */
+          if (zipInput && /^\d{5}$/.test(zipInput.value.trim())) {
+              lookupZipCode(zipInput.value.trim());
+          }
       })();
   </script>
 {% endblock content %}
