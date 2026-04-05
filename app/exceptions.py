@@ -6,7 +6,7 @@ que permiten un manejo consistente de errores en toda la aplicación.
 """
 
 from typing import Optional
-from flask import render_template
+from flask import jsonify, render_template, request
 
 
 class AppException(Exception):
@@ -62,6 +62,24 @@ class ConflictError(AppException):
         super().__init__(message, status_code=409, payload=payload)
 
 
+class UnauthorizedError(AppException):
+    """Excepción para accesos no autenticados."""
+
+    def __init__(self, message: str = "No autenticado", payload: Optional[dict] = None):
+        super().__init__(message, status_code=401, payload=payload)
+
+
+class ForbiddenError(AppException):
+    """Excepción para accesos sin permiso suficiente."""
+
+    def __init__(
+        self,
+        message: str = "Sin permisos para acceder a este recurso",
+        payload: Optional[dict] = None,
+    ):
+        super().__init__(message, status_code=403, payload=payload)
+
+
 def register_error_handlers(app):
     """
     Registra los manejadores de errores globales en la aplicación Flask.
@@ -74,6 +92,14 @@ def register_error_handlers(app):
     def handle_app_exception(error):
         """Manejador para excepciones personalizadas de la aplicación."""
         app.logger.error(f"AppException: {error.message}")
+
+        wants_json = request.is_json or (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        )
+        if wants_json:
+            return jsonify(error.to_dict()), error.status_code
+
         return (
             render_template(
                 "errors/error.html",
@@ -117,6 +143,36 @@ def register_error_handlers(app):
                 message="Método no permitido",
             ),
             405,
+        )
+
+    @app.errorhandler(403)
+    def handle_forbidden(error):
+        """Manejador para errores 403 Forbidden."""
+        wants_json = request.is_json or (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        )
+        if wants_json:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "message": "Sin permisos para acceder a este recurso",
+                            "code": 403,
+                        },
+                    }
+                ),
+                403,
+            )
+
+        return (
+            render_template(
+                "errors/error.html",
+                code=403,
+                message="Sin permisos para acceder a este recurso",
+            ),
+            403,
         )
 
     @app.errorhandler(500)
