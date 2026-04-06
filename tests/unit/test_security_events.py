@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from flask import session
 from flask_login import user_logged_out
 from flask_security.signals import password_changed, user_authenticated
 
 from app.models.security_event_log import SecurityEventLog
+from app.security_events import process_login_attempt_response
 from app.shared.security_logging import log_security_event
 
 
@@ -57,3 +59,19 @@ class TestSecurityEventLogging:
         assert "auth.login.success" in event_types
         assert "auth.password.changed" in event_types
         assert "auth.logout" in event_types
+
+    def test_failed_login_attempts_are_logged(self, app, db_session):
+        with app.test_request_context(
+            "/login", method="POST", data={"email": "fail@test.com"}
+        ):
+            response = app.response_class(status=200)
+            process_login_attempt_response(response)
+            process_login_attempt_response(response)
+
+            assert int(session["security_login_attempts"]) == 2
+
+        events = SecurityEventLog.query.filter_by(event_type="auth.login.failed").all()
+        assert len(events) == 2
+        assert events[0].email_or_identifier == "fail@test.com"
+        assert events[0].context_data.get("attempt") == 1
+        assert events[1].context_data.get("attempt") == 2

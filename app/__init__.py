@@ -5,7 +5,10 @@ from config import Config
 from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
 from .rbac import register_rbac
-from .security_events import register_security_event_handlers
+from .security_events import (
+    process_login_attempt_response,
+    register_security_event_handlers,
+)
 
 
 def create_app(config_class=None):
@@ -52,6 +55,8 @@ def create_app(config_class=None):
 
     @app.after_request
     def apply_auth_cache_control_headers(response):
+        response = process_login_attempt_response(response)
+
         path = request.path or ""
         protected_prefixes = ("/admin", "/login", "/logout", "/reset", "/verify")
 

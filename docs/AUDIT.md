@@ -127,10 +127,15 @@ Eventos recomendados:
 Eventos implementados actualmente:
 
 - `auth.login.success` (senal `user_authenticated` de Flask-Security)
+- `auth.login.failed` (hook de `POST /login` cuando no hay autenticacion)
 - `auth.logout` (senal `user_logged_out` de Flask-Login)
 - `auth.password.changed` (senal `password_changed`)
 - `auth.password.reset.completed` (senal `password_reset`)
 - `auth.unauthenticated.access` (senal `user_unauthenticated`)
+
+Documentacion detallada del login:
+
+- Ver `docs/LOGIN.md`.
 
 Campos sugeridos:
 
