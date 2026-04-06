@@ -68,6 +68,7 @@ class RawMaterialService:
                 category_id=data["category_id"],
                 unit_id=data["unit_id"],
                 waste_percentage=data.get("waste_percentage", 0.0),
+                minimum_stock=data.get("minimum_stock", 10.0),
                 status=data.get("status", "active"),
                 stock=0.0,  # El stock siempre inicia en 0 y se modifica via auditoría
             )
@@ -111,6 +112,9 @@ class RawMaterialService:
             raw_material.unit_id = data["unit_id"]
             raw_material.waste_percentage = data.get(
                 "waste_percentage", raw_material.waste_percentage
+            )
+            raw_material.minimum_stock = data.get(
+                "minimum_stock", raw_material.minimum_stock
             )
             raw_material.status = new_status
 
