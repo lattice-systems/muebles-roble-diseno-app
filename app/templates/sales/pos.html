@@ -5,11 +5,11 @@
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
     {% include 'admin/components/alerts.html' %}
-    <div class="relative bg-neutral-primary-soft h-auto xl:h-[calc(100vh-9rem)] border-default overflow-visible xl:overflow-hidden">
+    <div class="relative bg-neutral-primary-soft h-auto lg:h-[calc(100vh-9rem)] border-default overflow-visible lg:overflow-hidden">
       <div class="h-full min-h-0 p-1 2xl:p-2">
         {# ── Panel izquierdo: catálogo (scrollable) ── #}
-        <div class="flex flex-col xl:flex-row gap-3 xl:gap-0 w-full h-full min-h-0 overflow-visible xl:overflow-hidden">
-          <div class="flex flex-col gap-3 2xl:gap-4 w-full xl:w-[45%] min-w-0 min-h-0 pe-0 xl:pe-3 2xl:pe-6 border-e-0 xl:border-e border-default">
+        <div class="flex flex-col lg:flex-row gap-3 lg:gap-0 w-full h-full min-h-0 overflow-visible lg:overflow-hidden">
+          <div class="flex flex-col gap-3 2xl:gap-4 w-full lg:w-[45%] min-w-0 min-h-0 pe-0 lg:pe-3 2xl:pe-6 border-e-0 lg:border-e border-default">
             <div>
               <div class="shrink-0">
                 <h2 class="text-base 2xl:text-lg font-semibold text-heading">Catalogo de productos</h2>
@@ -118,18 +118,18 @@
                   {% set from_record = ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total > 0 else 0 %}
                   {% set to_record = pagination.page * pagination.per_page if (pagination.page * pagination.per_page) <
                                     pagination.total else pagination.total %}
-                  <nav class="flex items-center flex-col flex-wrap md:flex-row justify-between p-3 2xl:p-4"
+                  <nav class="flex items-center flex-row flex-nowrap justify-between p-3 2xl:p-4 gap-2"
                        aria-label="Table navigation">
-                    <span class="text-xs 2xl:text-sm font-normal text-body mb-4 md:mb-0 block w-full md:inline md:w-auto">
+                    <span class="text-xs 2xl:text-sm font-normal text-body shrink-0 whitespace-nowrap">
                       Mostrando
                       <span class="font-semibold text-heading">{{ from_record }}-{{ to_record }}</span>
                       de
                       <span class="font-semibold text-heading">{{ pagination.total }}</span>
                     </span>
-                    <ul class="flex -space-x-px text-xs 2xl:text-sm">
+                    <ul class="flex -space-x-px text-xs 2xl:text-sm shrink-0">
                       <li>
                         <a href="{{ url_for('sales.pos', page=pagination.prev_num if pagination.has_prev else 1, q=search_term) }}"
-                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
+                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-xs 2xl:text-sm px-2 h-7 2xl:px-3 2xl:h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_prev }}">
                           Anterior
                         </a>
                       </li>
@@ -137,18 +137,18 @@
                         {% if p %}
                           <li>
                             <a href="{{ url_for('sales.pos', page=p, q=search_term) }}"
-                               class="flex items-center justify-center box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9 focus:outline-none {{ 'text-fg-brand bg-brand-softer hover:bg-brand-soft hover:text-fg-brand' if p == pagination.page else 'text-body bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium hover:text-heading' }}"
+                               class="flex items-center justify-center box-border border border-default-medium font-medium text-xs 2xl:text-sm w-7 h-7 2xl:w-9 2xl:h-9 focus:outline-none {{ 'text-fg-brand bg-brand-softer hover:bg-brand-soft hover:text-fg-brand' if p == pagination.page else 'text-body bg-neutral-secondary-medium hover:bg-neutral-tertiary-medium hover:text-heading' }}"
                                {{ 'aria-current="page"' if p==pagination.page }}>{{ p }}</a>
                           </li>
                         {% else %}
                           <li>
-                            <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-9 h-9">…</span>
+                            <span class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium text-xs 2xl:text-sm w-7 h-7 2xl:w-9 2xl:h-9">…</span>
                           </li>
                         {% endif %}
                       {% endfor %}
                       <li>
                         <a href="{{ url_for('sales.pos', page=pagination.next_num if pagination.has_next else pagination.pages, q=search_term) }}"
-                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-3 h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
+                           class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-xs 2xl:text-sm px-2 h-7 2xl:px-3 2xl:h-9 focus:outline-none {{ 'pointer-events-none opacity-40' if not pagination.has_next }}">
                           Siguiente
                         </a>
                       </li>
@@ -171,7 +171,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="shrink-0 flex flex-col w-full xl:w-[55%] ps-0 xl:ps-6 pe-0 xl:pe-1 min-h-0 mt-1 xl:mt-0">
+          <div class="shrink-0 flex flex-col w-full lg:w-[55%] ps-0 lg:ps-6 pe-0 lg:pe-1 min-h-0 mt-1 lg:mt-0">
             <div class="shrink-0">
               <h2 class="text-base 2xl:text-lg font-semibold text-heading">Carrito</h2>
               <div class="text-xs 2xl:text-sm text-body">
@@ -361,7 +361,7 @@
                 </button>
               </div>
             </div>
-            <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2 h-72 md:h-80 xl:h-auto"
+            <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default mt-2 h-72 md:h-80 lg:h-auto"
                  style="flex:1 1 0;
                         min-height:0">
               <div id="cartBody"
