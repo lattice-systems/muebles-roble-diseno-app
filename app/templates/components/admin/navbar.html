@@ -69,7 +69,10 @@
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
           </li>
           <li>
-            <form action="{{ url_for('login.logout') }}" method="post" class="w-full">
+            <form action="{{ url_for('login.logout') }}"
+                  method="post"
+                  class="w-full"
+                  data-logout-form="true">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit"
                       class="cursor-pointer block w-full p-1.5 2xl:p-2 text-left hover:bg-neutral-tertiary-medium text-fg-danger rounded-md">

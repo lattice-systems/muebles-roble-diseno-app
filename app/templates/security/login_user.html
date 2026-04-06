@@ -22,8 +22,7 @@
                  height="24"
                  fill="none"
                  viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 9h3m-3 3h3m-3 3h3m-6 1c-.306-.613-.933-1-1.618-1H7.618c-.685 0-1.312.387-1.618 1M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm7 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9h3m-3 3h3m-3 3h3m-6 1c-.306-.613-.933-1-1.618-1H7.618c-.685 0-1.312.387-1.618 1M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm7 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z">
               </path>
             </svg>
           </div>
@@ -44,8 +43,7 @@
                height="24"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 14v3m-3-6V7a3 3 0 1 1 6 0v4m-8 0h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v3m-3-6V7a3 3 0 1 1 6 0v4m-8 0h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z">
             </path>
           </svg>
         </div>
@@ -53,19 +51,21 @@
       </div>
       {% for error in login_user_form.password.errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}
     </div>
-    <label class="inline-flex items-center gap-2 select-none ms-2 text-sm font-medium text-heading">
-      {{ login_user_form.remember(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
-      <span>Recordarme</span>
-    </label>
-    {% if security.recoverable %}
-      <div class="w-full text-end">
-        <a href="{{ url_for_security('forgot_password') }}"
-           class="text-brand hover:underline">¿Olvido su contrasena?</a>
-      </div>
-    {% endif %}
+    <div class="flex flex-row">
+      <label class="inline-flex items-center gap-2 select-none ms-2 text-sm font-medium text-heading cursor-pointer">
+        {{ login_user_form.remember(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+        <span>Recordarme</span>
+      </label>
+      {% if security.recoverable %}
+        <div class="w-full text-end">
+          <a href="{{ url_for_security('forgot_password') }}"
+             class="text-brand hover:underline text-sm">¿Olvido su contrasena?</a>
+        </div>
+      {% endif %}
+    </div>
     {% include "security/_messages.html" %}
     <button type="submit"
-            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none cursor-pointer">
       Iniciar Sesion
     </button>
   </form>

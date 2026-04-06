@@ -1,0 +1,7 @@
+Roble y Diseno - Confirmacion de cambio de contrasena
+
+Hola {{ user.full_name if user and user.full_name else "usuario" }},
+
+Confirmamos que la contrasena de tu cuenta fue restablecida correctamente.
+
+Si no realizaste este cambio, comunicate de inmediato con el administrador.

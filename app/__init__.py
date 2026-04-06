@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, request, url_for
 from flask_security import SQLAlchemyUserDatastore, auth_required
 
 from config import Config
@@ -45,6 +45,20 @@ def create_app(config_class=None):
 
     # Register error handlers
     register_error_handlers(app)
+
+    @app.after_request
+    def apply_auth_cache_control_headers(response):
+        path = request.path or ""
+        protected_prefixes = ("/admin", "/login", "/logout", "/reset", "/verify")
+
+        if path.startswith(protected_prefixes):
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, max-age=0, private"
+            )
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+
+        return response
 
     # Register blueprints
     from .login import login_bp

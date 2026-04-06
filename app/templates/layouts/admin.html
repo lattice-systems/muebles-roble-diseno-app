@@ -29,5 +29,41 @@
     {% block modals %}
     {% endblock modals %}
     <script src="{{ url_for('static', filename='js/flowbite.min.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const clearClientState = function() {
+                try {
+                    localStorage.clear();
+                } catch (error) {
+                    // noop
+                }
+
+                try {
+                    sessionStorage.clear();
+                } catch (error) {
+                    // noop
+                }
+
+                if ("caches" in window) {
+                    caches
+                        .keys()
+                        .then(function(keys) {
+                            return Promise.all(keys.map(function(key) {
+                                return caches.delete(key);
+                            }));
+                        })
+                        .catch(function() {
+                            // noop
+                        });
+                }
+            };
+
+            document
+                .querySelectorAll("form[data-logout-form='true']")
+                .forEach(function(form) {
+                    form.addEventListener("submit", clearClientState);
+                });
+        });
+    </script>
   </body>
 </html>
