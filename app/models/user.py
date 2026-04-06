@@ -29,6 +29,9 @@ class User(AuditMixin, db.Model, UserMixin):
 
     role = db.relationship("Role", back_populates="users", foreign_keys=[role_id])
     audit_logs = db.relationship("AuditLog", back_populates="user", lazy=True)
+    security_events = db.relationship(
+        "SecurityEventLog", back_populates="user", lazy=True
+    )
 
     def to_dict(self) -> dict:
         return {

@@ -124,9 +124,21 @@ Eventos recomendados:
 - `auth.rbac.denied`
 - `auth.account.locked`
 
+Eventos implementados actualmente:
+
+- `auth.login.success` (senal `user_authenticated` de Flask-Security)
+- `auth.logout` (senal `user_logged_out` de Flask-Login)
+- `auth.password.changed` (senal `password_changed`)
+- `auth.password.reset.completed` (senal `password_reset`)
+- `auth.unauthenticated.access` (senal `user_unauthenticated`)
+
 Campos sugeridos:
 
 - `event_type`, `user_id` (nullable), `email_or_identifier`, `ip_address`, `user_agent`, `result`, `reason`, `timestamp`, `metadata`.
+
+Campos implementados actualmente en `security_event_log`:
+
+- `event_type`, `result`, `user_id`, `email_or_identifier`, `ip_address`, `user_agent`, `reason`, `context_data`, `source`, `timestamp`.
 
 Tabla sugerida:
 
@@ -168,6 +180,7 @@ Visualizacion:
 
 - `scripts/install_audit_triggers.py`: reinstala triggers de auditoria en MySQL.
 - Migracion Alembic: `6d0f4b7e2a91_add_audit_trigger_module_and_log_fields.py`.
+- Migracion Alembic: `7e11c2a8f4d2_add_security_event_log_table.py`.
 
 ## Checklist de despliegue (MySQL)
 
@@ -193,6 +206,7 @@ Resultado esperado:
 
 - Tabla `audit_log` con columnas `record_id` y `source`.
 - Indices `ix_audit_log_timestamp`, `ix_audit_log_table_timestamp`, `ix_audit_log_user_timestamp`.
+- Tabla `security_event_log` con indices por timestamp, tipo de evento y usuario.
 
 ### 3) Reinstalar triggers de auditoria
 
@@ -246,7 +260,7 @@ Resultado esperado:
 - Revertir migracion:
 
 ```bash
-flask db downgrade 3f9a8d2c7b11
+flask db downgrade 6d0f4b7e2a91
 ```
 
 - Opcion quirurgica: eliminar triggers con `DROP TRIGGER` por nombre afectado.

@@ -5,6 +5,7 @@ from config import Config
 from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
 from .rbac import register_rbac
+from .security_events import register_security_event_handlers
 
 
 def create_app(config_class=None):
@@ -42,6 +43,9 @@ def create_app(config_class=None):
 
     # Register RBAC deny-by-default guard and Jinja helpers
     register_rbac(app)
+
+    # Register auth/security event listeners (login/logout/password/access events)
+    register_security_event_handlers(app)
 
     # Register error handlers
     register_error_handlers(app)

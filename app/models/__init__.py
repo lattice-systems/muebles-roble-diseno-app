@@ -20,6 +20,7 @@ from .raw_material_movement import RawMaterialMovement
 from .role import Role
 from .sale import Sale
 from .sale_item import SaleItem
+from .security_event_log import SecurityEventLog
 from .supplier import Supplier
 from .unit_of_measure import UnitOfMeasure
 from .user import User
@@ -50,6 +51,7 @@ __all__ = [
     "Role",
     "Sale",
     "SaleItem",
+    "SecurityEventLog",
     "Supplier",
     "UnitOfMeasure",
     "User",
