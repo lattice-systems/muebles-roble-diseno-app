@@ -270,7 +270,10 @@ class CustomerOrderService:
         Raises:
             ValueError: Si la orden no puede cancelarse.
         """
-        order = Order.query.get_or_404(order_id)
+        order = Order.query.options(
+            selectinload(Order.customer),
+            selectinload(Order.items).selectinload(OrderItem.product),
+        ).get_or_404(order_id)
 
         if not order.can_cancel():
             raise ValueError(
@@ -406,6 +409,7 @@ class CustomerOrderService:
 
         order = Order.query.options(
             selectinload(Order.customer),
+            selectinload(Order.items).selectinload(OrderItem.product),
             selectinload(Order.production_orders),
         ).get_or_404(order_id)
 
