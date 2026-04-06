@@ -130,6 +130,7 @@ Eventos implementados actualmente:
 - `auth.login.failed` (hook de `POST /login` cuando no hay autenticacion)
 - `auth.account.locked` (bloqueo en `POST /login` al superar `SECURITY_MAX_LOGIN_ATTEMPTS`)
 - `auth.account.unlocked.auto` (desbloqueo automatico al expirar `SECURITY_LOGIN_LOCK_MINUTES`)
+- `auth.rbac.denied` (intento de acceder o ejecutar acciones sin privilegios)
 - `auth.logout` (senal `user_logged_out` de Flask-Login)
 - `auth.password.changed` (senal `password_changed`)
 - `auth.password.reset.completed` (senal `password_reset`)

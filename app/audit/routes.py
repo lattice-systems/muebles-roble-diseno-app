@@ -22,6 +22,10 @@ def index():
     date_from_raw = request.args.get("date_from", "").strip()
     date_to_raw = request.args.get("date_to", "").strip()
     page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+    allowed_per_page = {10, 20, 50, 100}
+    if per_page not in allowed_per_page:
+        per_page = 10
 
     date_from = AuditService.parse_date(date_from_raw)
     date_to = AuditService.parse_date(date_to_raw)
@@ -35,7 +39,7 @@ def index():
         date_from=date_from,
         date_to=date_to,
         page=page,
-        per_page=20,
+        per_page=per_page,
     )
 
     options = AuditService.get_filter_options()
@@ -58,6 +62,7 @@ def index():
         user_id=user_id,
         date_from=date_from_raw,
         date_to=date_to_raw,
+        per_page=per_page,
         table_options=options["table_names"],
         action_options=action_options,
         source_options=source_options,

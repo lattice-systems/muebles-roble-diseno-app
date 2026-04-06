@@ -19,6 +19,10 @@ def index():
     date_from_raw = request.args.get("date_from", "").strip()
     date_to_raw = request.args.get("date_to", "").strip()
     page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+    allowed_per_page = {10, 20, 50, 100}
+    if per_page not in allowed_per_page:
+        per_page = 10
 
     date_from = SecurityAuditService.parse_date(date_from_raw)
     date_to = SecurityAuditService.parse_date(date_to_raw)
@@ -30,20 +34,30 @@ def index():
         date_from=date_from,
         date_to=date_to,
         page=page,
-        per_page=20,
+        per_page=per_page,
     )
 
     options = SecurityAuditService.get_filter_options()
+    logs = [SecurityAuditService.to_list_item(entry) for entry in pagination.items]
+    event_type_options = [
+        (value, SecurityAuditService.event_label(value))
+        for value in options["event_types"]
+    ]
+    result_options = [
+        (value, SecurityAuditService.result_label(value))
+        for value in options["results"]
+    ]
 
     return render_template(
         "admin/security_audit/index.html",
-        logs=pagination.items,
+        logs=logs,
         pagination=pagination,
         search_term=search_term,
         event_type=event_type,
         result=result,
         date_from=date_from_raw,
         date_to=date_to_raw,
-        event_type_options=options["event_types"],
-        result_options=options["results"],
+        per_page=per_page,
+        event_type_options=event_type_options,
+        result_options=result_options,
     )

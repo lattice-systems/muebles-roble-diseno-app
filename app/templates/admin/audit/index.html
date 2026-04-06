@@ -85,6 +85,16 @@
                  value="{{ date_to }}"
                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
         </div>
+        <div>
+          <label for="audit-per-page" class="sr-only">Resultados por pagina</label>
+          <select id="audit-per-page"
+                  name="per_page"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            {% for size in [10, 20, 50, 100] %}
+              <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} por pagina</option>
+            {% endfor %}
+          </select>
+        </div>
         <div class="flex items-center gap-2">
           <button type="submit"
                   class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
@@ -153,7 +163,8 @@
             'source': source,
             'user_id': user_id,
             'date_from': date_from,
-            'date_to': date_to
+            'date_to': date_to,
+            'per_page': per_page
             }) }}
     </div>
   </div>

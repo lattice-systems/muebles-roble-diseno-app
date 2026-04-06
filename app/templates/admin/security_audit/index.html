@@ -29,7 +29,8 @@
                   class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
             <option value="">Todos los eventos</option>
             {% for option in event_type_options %}
-              <option value="{{ option }}" {% if event_type == option %}selected{% endif %}>{{ option }}</option>
+              <option value="{{ option[0] }}"
+                      {% if event_type == option[0] %}selected{% endif %}>{{ option[1] }}</option>
             {% endfor %}
           </select>
         </div>
@@ -40,7 +41,8 @@
                   class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
             <option value="">Todos los resultados</option>
             {% for option in result_options %}
-              <option value="{{ option }}" {% if result == option %}selected{% endif %}>{{ option }}</option>
+              <option value="{{ option[0] }}"
+                      {% if result == option[0] %}selected{% endif %}>{{ option[1] }}</option>
             {% endfor %}
           </select>
         </div>
@@ -59,6 +61,16 @@
                  name="date_to"
                  value="{{ date_to }}"
                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
+        </div>
+        <div>
+          <label for="security-per-page" class="sr-only">Resultados por pagina</label>
+          <select id="security-per-page"
+                  name="per_page"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            {% for size in [10, 20, 50, 100] %}
+              <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} por pagina</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="flex items-center gap-2">
           <button type="submit"
@@ -85,8 +97,8 @@
             {% for entry in logs %}
               <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
                 <td class="px-6 py-4">{{ entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") if entry.timestamp else '-' }}</td>
-                <td class="px-6 py-4 text-heading font-medium">{{ entry.event_type }}</td>
-                <td class="px-6 py-4">{{ entry.result }}</td>
+                <td class="px-6 py-4 text-heading font-medium">{{ entry.event_label }}</td>
+                <td class="px-6 py-4">{{ entry.result_label }}</td>
                 <td class="px-6 py-4">{{ entry.email_or_identifier or ('Usuario #' ~ entry.user_id if entry.user_id else '-') }}</td>
                 <td class="px-6 py-4">{{ entry.ip_address or '-' }}</td>
                 <td class="px-6 py-4">{{ entry.reason or '-' }}</td>
@@ -106,7 +118,8 @@
             'event_type': event_type,
             'result': result,
             'date_from': date_from,
-            'date_to': date_to
+            'date_to': date_to,
+            'per_page': per_page
             }) }}
     </div>
   </div>

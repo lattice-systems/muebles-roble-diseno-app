@@ -9,6 +9,7 @@ from flask_login import user_logged_out
 from flask_security.signals import password_changed, user_authenticated
 
 from app.models.security_event_log import SecurityEventLog
+from app.rbac import _forbidden_response, _unauthorized_response
 from app.security_events import (
     LOGIN_BLOCKED_UNTIL_SESSION_KEY,
     LOGIN_ATTEMPTS_SESSION_KEY,
@@ -150,3 +151,32 @@ class TestSecurityEventLogging:
         ).first()
         assert unlock_event is not None
         assert unlock_event.email_or_identifier == "unlock@test.com"
+
+    def test_rbac_forbidden_is_logged(self, app, db_session):
+        with app.test_request_context(
+            "/admin/users", method="POST", headers={"Accept": "application/json"}
+        ):
+            response, status_code = _forbidden_response(
+                message="No autorizado", endpoint="users.create_user"
+            )
+
+            assert status_code == 403
+            assert response.json["error"]["code"] == 403
+
+        denied_event = SecurityEventLog.query.filter_by(
+            event_type="auth.rbac.denied"
+        ).first()
+        assert denied_event is not None
+        assert denied_event.reason == "No autorizado"
+        assert denied_event.context_data.get("endpoint") == "users.create_user"
+
+    def test_rbac_unauthorized_is_logged(self, app, db_session):
+        with app.test_request_context("/admin/reports", method="GET"):
+            response = _unauthorized_response()
+            assert response.status_code == 302
+
+        event = SecurityEventLog.query.filter_by(
+            event_type="auth.unauthenticated.access", source="rbac_guard"
+        ).first()
+        assert event is not None
+        assert event.context_data.get("path") == "/admin/reports"

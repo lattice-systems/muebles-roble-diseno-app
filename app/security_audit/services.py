@@ -10,6 +10,25 @@ from app.models.security_event_log import SecurityEventLog
 class SecurityAuditService:
     """Servicio para filtros y consultas de security_event_log."""
 
+    EVENT_LABELS = {
+        "auth.login.success": "Inicio de sesion exitoso",
+        "auth.login.failed": "Intento de inicio de sesion fallido",
+        "auth.logout": "Cierre de sesion",
+        "auth.password.changed": "Cambio de contrasena",
+        "auth.password.reset.completed": "Restablecimiento de contrasena",
+        "auth.unauthenticated.access": "Intento de acceso sin autenticar",
+        "auth.account.locked": "Cuenta bloqueada por intentos",
+        "auth.account.unlocked.auto": "Desbloqueo automatico de cuenta",
+        "auth.rbac.denied": "Acceso denegado por permisos",
+    }
+
+    RESULT_LABELS = {
+        "success": "Exito",
+        "denied": "Denegado",
+        "info": "Informativo",
+        "error": "Error",
+    }
+
     @staticmethod
     def parse_date(value: str | None) -> date | None:
         if not value:
@@ -80,3 +99,32 @@ class SecurityAuditService:
             if row[0]
         ]
         return {"event_types": event_types, "results": results}
+
+    @staticmethod
+    def event_label(code: str | None) -> str:
+        key = (code or "").strip()
+        if not key:
+            return "Evento no definido"
+        return SecurityAuditService.EVENT_LABELS.get(key, key)
+
+    @staticmethod
+    def result_label(code: str | None) -> str:
+        key = (code or "").strip().lower()
+        if not key:
+            return "No definido"
+        return SecurityAuditService.RESULT_LABELS.get(key, key.capitalize())
+
+    @staticmethod
+    def to_list_item(entry: SecurityEventLog) -> dict:
+        return {
+            "id": entry.id,
+            "timestamp": entry.timestamp,
+            "event_type": entry.event_type,
+            "event_label": SecurityAuditService.event_label(entry.event_type),
+            "result": entry.result,
+            "result_label": SecurityAuditService.result_label(entry.result),
+            "email_or_identifier": entry.email_or_identifier,
+            "user_id": entry.user_id,
+            "ip_address": entry.ip_address,
+            "reason": entry.reason,
+        }
