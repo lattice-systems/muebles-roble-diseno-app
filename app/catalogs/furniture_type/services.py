@@ -68,6 +68,8 @@ class FurnitureTypeService:
         Crea un nuevo tipo de mueble en el catálogo.
         """
         title = (data.get("title") or "").strip()
+        subtitle = (data.get("subtitle") or "").strip() or None
+        image_url = (data.get("image_url") or "").strip() or None
 
         if not title:
             raise ValidationError("El titulo del tipo de mueble es requerido")
@@ -81,6 +83,8 @@ class FurnitureTypeService:
 
         furniture_type = FurnitureType(
             title=title,
+            subtitle=subtitle,
+            image_url=image_url,
             slug=slug,
             status=data.get("status", True),
         )
@@ -124,6 +128,17 @@ class FurnitureTypeService:
         if not title:
             raise ValidationError("El titulo del mueble es requerido")
 
+        subtitle = (
+            (data.get("subtitle") or "").strip() or None
+            if "subtitle" in data
+            else furniture_type.subtitle
+        )
+        image_url = (
+            (data.get("image_url") or "").strip() or None
+            if "image_url" in data
+            else furniture_type.image_url
+        )
+
         existing = FurnitureType.query.filter(
             FurnitureType.title == title,
             FurnitureType.id != id_furniture_type,
@@ -138,6 +153,8 @@ class FurnitureTypeService:
         )
 
         furniture_type.title = title
+        furniture_type.subtitle = subtitle
+        furniture_type.image_url = image_url
         furniture_type.slug = slug
         if "status" in data:
             furniture_type.status = data["status"]

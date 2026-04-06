@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_required
+from flask_security import auth_required
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -34,7 +34,7 @@ def save_product_images(product, files):
 
 
 @products_bp.route("/")
-@login_required
+@auth_required()
 def index():
     page = request.args.get("page", 1, type=int)
     search_term = request.args.get("q", "", type=str).strip()
@@ -68,7 +68,7 @@ def index():
 
 
 @products_bp.route("/create", methods=["GET", "POST"])
-@login_required
+@auth_required()
 def create():
     form = ProductForm()
 
@@ -109,7 +109,7 @@ def create():
 
 
 @products_bp.route("/<int:product_id>")
-@login_required
+@auth_required()
 def details(product_id):
     product = get_product_by_id(product_id)
     inventory = ProductInventory.query.filter_by(product_id=product.id).first()
@@ -119,7 +119,7 @@ def details(product_id):
 
 
 @products_bp.route("/<int:product_id>/edit", methods=["GET", "POST"])
-@login_required
+@auth_required()
 def edit(product_id):
     product = get_product_by_id(product_id)
     form = ProductForm(obj=product)
@@ -166,7 +166,7 @@ def edit(product_id):
 
 
 @products_bp.route("/<int:product_id>/toggle-status", methods=["POST"])
-@login_required
+@auth_required()
 def change_status(product_id):
     product = get_product_by_id(product_id)
     toggle_product_status(product)
@@ -176,7 +176,7 @@ def change_status(product_id):
 
 
 @products_bp.route("/bulk-action", methods=["POST"])
-@login_required
+@auth_required()
 def bulk_action_products():
     import csv
     from io import StringIO
@@ -289,7 +289,7 @@ def bulk_action_products():
 
 
 @products_bp.route("/images/<int:image_id>/delete", methods=["POST"])
-@login_required
+@auth_required()
 def delete_image(image_id):
     image = ProductImage.query.get_or_404(image_id)
     product_id = image.product_id

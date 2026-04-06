@@ -1,219 +1,273 @@
 <!-- Modal Editar Cliente -->
-<div id="editCustomerModal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
-    <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
-            <!-- Header -->
-            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
-                <h3 class="text-xl font-bold text-heading dark:text-white">
-                    Editar Cliente
-                </h3>
-                <button type="button" id="closeEditCustomerModal"
-                    class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors">
-                    <svg class="w-3 h-3 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Cerrar</span>
-                </button>
+<div id="editCustomerModal"
+     tabindex="-1"
+     aria-hidden="true"
+     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+  <div class="relative p-4 w-full max-w-2xl max-h-full">
+    <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
+        <h3 class="text-xl font-bold text-heading dark:text-white">Editar Cliente</h3>
+        <button type="button"
+                id="closeEditCustomerModal"
+                class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors">
+          <svg class="w-3 h-3 pointer-events-none"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Cerrar</span>
+        </button>
+      </div>
+      <!-- Body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <form id="editCustomerForm" action="#">
+          <input type="hidden" id="edit_customer_id" name="id">
+          <div class="grid gap-4 mb-4 sm:grid-cols-2">
+            <div>
+              <label for="edit_customer_first_name"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Nombre(s) <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="first_name"
+                     id="edit_customer_first_name"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Juan"
+                     required="">
             </div>
-            <!-- Body -->
-            <div class="p-4 md:p-5 space-y-4">
-                <form id="editCustomerForm" action="#">
-                    <input type="hidden" id="edit_customer_id" name="id">
-                    <div class="grid gap-4 mb-4 sm:grid-cols-2">
-                        <div>
-                            <label for="edit_customer_first_name"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Nombre(s) <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="first_name" id="edit_customer_first_name"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Juan" required="">
-                        </div>
-                        <div>
-                            <label for="edit_customer_last_name"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Apellidos <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="last_name" id="edit_customer_last_name"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Pérez" required="">
-                        </div>
-                        <div>
-                            <label for="edit_customer_email"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Correo Electrónico
-                                <span class="text-danger-strong">*</span></label>
-                            <input type="email" name="email" id="edit_customer_email"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="correo@ejemplo.com" required="">
-                        </div>
-                        <div>
-                            <label for="edit_customer_phone"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Teléfono <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="number" name="phone" id="edit_customer_phone"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. 1234567890" required="">
-                        </div>
-
-                        <!-- Freight toggle -->
-                        <div class="sm:col-span-2 mt-2 border-t border-default pt-4">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="edit_customer_requires_freight" name="requires_freight"
-                                    class="sr-only peer">
-                                <div
-                                    class="relative w-11 h-6 bg-neutral-secondary-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-medium rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
-                                </div>
-                                <span class="ms-3 text-sm font-medium text-heading dark:text-white">¿Requiere
-                                    flete?</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Freight specific fields -->
-                    <div id="editFreightFieldsContainer"
-                        class="hidden grid gap-4 mb-4 sm:grid-cols-2 bg-neutral-secondary-soft p-4 rounded-base border border-default-medium">
-                        <div class="sm:col-span-2">
-                            <h4 class="text-sm font-bold text-heading dark:text-white">Detalles de envío</h4>
-                            <p class="text-xs text-body mb-2 dark:text-neutral-secondary">Dirección para el envío por flete.</p>
-                        </div>
-                        <div>
-                            <label for="edit_customer_zip_code"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Código Postal <span
-                                    class="text-danger-strong">*</span></label>
-                            <div class="relative">
-                                <input type="text" name="zip_code" id="edit_customer_zip_code" maxlength="5"
-                                    class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                    placeholder="Ej. 64000">
-                                <div id="editCpSpinner" class="hidden absolute inset-y-0 end-0 flex items-center pe-3">
-                                    <svg aria-hidden="true" class="w-4 h-4 text-body animate-spin" viewBox="0 0 100 101"
-                                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                                            fill="currentColor" />
-                                        <path
-                                            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                                            fill="#3B82F6" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="edit_customer_state"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Estado <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="state" id="edit_customer_state"
-                                class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Nuevo León">
-                        </div>
-                        <div>
-                            <label for="edit_customer_city"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Ciudad <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="city" id="edit_customer_city"
-                                class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Monterrey">
-                        </div>
-                        <div id="editNeighborhoodWrapper">
-                            <label for="edit_customer_neighborhood"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Colonia <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="neighborhood" id="edit_customer_neighborhood"
-                                class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Centro">
-                            <select name="neighborhood_select" id="edit_customer_neighborhood_select"
-                                class="hidden edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
-                                <option value="">Seleccione una colonia</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label for="edit_customer_street"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Calle <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="street" id="edit_customer_street"
-                                class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Av. Juárez">
-                        </div>
-                        <div>
-                            <label for="edit_customer_ext_num"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm. Exterior <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="exterior_number" id="edit_customer_ext_num"
-                                class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. 123">
-                        </div>
-                        <div>
-                            <label for="edit_customer_int_num"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm. Interior
-                                (Opcional)</label>
-                            <input type="text" name="interior_number" id="edit_customer_int_num"
-                                class="bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. A">
-                        </div>
-                        <!-- CP Info/Error alert -->
-                        <div id="editCpInfoAlert"
-                            class="sm:col-span-2 hidden flex items-center p-3 text-sm rounded-base shadow-xs"
-                            role="alert">
-                            <svg class="w-4 h-4 shrink-0 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                            <span id="editCpInfoAlertMessage"></span>
-                        </div>
-                    </div>
-
-                    <div id="editCustomerErrorBox"
-                        class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs"
-                        role="alert">
-                        <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span class="sr-only">Error</span>
-                        <div class="ms-2 text-sm" id="editCustomerErrorMessage"></div>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" id="closeEditCustomerModalBtn"
-                            class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none transition-colors">
-                            Cancelar
-                        </button>
-                        <button type="submit" id="btnGuardarEdicion"
-                            class="text-white inline-flex items-center bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-sm px-5 py-2.5 text-center transition-colors">
-                            <svg class="mr-1 -ml-1 w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m5 12 4.7 4.5 9.3-9" />
-                            </svg>
-                            Guardar Cambios
-                        </button>
-                    </div>
-                </form>
+            <div>
+              <label for="edit_customer_last_name"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Apellidos <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="last_name"
+                     id="edit_customer_last_name"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Pérez"
+                     required="">
             </div>
-        </div>
+            <div>
+              <label for="edit_customer_email"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Correo Electrónico
+                <span class="text-danger-strong">*</span>
+              </label>
+              <input type="email"
+                     name="email"
+                     id="edit_customer_email"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="correo@ejemplo.com"
+                     required="">
+            </div>
+            <div>
+              <label for="edit_customer_phone"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Teléfono <span class="text-danger-strong">*</span>
+              </label>
+              <input type="number"
+                     name="phone"
+                     id="edit_customer_phone"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. 1234567890"
+                     required="">
+            </div>
+            <!-- Freight toggle -->
+            <div class="sm:col-span-2 mt-2 border-t border-default pt-4">
+              <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox"
+                       id="edit_customer_requires_freight"
+                       name="requires_freight"
+                       class="sr-only peer">
+                <div class="relative w-11 h-6 bg-neutral-secondary-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-medium rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
+                </div>
+                <span class="ms-3 text-sm font-medium text-heading dark:text-white">¿Requiere
+                flete?</span>
+              </label>
+            </div>
+          </div>
+          <!-- Freight specific fields -->
+          <div id="editFreightFieldsContainer"
+               class="hidden grid gap-4 mb-4 sm:grid-cols-2 bg-neutral-secondary-soft p-4 rounded-base border border-default-medium">
+            <div class="sm:col-span-2">
+              <h4 class="text-sm font-bold text-heading dark:text-white">Detalles de envío</h4>
+              <p class="text-xs text-body mb-2 dark:text-neutral-secondary">Dirección para el envío por flete.</p>
+            </div>
+            <div>
+              <label for="edit_customer_zip_code"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Código Postal <span class="text-danger-strong">*</span>
+              </label>
+              <div class="relative">
+                <input type="text"
+                       name="zip_code"
+                       id="edit_customer_zip_code"
+                       maxlength="5"
+                       class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                       placeholder="Ej. 64000">
+                <div id="editCpSpinner"
+                     class="hidden absolute inset-y-0 end-0 flex items-center pe-3">
+                  <svg aria-hidden="true"
+                       class="w-4 h-4 text-body animate-spin"
+                       viewBox="0 0 100 101"
+                       fill="none"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#3B82F6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label for="edit_customer_state"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Estado <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="state"
+                     id="edit_customer_state"
+                     class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Nuevo León">
+            </div>
+            <div>
+              <label for="edit_customer_city"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Ciudad <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="city"
+                     id="edit_customer_city"
+                     class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Monterrey">
+            </div>
+            <div id="editNeighborhoodWrapper">
+              <label for="edit_customer_neighborhood"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Colonia <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="neighborhood"
+                     id="edit_customer_neighborhood"
+                     class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Centro">
+              <select name="neighborhood_select"
+                      id="edit_customer_neighborhood_select"
+                      class="hidden edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
+                <option value="">Seleccione una colonia</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="edit_customer_street"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Calle <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="street"
+                     id="edit_customer_street"
+                     class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Av. Juárez">
+            </div>
+            <div>
+              <label for="edit_customer_ext_num"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Núm. Exterior <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="exterior_number"
+                     id="edit_customer_ext_num"
+                     class="edit-freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. 123">
+            </div>
+            <div>
+              <label for="edit_customer_int_num"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Núm. Interior
+                (Opcional)
+              </label>
+              <input type="text"
+                     name="interior_number"
+                     id="edit_customer_int_num"
+                     class="bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. A">
+            </div>
+            <!-- CP Info/Error alert -->
+            <div id="editCpInfoAlert"
+                 class="sm:col-span-2 hidden flex items-center p-3 text-sm rounded-base shadow-xs"
+                 role="alert">
+              <svg class="w-4 h-4 shrink-0 me-2"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   width="24"
+                   height="24"
+                   fill="none"
+                   viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              <span id="editCpInfoAlertMessage"></span>
+            </div>
+          </div>
+          <div id="editCustomerErrorBox"
+               class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs"
+               role="alert">
+            <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span class="sr-only">Error</span>
+            <div class="ms-2 text-sm" id="editCustomerErrorMessage"></div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button"
+                    id="closeEditCustomerModalBtn"
+                    class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none transition-colors">
+              Cancelar
+            </button>
+            <button type="submit"
+                    id="btnGuardarEdicion"
+                    class="text-white inline-flex items-center bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-sm px-5 py-2.5 text-center transition-colors">
+              <svg class="mr-1 -ml-1 w-5 h-5"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   width="24"
+                   height="24"
+                   fill="none"
+                   viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4.7 4.5 9.3-9" />
+              </svg>
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const editFreightCheckbox = document.getElementById('edit_customer_requires_freight');
         const editFreightContainer = document.getElementById('editFreightFieldsContainer');
         const editFreightInputs = document.querySelectorAll('.edit-freight-input');
 
         if (editFreightCheckbox) {
-            editFreightCheckbox.addEventListener('change', function () {
+            editFreightCheckbox.addEventListener('change', function() {
                 if (this.checked) {
                     editFreightContainer.classList.remove('hidden');
-                    editFreightInputs.forEach(function (input) {
+                    editFreightInputs.forEach(function(input) {
                         if (input.id !== 'edit_customer_neighborhood_select') {
                             input.setAttribute('required', 'required');
                         }
                     });
                 } else {
                     editFreightContainer.classList.add('hidden');
-                    editFreightInputs.forEach(function (input) {
+                    editFreightInputs.forEach(function(input) {
                         input.removeAttribute('required');
                     });
                     editCpResetAddressFields();
@@ -273,7 +327,7 @@
             editNeighborhoodInput.value = '';
 
             editNeighborhoodSelect.innerHTML = '<option value="">Seleccione una colonia</option>';
-            colonias.forEach(function (col) {
+            colonias.forEach(function(col) {
                 const opt = document.createElement('option');
                 opt.value = col;
                 opt.textContent = col;
@@ -322,7 +376,7 @@
         }
 
         if (editCpInput) {
-            editCpInput.addEventListener('input', function () {
+            editCpInput.addEventListener('input', function() {
                 this.value = this.value.replace(/\D/g, '').slice(0, 5);
 
                 clearTimeout(editCpDebounceTimer);
@@ -337,7 +391,7 @@
                     return;
                 }
 
-                editCpDebounceTimer = setTimeout(function () {
+                editCpDebounceTimer = setTimeout(function() {
                     editCpLookup(cp);
                 }, 400);
             });
@@ -349,7 +403,8 @@
             editCpShowAlert('Buscando código postal...', 'info');
 
             try {
-                const res = await fetch('/sales/api/cp/' + cp);
+                const cpLookupUrl = "{{ url_for('sales.lookup_cp', cp='00000') }}".replace('00000', cp);
+                const res = await fetch(cpLookupUrl);
                 const data = await res.json();
 
                 if (res.ok && !data.error) {
@@ -367,12 +422,13 @@
                 editCpSpinner.classList.remove('flex');
             }
         }
-        
+
         // Exponer la función editCpLookup globalmente si necesitan llamarla al abrir el modal con un CP preexistente
         window.triggerEditCpLookup = function(cp, currentNeighborhood) {
             if (cp && cp.length === 5 && !isNaN(cp)) {
                 // Al abrir el modal, poblamos las opciones si el CP es válido
-                fetch('/sales/api/cp/' + cp).then(res => res.json()).then(data => {
+                const cpLookupUrl = "{{ url_for('sales.lookup_cp', cp='00000') }}".replace('00000', cp);
+                fetch(cpLookupUrl).then(res => res.json()).then(data => {
                     if (!data.error) {
                         editCpSetAutoMode(data.estado, data.municipio, data.colonias || []);
                         if (currentNeighborhood) {

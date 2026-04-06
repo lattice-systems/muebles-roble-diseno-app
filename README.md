@@ -159,11 +159,115 @@ http://127.0.0.1:5000
 
 ---
 
-## 🧪 Ejecutar Pruebas (Opcional)
+## 🌱 Datos Iniciales (Seeds)
+
+El dataset inicial oficial de categorias, productos, colores, tipos de madera, BOM y costos se define en:
+
+- `docs/INITIAL_SEED_BLUEPRINT.md`
+
+Orden recomendado de siembra:
 
 ```bash
-pytest
+venv/bin/python scripts/seed_units.py
+venv/bin/python scripts/seed_raw_materials.py
+venv/bin/python scripts/seed_wood_types.py
+venv/bin/python scripts/seed_products.py
+venv/bin/python scripts/seed_product_colors.py
+venv/bin/python scripts/seed_payment_methods.py
+venv/bin/python scripts/seed_purchase.py
+venv/bin/python scripts/seed_bom.py
+venv/bin/python scripts/seed_inventory.py
+venv/bin/python scripts/seed_users_by_role.py
 ```
+
+Opción rápida (una sola corrida):
+
+```bash
+venv/bin/python scripts/seed_all.py
+```
+
+Opcional (si no quieres crear usuarios RBAC en esa corrida):
+
+```bash
+venv/bin/python scripts/seed_all.py --without-users
+```
+
+Notas:
+
+- Los scripts estan disenados para ser idempotentes en entorno de desarrollo.
+- `Muebles personalizados` permanece como categoria activa sin productos iniciales (intencional).
+- El costo de fabricacion depende de la cadena `BOM + purchase_order_items`.
+
+---
+
+## 🧪 Pruebas y Cobertura
+
+El proyecto incluye una suite completa de pruebas automatizadas con **138 tests** organizados en tres niveles:
+
+| Tipo | Directorio | Propósito |
+|------|-----------|-----------|
+| **Unitarias** | `tests/unit/` | Lógica de negocio de services y modelos |
+| **Integración** | `tests/integration/` | Rutas HTTP, protección de autenticación |
+| **E2E** | `tests/e2e/` | Flujos completos multi-paso (checkout) |
+
+### ▶️ Cómo Ejecutar las Pruebas
+
+> **Importante:** Siempre activar el entorno virtual antes de ejecutar pruebas.
+
+```bash
+# Activar entorno virtual
+source venv/bin/activate        # Linux/Mac
+venv\Scripts\activate           # Windows
+
+# Ejecutar todas las pruebas
+python -m pytest tests/ -v
+
+# Ejecutar solo un tipo de prueba
+python -m pytest tests/unit/ -v           # Solo unitarias
+python -m pytest tests/integration/ -v    # Solo integración
+python -m pytest tests/e2e/ -v            # Solo E2E
+
+# Ejecutar un archivo específico
+python -m pytest tests/unit/test_inventory_service.py -v
+```
+
+### 📊 Cobertura de Código (Coverage)
+
+```bash
+# Ejecutar con reporte de cobertura en terminal
+python -m pytest tests/ -v --cov=app --cov-report=term-missing
+
+# Generar reporte HTML interactivo
+python -m pytest tests/ --cov=app --cov-report=html
+```
+
+Después del último comando, abrir `htmlcov/index.html` en el navegador para ver el reporte visual de cobertura línea por línea.
+
+### 📁 Estructura de Tests
+
+```
+tests/
+├── conftest.py                             # Fixtures compartidas (app, DB, seed data)
+├── unit/
+│   ├── test_inventory_service.py           # InventoryService (descuento de stock)
+│   ├── test_ecommerce_service.py           # EcommerceService (carrito, IVA, checkout)
+│   ├── test_sale_service.py                # SaleService POS (ventas, items, clientes)
+│   ├── test_customer_order_service.py      # CustomerOrderService (órdenes, estados)
+│   └── test_models.py                      # Modelos (serialización, propiedades)
+├── integration/
+│   ├── test_ecommerce_routes.py            # Rutas ecommerce (páginas, carrito, API)
+│   └── test_admin_routes.py                # Panel admin (auth, POS API, órdenes)
+└── e2e/
+    └── test_ecommerce_checkout_flow.py     # Flujo completo de compra
+```
+
+### ⚙️ Configuración de Tests
+
+Los tests usan **SQLite in-memory** (no requieren MySQL). La configuración está en:
+
+- `config.py` → clase `TestingConfig`
+- `pyproject.toml` → secciones `[tool.pytest]` y `[tool.coverage]`
+- `tests/conftest.py` → fixtures de app, base de datos y datos semilla
 
 ---
 
@@ -207,7 +311,15 @@ El proyecto utiliza **GitHub Actions** para ejecutar estos checks automáticamen
 - ✅ Pull Requests a `main` o `dev`
 - ✅ Push de tags semánticos `vX.Y.Z` (ejemplo: `v1.2.0`)
 
-El workflow se define en `.github/workflows/ci.yml`.
+El workflow (`.github/workflows/ci.yml`) ejecuta **3 jobs en paralelo**:
+
+| Job | Qué hace |
+|-----|----------|
+| **Code Quality** | Black, Ruff, Mypy, djLint |
+| **Security** | Bandit (análisis de seguridad) |
+| **Tests & Coverage** | `pytest` con cobertura mínima del 40% |
+
+Los reportes de cobertura HTML y resultados JUnit XML se suben como **artifacts** descargables desde la pestaña Actions de GitHub.
 
 Adicionalmente, al hacer push de un tag `vX.Y.Z`, se crea un **GitHub Release** automáticamente mediante `.github/workflows/release.yml`.
 
@@ -310,11 +422,17 @@ muebles-roble-diseno-app/
 │   ├── ARCHITECTURE.md           # Documentación de arquitectura
 │   └── CODING_CONVENTIONS.md     # Convenciones de código
 │
-├── config.py                     # Configuración del proyecto
+├── config.py                     # Configuración del proyecto (Config, TestingConfig)
 ├── run.py                        # Punto de entrada de la aplicación
 ├── requirements.txt              # Dependencias del proyecto
 ├── .env                          # Variables de entorno (no versionar)
 ├── .env-template                 # Plantilla de variables de entorno
+├── tests/                        # Suite de pruebas automatizadas
+│   ├── conftest.py               # Fixtures compartidas
+│   ├── unit/                     # Pruebas unitarias (services, models)
+│   ├── integration/              # Pruebas de integración (rutas HTTP)
+│   └── e2e/                      # Pruebas end-to-end (flujos completos)
+├── htmlcov/                      # Reportes de cobertura HTML (no versionar)
 └── README.md
 ```
 
@@ -407,6 +525,7 @@ Navegador Web
 | [🛠️ Herramientas de Desarrollo](docs/DEVELOPMENT_TOOLS.md) | Herramientas de calidad, CI/CD y pre-commit        |
 | [📐 Arquitectura](docs/ARCHITECTURE.md)                 | Documentación detallada de la arquitectura en capas |
 | [📋 Convenciones de Código](docs/CODING_CONVENTIONS.md) | Estándares y convenciones de desarrollo             |
+| [🔐 RBAC](docs/RBAC.md)                                 | Matriz de permisos, utilidades y enforcement global |
 
 ---
 

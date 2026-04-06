@@ -1,0 +1,66 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Detalle Evento de Acceso
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Detalle de evento de acceso" %}
+    {% set admin_header_subtitle = "Revision puntual de un evento de autenticacion o bloqueo." %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="flex items-center">
+      <a href="{{ url_for('security_audit.index') }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+        Regresar a eventos de acceso
+      </a>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-sm">
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">ID evento</span>
+        <p class="text-heading font-medium">{{ detail.id }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">Evento</span>
+        <p class="text-heading font-medium">{{ detail.event_label }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">Resultado</span>
+        <p class="text-heading font-medium">{{ detail.result_label }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">Usuario/Identificador</span>
+        <p class="text-heading font-medium">
+          {{ detail.email_or_identifier or ('Usuario #' ~ detail.user_id if detail.user_id else '-') }}
+        </p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">IP</span>
+        <p class="text-heading font-medium">{{ detail.ip_address or '-' }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">User agent</span>
+        <p class="text-heading font-medium whitespace-normal">{{ detail.user_agent or '-' }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">Fuente</span>
+        <p class="text-heading font-medium">{{ detail.source or '-' }}</p>
+      </div>
+      <div>
+        <span class="text-body text-xs uppercase tracking-wide">Timestamp</span>
+        <p class="text-heading font-medium">
+          {{ detail.timestamp.strftime("%Y-%m-%d %H:%M:%S") if detail.timestamp else '-' }}
+        </p>
+      </div>
+      <div class="md:col-span-2 xl:col-span-4">
+        <span class="text-body text-xs uppercase tracking-wide">Motivo</span>
+        <p class="text-heading font-medium">{{ detail.reason or '-' }}</p>
+      </div>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-3">
+      <details>
+        <summary class="cursor-pointer text-sm font-semibold text-heading">Ver contexto técnico (JSON)</summary>
+        <pre class="mt-3 p-4 text-xs 2xl:text-sm text-body overflow-auto max-h-112 bg-neutral-secondary-soft border border-default rounded-base">{{ detail.context_data | tojson(indent=2) if detail.context_data else 'null' }}</pre>
+      </details>
+    </div>
+  </div>
+{% endblock content %}

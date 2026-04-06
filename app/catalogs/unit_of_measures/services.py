@@ -7,8 +7,8 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.unit_of_measure import UnitOfMeasure
-from app.models.audit_log import AuditLog
 from app.exceptions import ConflictError, ValidationError, NotFoundError
+from app.shared.audit_logging import log_application_audit
 
 
 class UnitOfMeasureService:
@@ -90,14 +90,12 @@ class UnitOfMeasureService:
         try:
             db.session.commit()
 
-            # Registrar auditoría
-            audit = AuditLog(
+            # Registrar auditoria de aplicacion (fallback fuera de MySQL)
+            log_application_audit(
                 table_name="units",
                 action="CREATE",
-                user_id=None,
                 new_data=unit_of_measure.to_dict(),
             )
-            db.session.add(audit)
             db.session.commit()
 
         except IntegrityError:
@@ -131,7 +129,9 @@ class UnitOfMeasureService:
         """Obtiene multiples unidades de medida por IDs."""
         if not ids:
             return []
-        return UnitOfMeasure.query.filter(UnitOfMeasure.id_unit_of_measure.in_(ids)).all()
+        return UnitOfMeasure.query.filter(
+            UnitOfMeasure.id_unit_of_measure.in_(ids)
+        ).all()
 
     @staticmethod
     def update(id_unit_of_measure: int, data: dict) -> dict:
@@ -188,15 +188,13 @@ class UnitOfMeasureService:
         try:
             db.session.commit()
 
-            # Registrar auditoría
-            audit = AuditLog(
+            # Registrar auditoria de aplicacion (fallback fuera de MySQL)
+            log_application_audit(
                 table_name="units",
                 action="UPDATE",
-                user_id=None,
                 previous_data=previous_data,
                 new_data=unit_of_measure.to_dict(),
             )
-            db.session.add(audit)
             db.session.commit()
 
         except IntegrityError:
@@ -225,15 +223,13 @@ class UnitOfMeasureService:
 
         db.session.commit()
 
-        # Registrar auditoría
-        audit = AuditLog(
+        # Registrar auditoria de aplicacion (fallback fuera de MySQL)
+        log_application_audit(
             table_name="units",
             action="TOGGLE_STATUS",
-            user_id=None,
             previous_data=previous_data,
             new_data=unit_of_measure.to_dict(),
         )
-        db.session.add(audit)
         db.session.commit()
 
     @staticmethod
@@ -247,13 +243,10 @@ class UnitOfMeasureService:
         for unit in units:
             previous_data = unit.to_dict()
             unit.status = target_status
-            db.session.add(
-                AuditLog(
-                    table_name="units",
-                    action="BULK_UPDATE_STATUS",
-                    user_id=None,
-                    previous_data=previous_data,
-                    new_data=unit.to_dict(),
-                )
+            log_application_audit(
+                table_name="units",
+                action="BULK_UPDATE_STATUS",
+                previous_data=previous_data,
+                new_data=unit.to_dict(),
             )
         db.session.commit()

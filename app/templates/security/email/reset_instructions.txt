@@ -1,0 +1,13 @@
+Roble y Diseno - Recuperacion de contrasena
+
+Hola {{ user.full_name if user and user.full_name else "usuario" }},
+
+Recibimos una solicitud para restablecer la contrasena de tu cuenta.
+
+Cuenta: {{ user.email if user and user.email else "N/D" }}
+Accion: Restablecer contrasena
+
+Usa este enlace para completar el proceso:
+{{ reset_link }}
+
+Si no solicitaste este cambio, ignora este correo.

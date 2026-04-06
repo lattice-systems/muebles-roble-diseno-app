@@ -8,12 +8,12 @@ from sqlalchemy.orm import joinedload
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.extensions import db
-from app.models.audit_log import AuditLog
 from app.models.purchase_order import PurchaseOrder
 from app.models.purchase_order_item import PurchaseOrderItem
 from app.models.raw_material import RawMaterial
 from app.models.raw_material_movement import RawMaterialMovement
 from app.models.supplier import Supplier
+from app.shared.audit_logging import log_application_audit
 
 
 class PurchaseOrderService:
@@ -21,14 +21,13 @@ class PurchaseOrderService:
 
     @staticmethod
     def _log_audit(action: str, previous: dict | None, new: dict | None) -> None:
-        """Registra un cambio en la tabla audit_log."""
-        entry = AuditLog(
+        """Registra auditoria de aplicacion (fallback fuera de MySQL)."""
+        log_application_audit(
             table_name="purchase_orders",
             action=action,
             previous_data=previous,
             new_data=new,
         )
-        db.session.add(entry)
 
     @staticmethod
     def get_supplier_choices(

@@ -1,385 +1,430 @@
 <!-- Main modal -->
-<div id="customerModal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
-    <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
-            <!-- Modal header -->
-            <div
-                class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
-                <h3 class="text-xl font-bold text-heading dark:text-white">
-                    Registrar Cliente
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors"
-                    data-modal-toggle="customerModal">
-                    <svg class="w-3 h-3 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
+<div id="customerModal"
+     tabindex="-1"
+     aria-hidden="true"
+     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+  <div class="relative p-4 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-default">
+        <h3 class="text-xl font-bold text-heading dark:text-white">Registrar Cliente</h3>
+        <button type="button"
+                class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors"
+                data-modal-toggle="customerModal">
+          <svg class="w-3 h-3 pointer-events-none"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <form id="customerRegistrationForm" action="#">
+          <div class="grid gap-4 mb-4 sm:grid-cols-2">
+            <div>
+              <label for="new_customer_first_name"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Nombre(s) <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="first_name"
+                     id="new_customer_first_name"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Juan"
+                     required="">
             </div>
-            <!-- Modal body -->
-            <div class="p-4 md:p-5 space-y-4">
-                <form id="customerRegistrationForm" action="#">
-                    <div class="grid gap-4 mb-4 sm:grid-cols-2">
-                        <div>
-                            <label for="new_customer_first_name"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Nombre(s) <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="first_name" id="new_customer_first_name"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Juan" required="">
-                        </div>
-                        <div>
-                            <label for="new_customer_last_name"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Apellidos <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="last_name" id="new_customer_last_name"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Pérez" required="">
-                        </div>
-                        <div>
-                            <label for="new_customer_email"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Correo Electrónico
-                                <span class="text-danger-strong">*</span></label>
-                            <input type="email" name="email" id="new_customer_email"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="correo@ejemplo.com" required="">
-                        </div>
-                        <div>
-                            <label for="new_customer_phone"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Teléfono <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="number" name="phone" id="new_customer_phone"
-                                class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. 1234567890" required="">
-                        </div>
+            <div>
+              <label for="new_customer_last_name"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Apellidos <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="last_name"
+                     id="new_customer_last_name"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Pérez"
+                     required="">
+            </div>
+            <div>
+              <label for="new_customer_email"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Correo Electrónico
+                <span class="text-danger-strong">*</span>
+              </label>
+              <input type="email"
+                     name="email"
+                     id="new_customer_email"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="correo@ejemplo.com"
+                     required="">
+            </div>
+            <div>
+              <label for="new_customer_phone"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Teléfono <span class="text-danger-strong">*</span>
+              </label>
+              <input type="number"
+                     name="phone"
+                     id="new_customer_phone"
+                     class="bg-neutral-primary-soft border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. 1234567890"
+                     required="">
+            </div>
+            <!-- Freight check -->
+            <div class="sm:col-span-2 mt-2 border-t border-default pt-4">
+              <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox"
+                       id="new_customer_requires_freight"
+                       name="requires_freight"
+                       class="sr-only peer">
+                <div class="relative w-11 h-6 bg-neutral-secondary-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-medium rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
+                </div>
+                <span class="ms-3 text-sm font-medium text-heading dark:text-white">¿Requiere
+                flete?</span>
+              </label>
+            </div>
+          </div>
+          <!-- Freight specific fields (Hidden by default) -->
+          <div id="freightFieldsContainer"
+               class="hidden grid gap-4 mb-4 sm:grid-cols-2 bg-neutral-secondary-soft p-4 rounded-base border border-default-medium">
+            <div class="sm:col-span-2">
+              <h4 class="text-sm font-bold text-heading dark:text-white">Detalles de envío</h4>
+              <p class="text-xs text-body mb-2 dark:text-neutral-secondary">
+                Complete la dirección para el
+                envío por flete. Ingrese un código postal válido para autocompletar.
+              </p>
+            </div>
+            <!-- CP + loading spinner -->
+            <div>
+              <label for="new_customer_zip_code"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Código Postal <span class="text-danger-strong">*</span>
+              </label>
+              <div class="relative">
+                <input type="text"
+                       name="zip_code"
+                       id="new_customer_zip_code"
+                       maxlength="5"
+                       class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                       placeholder="Ej. 64000">
+                <div id="cpSpinner"
+                     class="hidden absolute inset-y-0 end-0 flex items-center pe-3">
+                  <svg aria-hidden="true"
+                       class="w-4 h-4 text-body animate-spin"
+                       viewBox="0 0 100 101"
+                       fill="none"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#3B82F6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <!-- Estado (auto-filled or manual) -->
+            <div>
+              <label for="new_customer_state"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Estado <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="state"
+                     id="new_customer_state"
+                     class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Nuevo León">
+            </div>
+            <!-- Ciudad (auto-filled or manual) -->
+            <div>
+              <label for="new_customer_city"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Ciudad <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="city"
+                     id="new_customer_city"
+                     class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Monterrey">
+            </div>
+            <!-- Colonia — switches between select (auto) and input (manual) -->
+            <div id="neighborhoodWrapper">
+              <label for="new_customer_neighborhood"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Colonia <span class="text-danger-strong">*</span>
+              </label>
+              <!-- Manual input (default) -->
+              <input type="text"
+                     name="neighborhood"
+                     id="new_customer_neighborhood"
+                     class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Centro">
+              <!-- Auto-select (hidden by default; shown when COPOMEX data available) -->
+              <select name="neighborhood_select"
+                      id="new_customer_neighborhood_select"
+                      class="hidden freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
+                <option value="">Seleccione una colonia</option>
+              </select>
+            </div>
+            <!-- Calle -->
+            <div class="sm:col-span-2">
+              <label for="new_customer_street"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Calle <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="street"
+                     id="new_customer_street"
+                     class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. Av. Juárez">
+            </div>
+            <div>
+              <label for="new_customer_ext_num"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Núm Exterior <span class="text-danger-strong">*</span>
+              </label>
+              <input type="text"
+                     name="exterior_number"
+                     id="new_customer_ext_num"
+                     class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. 123">
+            </div>
+            <div>
+              <label for="new_customer_int_num"
+                     class="block mb-2 text-sm font-medium text-heading dark:text-white">
+                Núm Interior
+                (Opcional)
+              </label>
+              <input type="text"
+                     name="interior_number"
+                     id="new_customer_int_num"
+                     class="bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
+                     placeholder="Ej. A">
+            </div>
+            <!-- CP Info/Error alert (Flowbite style) -->
+            <div id="cpInfoAlert"
+                 class="sm:col-span-2 hidden flex items-center p-3 text-sm rounded-base shadow-xs"
+                 role="alert">
+              <svg class="w-4 h-4 shrink-0 me-2"
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   width="24"
+                   height="24"
+                   fill="none"
+                   viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              <span id="cpInfoAlertMessage"></span>
+            </div>
+          </div>
+          <div id="customerModalErrorBox"
+               class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs"
+               role="alert">
+            <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span class="sr-only">Error</span>
+            <div class="ms-2 text-sm" id="customerModalErrorMessage"></div>
+          </div>
+          <button type="submit"
+                  id="btnRegistrarCliente"
+                  class="text-white inline-flex items-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-sm px-5 py-2.5 text-center transition-colors">
+            <svg class="mr-1 -ml-1 w-6 h-6"
+                 fill="currentColor"
+                 viewBox="0 0 20 20"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd">
+              </path>
+            </svg>
+            Guardar Cliente
+          </button>
+        </form>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // ── Freight toggle ──────────────────────────────────────
+                const freightCheckbox = document.getElementById('new_customer_requires_freight');
+                const freightContainer = document.getElementById('freightFieldsContainer');
+                const freightInputs = document.querySelectorAll('.freight-input');
 
-                        <!-- Freight check -->
-                        <div class="sm:col-span-2 mt-2 border-t border-default pt-4">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="new_customer_requires_freight" name="requires_freight"
-                                    class="sr-only peer">
-                                <div
-                                    class="relative w-11 h-6 bg-neutral-secondary-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-medium rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
-                                </div>
-                                <span class="ms-3 text-sm font-medium text-heading dark:text-white">¿Requiere
-                                    flete?</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Freight specific fields (Hidden by default) -->
-                    <div id="freightFieldsContainer"
-                        class="hidden grid gap-4 mb-4 sm:grid-cols-2 bg-neutral-secondary-soft p-4 rounded-base border border-default-medium">
-                        <div class="sm:col-span-2">
-                            <h4 class="text-sm font-bold text-heading dark:text-white">Detalles de envío</h4>
-                            <p class="text-xs text-body mb-2 dark:text-neutral-secondary">Complete la dirección para el
-                                envío por flete. Ingrese un código postal válido para autocompletar.</p>
-                        </div>
-
-                        <!-- CP + loading spinner -->
-                        <div>
-                            <label for="new_customer_zip_code"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Código Postal <span
-                                    class="text-danger-strong">*</span></label>
-                            <div class="relative">
-                                <input type="text" name="zip_code" id="new_customer_zip_code" maxlength="5"
-                                    class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                    placeholder="Ej. 64000">
-                                <div id="cpSpinner" class="hidden absolute inset-y-0 end-0 flex items-center pe-3">
-                                    <svg aria-hidden="true" class="w-4 h-4 text-body animate-spin" viewBox="0 0 100 101"
-                                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                                            fill="currentColor" />
-                                        <path
-                                            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                                            fill="#3B82F6" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Estado (auto-filled or manual) -->
-                        <div>
-                            <label for="new_customer_state"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Estado <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="state" id="new_customer_state"
-                                class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Nuevo León">
-                        </div>
-
-                        <!-- Ciudad (auto-filled or manual) -->
-                        <div>
-                            <label for="new_customer_city"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Ciudad <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="city" id="new_customer_city"
-                                class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Monterrey">
-                        </div>
-
-                        <!-- Colonia — switches between select (auto) and input (manual) -->
-                        <div id="neighborhoodWrapper">
-                            <label for="new_customer_neighborhood"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Colonia <span
-                                    class="text-danger-strong">*</span></label>
-                            <!-- Manual input (default) -->
-                            <input type="text" name="neighborhood" id="new_customer_neighborhood"
-                                class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Centro">
-                            <!-- Auto-select (hidden by default; shown when COPOMEX data available) -->
-                            <select name="neighborhood_select" id="new_customer_neighborhood_select"
-                                class="hidden freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs">
-                                <option value="">Seleccione una colonia</option>
-                            </select>
-                        </div>
-
-                        <!-- Calle -->
-                        <div class="sm:col-span-2">
-                            <label for="new_customer_street"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Calle <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="street" id="new_customer_street"
-                                class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. Av. Juárez">
-                        </div>
-                        <div>
-                            <label for="new_customer_ext_num"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm Exterior <span
-                                    class="text-danger-strong">*</span></label>
-                            <input type="text" name="exterior_number" id="new_customer_ext_num"
-                                class="freight-input bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. 123">
-                        </div>
-                        <div>
-                            <label for="new_customer_int_num"
-                                class="block mb-2 text-sm font-medium text-heading dark:text-white">Núm Interior
-                                (Opcional)</label>
-                            <input type="text" name="interior_number" id="new_customer_int_num"
-                                class="bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand-medium focus:border-brand block w-full p-2.5 shadow-xs"
-                                placeholder="Ej. A">
-                        </div>
-
-                        <!-- CP Info/Error alert (Flowbite style) -->
-                        <div id="cpInfoAlert"
-                            class="sm:col-span-2 hidden flex items-center p-3 text-sm rounded-base shadow-xs"
-                            role="alert">
-                            <svg class="w-4 h-4 shrink-0 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                            <span id="cpInfoAlertMessage"></span>
-                        </div>
-                    </div>
-
-                    <div id="customerModalErrorBox"
-                        class="hidden flex sm:items-center p-4 mb-4 text-sm text-fg-danger-strong rounded-base bg-danger-soft mt-3 shadow-xs"
-                        role="alert">
-                        <svg class="w-4 h-4 shrink-0 mt-0.5 md:mt-0" aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span class="sr-only">Error</span>
-                        <div class="ms-2 text-sm" id="customerModalErrorMessage"></div>
-                    </div>
-
-                    <button type="submit" id="btnRegistrarCliente"
-                        class="text-white inline-flex items-center text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:outline-none focus:ring-brand-medium shadow-sm font-semibold rounded-base text-sm px-5 py-2.5 text-center transition-colors">
-                        <svg class="mr-1 -ml-1 w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        Guardar Cliente
-                    </button>
-                </form>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        // ── Freight toggle ──────────────────────────────────────
-                        const freightCheckbox = document.getElementById('new_customer_requires_freight');
-                        const freightContainer = document.getElementById('freightFieldsContainer');
-                        const freightInputs = document.querySelectorAll('.freight-input');
-
-                        if (freightCheckbox) {
-                            freightCheckbox.addEventListener('change', function () {
-                                if (this.checked) {
-                                    freightContainer.classList.remove('hidden');
-                                    freightInputs.forEach(input => {
-                                        if (input.id !== 'new_customer_neighborhood_select') {
-                                            input.setAttribute('required', 'required');
-                                        }
-                                    });
-                                } else {
-                                    freightContainer.classList.add('hidden');
-                                    freightInputs.forEach(input => input.removeAttribute('required'));
-                                    cpResetAddressFields();
+                if (freightCheckbox) {
+                    freightCheckbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            freightContainer.classList.remove('hidden');
+                            freightInputs.forEach(input => {
+                                if (input.id !== 'new_customer_neighborhood_select') {
+                                    input.setAttribute('required', 'required');
                                 }
                             });
-                        }
-
-                        // ── COPOMEX autocomplete ────────────────────────────────
-                        const cpInput = document.getElementById('new_customer_zip_code');
-                        const cpSpinner = document.getElementById('cpSpinner');
-                        const stateInput = document.getElementById('new_customer_state');
-                        const cityInput = document.getElementById('new_customer_city');
-                        const neighborhoodInput = document.getElementById('new_customer_neighborhood');
-                        const neighborhoodSelect = document.getElementById('new_customer_neighborhood_select');
-                        const cpInfoAlert = document.getElementById('cpInfoAlert');
-                        const cpInfoMsg = document.getElementById('cpInfoAlertMessage');
-
-                        let cpDebounceTimer = null;
-                        let cpAutoMode = false; // true when fields are auto-filled by COPOMEX
-
-                        function cpShowAlert(message, type) {
-                            if (!cpInfoAlert || !cpInfoMsg) return;
-                            cpInfoMsg.textContent = message;
-                            cpInfoAlert.classList.remove('hidden', 'text-fg-brand-strong', 'bg-brand-softer', 'text-fg-danger-strong', 'bg-danger-soft', 'text-fg-success-strong', 'bg-success-soft');
-                            cpInfoAlert.classList.add('flex');
-                            if (type === 'error') {
-                                cpInfoAlert.classList.add('text-fg-danger-strong', 'bg-danger-soft');
-                            } else if (type === 'success') {
-                                cpInfoAlert.classList.add('text-fg-success-strong', 'bg-success-soft');
-                            } else {
-                                cpInfoAlert.classList.add('text-fg-brand-strong', 'bg-brand-softer');
-                            }
-                        }
-
-                        function cpHideAlert() {
-                            if (!cpInfoAlert) return;
-                            cpInfoAlert.classList.add('hidden');
-                            cpInfoAlert.classList.remove('flex');
-                        }
-
-                        function cpSetAutoMode(estado, municipio, colonias) {
-                            cpAutoMode = true;
-
-                            // Fill and lock state + city
-                            stateInput.value = estado;
-                            stateInput.readOnly = true;
-                            stateInput.classList.add('bg-neutral-secondary-soft');
-                            stateInput.classList.remove('bg-white');
-
-                            cityInput.value = municipio;
-                            cityInput.readOnly = true;
-                            cityInput.classList.add('bg-neutral-secondary-soft');
-                            cityInput.classList.remove('bg-white');
-
-                            // Swap neighborhood input → select
-                            neighborhoodInput.classList.add('hidden');
-                            neighborhoodInput.removeAttribute('required');
-                            neighborhoodInput.removeAttribute('name');
-                            neighborhoodInput.value = '';
-
-                            neighborhoodSelect.innerHTML = '<option value="">Seleccione una colonia</option>';
-                            colonias.forEach(function (col) {
-                                const opt = document.createElement('option');
-                                opt.value = col;
-                                opt.textContent = col;
-                                neighborhoodSelect.appendChild(opt);
-                            });
-                            neighborhoodSelect.classList.remove('hidden');
-                            neighborhoodSelect.setAttribute('required', 'required');
-                            neighborhoodSelect.setAttribute('name', 'neighborhood');
-
-                            cpShowAlert('Dirección autocompletada. Seleccione una colonia.', 'success');
-                        }
-
-                        function cpSetManualMode() {
-                            cpAutoMode = false;
-
-                            stateInput.readOnly = false;
-                            stateInput.classList.remove('bg-neutral-secondary-soft');
-                            stateInput.classList.add('bg-white');
-
-                            cityInput.readOnly = false;
-                            cityInput.classList.remove('bg-neutral-secondary-soft');
-                            cityInput.classList.add('bg-white');
-
-                            // Swap back to input
-                            neighborhoodSelect.classList.add('hidden');
-                            neighborhoodSelect.removeAttribute('required');
-                            neighborhoodSelect.removeAttribute('name');
-
-                            neighborhoodInput.classList.remove('hidden');
-                            neighborhoodInput.setAttribute('name', 'neighborhood');
-                            // Only set required if freight is checked
-                            if (freightCheckbox && freightCheckbox.checked) {
-                                neighborhoodInput.setAttribute('required', 'required');
-                            }
-                        }
-
-                        function cpResetAddressFields() {
-                            stateInput.value = '';
-                            cityInput.value = '';
-                            neighborhoodInput.value = '';
-                            neighborhoodSelect.innerHTML = '<option value="">Seleccione una colonia</option>';
-                            cpSetManualMode();
-                            cpHideAlert();
-                        }
-
-                        if (cpInput) {
-                            // Only allow digits in CP input
-                            cpInput.addEventListener('input', function () {
-                                this.value = this.value.replace(/\D/g, '').slice(0, 5);
-
-                                clearTimeout(cpDebounceTimer);
-
-                                const cp = this.value;
-
-                                // If CP changes and we were in auto mode, reset
-                                if (cpAutoMode) {
-                                    cpResetAddressFields();
-                                }
-
-                                if (cp.length < 5) {
-                                    cpHideAlert();
-                                    return;
-                                }
-
-                                // Debounce — 400ms
-                                cpDebounceTimer = setTimeout(function () {
-                                    cpLookup(cp);
-                                }, 400);
-                            });
-                        }
-
-                        async function cpLookup(cp) {
-                            cpSpinner.classList.remove('hidden');
-                            cpSpinner.classList.add('flex');
-                            cpShowAlert('Buscando código postal...', 'info');
-
-                            try {
-                                const res = await fetch('/sales/api/cp/' + cp);
-                                const data = await res.json();
-
-                                if (res.ok && !data.error) {
-                                    cpSetAutoMode(data.estado, data.municipio, data.colonias || []);
-                                } else {
-                                    cpSetManualMode();
-                                    cpShowAlert('CP no encontrado. Complete los campos manualmente.', 'error');
-                                }
-                            } catch (err) {
-                                console.error('COPOMEX lookup error:', err);
-                                cpSetManualMode();
-                                cpShowAlert('Error al consultar el código postal. Complete los campos manualmente.', 'error');
-                            } finally {
-                                cpSpinner.classList.add('hidden');
-                                cpSpinner.classList.remove('flex');
-                            }
+                        } else {
+                            freightContainer.classList.add('hidden');
+                            freightInputs.forEach(input => input.removeAttribute('required'));
+                            cpResetAddressFields();
                         }
                     });
-                </script>
-            </div>
-        </div>
+                }
+
+                // ── COPOMEX autocomplete ────────────────────────────────
+                const cpInput = document.getElementById('new_customer_zip_code');
+                const cpSpinner = document.getElementById('cpSpinner');
+                const stateInput = document.getElementById('new_customer_state');
+                const cityInput = document.getElementById('new_customer_city');
+                const neighborhoodInput = document.getElementById('new_customer_neighborhood');
+                const neighborhoodSelect = document.getElementById('new_customer_neighborhood_select');
+                const cpInfoAlert = document.getElementById('cpInfoAlert');
+                const cpInfoMsg = document.getElementById('cpInfoAlertMessage');
+
+                let cpDebounceTimer = null;
+                let cpAutoMode = false; // true when fields are auto-filled by COPOMEX
+
+                function cpShowAlert(message, type) {
+                    if (!cpInfoAlert || !cpInfoMsg) return;
+                    cpInfoMsg.textContent = message;
+                    cpInfoAlert.classList.remove('hidden', 'text-fg-brand-strong', 'bg-brand-softer', 'text-fg-danger-strong', 'bg-danger-soft', 'text-fg-success-strong', 'bg-success-soft');
+                    cpInfoAlert.classList.add('flex');
+                    if (type === 'error') {
+                        cpInfoAlert.classList.add('text-fg-danger-strong', 'bg-danger-soft');
+                    } else if (type === 'success') {
+                        cpInfoAlert.classList.add('text-fg-success-strong', 'bg-success-soft');
+                    } else {
+                        cpInfoAlert.classList.add('text-fg-brand-strong', 'bg-brand-softer');
+                    }
+                }
+
+                function cpHideAlert() {
+                    if (!cpInfoAlert) return;
+                    cpInfoAlert.classList.add('hidden');
+                    cpInfoAlert.classList.remove('flex');
+                }
+
+                function cpSetAutoMode(estado, municipio, colonias) {
+                    cpAutoMode = true;
+
+                    // Fill and lock state + city
+                    stateInput.value = estado;
+                    stateInput.readOnly = true;
+                    stateInput.classList.add('bg-neutral-secondary-soft');
+                    stateInput.classList.remove('bg-white');
+
+                    cityInput.value = municipio;
+                    cityInput.readOnly = true;
+                    cityInput.classList.add('bg-neutral-secondary-soft');
+                    cityInput.classList.remove('bg-white');
+
+                    // Swap neighborhood input → select
+                    neighborhoodInput.classList.add('hidden');
+                    neighborhoodInput.removeAttribute('required');
+                    neighborhoodInput.removeAttribute('name');
+                    neighborhoodInput.value = '';
+
+                    neighborhoodSelect.innerHTML = '<option value="">Seleccione una colonia</option>';
+                    colonias.forEach(function(col) {
+                        const opt = document.createElement('option');
+                        opt.value = col;
+                        opt.textContent = col;
+                        neighborhoodSelect.appendChild(opt);
+                    });
+                    neighborhoodSelect.classList.remove('hidden');
+                    neighborhoodSelect.setAttribute('required', 'required');
+                    neighborhoodSelect.setAttribute('name', 'neighborhood');
+
+                    cpShowAlert('Dirección autocompletada. Seleccione una colonia.', 'success');
+                }
+
+                function cpSetManualMode() {
+                    cpAutoMode = false;
+
+                    stateInput.readOnly = false;
+                    stateInput.classList.remove('bg-neutral-secondary-soft');
+                    stateInput.classList.add('bg-white');
+
+                    cityInput.readOnly = false;
+                    cityInput.classList.remove('bg-neutral-secondary-soft');
+                    cityInput.classList.add('bg-white');
+
+                    // Swap back to input
+                    neighborhoodSelect.classList.add('hidden');
+                    neighborhoodSelect.removeAttribute('required');
+                    neighborhoodSelect.removeAttribute('name');
+
+                    neighborhoodInput.classList.remove('hidden');
+                    neighborhoodInput.setAttribute('name', 'neighborhood');
+                    // Only set required if freight is checked
+                    if (freightCheckbox && freightCheckbox.checked) {
+                        neighborhoodInput.setAttribute('required', 'required');
+                    }
+                }
+
+                function cpResetAddressFields() {
+                    stateInput.value = '';
+                    cityInput.value = '';
+                    neighborhoodInput.value = '';
+                    neighborhoodSelect.innerHTML = '<option value="">Seleccione una colonia</option>';
+                    cpSetManualMode();
+                    cpHideAlert();
+                }
+
+                if (cpInput) {
+                    // Only allow digits in CP input
+                    cpInput.addEventListener('input', function() {
+                        this.value = this.value.replace(/\D/g, '').slice(0, 5);
+
+                        clearTimeout(cpDebounceTimer);
+
+                        const cp = this.value;
+
+                        // If CP changes and we were in auto mode, reset
+                        if (cpAutoMode) {
+                            cpResetAddressFields();
+                        }
+
+                        if (cp.length < 5) {
+                            cpHideAlert();
+                            return;
+                        }
+
+                        // Debounce — 400ms
+                        cpDebounceTimer = setTimeout(function() {
+                            cpLookup(cp);
+                        }, 400);
+                    });
+                }
+
+                async function cpLookup(cp) {
+                    cpSpinner.classList.remove('hidden');
+                    cpSpinner.classList.add('flex');
+                    cpShowAlert('Buscando código postal...', 'info');
+
+                    try {
+                        const cpLookupUrl = "{{ url_for('sales.lookup_cp', cp='00000') }}".replace('00000', cp);
+                        const res = await fetch(cpLookupUrl);
+                        const data = await res.json();
+
+                        if (res.ok && !data.error) {
+                            cpSetAutoMode(data.estado, data.municipio, data.colonias || []);
+                        } else {
+                            cpSetManualMode();
+                            cpShowAlert('CP no encontrado. Complete los campos manualmente.', 'error');
+                        }
+                    } catch (err) {
+                        console.error('COPOMEX lookup error:', err);
+                        cpSetManualMode();
+                        cpShowAlert('Error al consultar el código postal. Complete los campos manualmente.', 'error');
+                    } finally {
+                        cpSpinner.classList.add('hidden');
+                        cpSpinner.classList.remove('flex');
+                    }
+                }
+            });
+        </script>
+      </div>
     </div>
+  </div>
 </div>

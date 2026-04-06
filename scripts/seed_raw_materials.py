@@ -7,106 +7,55 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import create_app
 from app.extensions import db
 from app.models import MaterialCategory, RawMaterial, RawMaterialMovement, UnitOfMeasure
+from seed_dataset import RAW_MATERIALS
 
-CATEGORIES = [
-    ("Maderas", "Tableros y maderas macizas para carpinteria"),
-    ("Herrajes", "Bisagras, correderas, tornilleria y uniones"),
-    ("Acabados", "Barnices, selladores, tintes y auxiliares"),
-]
+CATEGORY_DESCRIPTIONS = {
+    "Maderas": "Tableros, maderas macizas y derivados para carpinteria",
+    "Herrajes": "Bisagras, correderas, tornilleria y mecanismos",
+    "Acabados": "Barnices, lacas, selladores y tintes",
+    "Tapiceria y rellenos": "Textiles, espumas y consumibles para tapiceria",
+}
 
-UNITS = [
-    ("Pieza", "pza", "count"),
-    ("Metro lineal", "ml", "length"),
-    ("Litro", "L", "volume"),
-]
-
-RAW_MATERIALS = [
-    {
-        "name": "Tablero MDF 15mm",
-        "description": "Panel MDF de 244x122 cm para mobiliario residencial",
-        "category": "Maderas",
-        "unit": "Pieza",
-        "waste_percentage": Decimal("8.00"),
-        "initial_stock": Decimal("35.000"),
-    },
-    {
-        "name": "Triplay Encino 18mm",
-        "description": "Triplay enchapado para frentes y tapas premium",
-        "category": "Maderas",
-        "unit": "Pieza",
-        "waste_percentage": Decimal("10.00"),
-        "initial_stock": Decimal("18.000"),
-    },
-    {
-        "name": "Liston de Pino 2x2",
-        "description": "Liston estructural cepillado",
-        "category": "Maderas",
-        "unit": "Metro lineal",
-        "waste_percentage": Decimal("5.50"),
-        "initial_stock": Decimal("240.000"),
-    },
-    {
-        "name": "Corredera telescopica 45cm",
-        "description": "Juego de correderas para cajon de extension total",
-        "category": "Herrajes",
-        "unit": "Pieza",
-        "waste_percentage": Decimal("1.00"),
-        "initial_stock": Decimal("120.000"),
-    },
-    {
-        "name": "Bisagra cazoleta cierre suave",
-        "description": "Bisagra de 35mm con cierre amortiguado",
-        "category": "Herrajes",
-        "unit": "Pieza",
-        "waste_percentage": Decimal("1.50"),
-        "initial_stock": Decimal("360.000"),
-    },
-    {
-        "name": "Tornillo confirmat 7x50",
-        "description": "Tornillo de ensamble para melamina y MDF",
-        "category": "Herrajes",
-        "unit": "Pieza",
-        "waste_percentage": Decimal("2.00"),
-        "initial_stock": Decimal("2500.000"),
-    },
-    {
-        "name": "Barniz poliuretano mate",
-        "description": "Barniz transparente para acabado de alta resistencia",
-        "category": "Acabados",
-        "unit": "Litro",
-        "waste_percentage": Decimal("6.00"),
-        "initial_stock": Decimal("32.000"),
-    },
-    {
-        "name": "Sellador nitrocelulosa",
-        "description": "Sellador base para preparacion de superficie",
-        "category": "Acabados",
-        "unit": "Litro",
-        "waste_percentage": Decimal("7.00"),
-        "initial_stock": Decimal("20.000"),
-    },
-]
+UNIT_DEFINITIONS = {
+    "Pieza": ("pza", "count"),
+    "Metro lineal": ("ml", "length"),
+    "Litro": ("L", "volume"),
+}
 
 
 def _get_or_create_categories() -> dict[str, MaterialCategory]:
     categories: dict[str, MaterialCategory] = {}
-    for name, description in CATEGORIES:
+    category_names = {item["category"] for item in RAW_MATERIALS}
+
+    for name in sorted(category_names):
         category = MaterialCategory.query.filter_by(name=name).first()
         if not category:
             category = MaterialCategory(
                 name=name,
-                description=description,
+                description=CATEGORY_DESCRIPTIONS.get(
+                    name, "Categoria de materia prima"
+                ),
                 status="active",
             )
             db.session.add(category)
             db.session.flush()
+        else:
+            category.description = CATEGORY_DESCRIPTIONS.get(
+                name,
+                category.description,
+            )
+            category.status = "active"
+
         categories[name] = category
     return categories
 
 
 def _get_or_create_units() -> dict[str, UnitOfMeasure]:
     units: dict[str, UnitOfMeasure] = {}
-    for name, abbreviation, unit_type in UNITS:
+    unit_names = {item["unit"] for item in RAW_MATERIALS}
+
+    for name in sorted(unit_names):
+        abbreviation, unit_type = UNIT_DEFINITIONS[name]
         unit = UnitOfMeasure.query.filter_by(
             name=name, abbreviation=abbreviation
         ).first()
@@ -119,6 +68,10 @@ def _get_or_create_units() -> dict[str, UnitOfMeasure]:
             )
             db.session.add(unit)
             db.session.flush()
+        else:
+            unit.type = unit_type
+            unit.status = True
+
         units[name] = unit
     return units
 
@@ -159,13 +112,16 @@ def seed_raw_materials() -> None:
 
         for item in RAW_MATERIALS:
             material = RawMaterial.query.filter_by(name=item["name"]).first()
+            waste_percentage = Decimal(str(item["waste_percentage"]))
+            initial_stock = Decimal(str(item["initial_stock"]))
+
             if not material:
                 material = RawMaterial(
                     name=item["name"],
                     description=item["description"],
                     category_id=categories[item["category"]].id,
                     unit_id=units[item["unit"]].id,
-                    waste_percentage=item["waste_percentage"],
+                    waste_percentage=waste_percentage,
                     stock=Decimal("0.000"),
                     status="active",
                 )
@@ -176,11 +132,11 @@ def seed_raw_materials() -> None:
                 material.description = item["description"]
                 material.category_id = categories[item["category"]].id
                 material.unit_id = units[item["unit"]].id
-                material.waste_percentage = item["waste_percentage"]
+                material.waste_percentage = waste_percentage
                 material.status = "active"
                 updated_count += 1
 
-            if _ensure_initial_movement(material, item["initial_stock"]):
+            if _ensure_initial_movement(material, initial_stock):
                 movements_count += 1
 
         db.session.commit()

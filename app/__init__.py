@@ -1,17 +1,26 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, request, url_for
 from flask_security import SQLAlchemyUserDatastore, auth_required
 
 from config import Config
 from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
+from .rbac import register_rbac
+from .security_events import (
+    enforce_login_attempt_limit,
+    process_login_attempt_response,
+    register_security_event_handlers,
+)
 
 
-def create_app():
+def create_app(config_class=None):
     """
     Factory de la aplicación Flask.
 
     Crea y configura la instancia de la aplicación Flask,
     inicializa extensiones y registra blueprints.
+
+    Args:
+        config_class: Clase de configuración a usar (default: Config).
 
     Returns:
         Flask: Instancia configurada de la aplicación
@@ -20,7 +29,7 @@ def create_app():
     app = Flask(__name__)
 
     # Initialize environment variables
-    app.config.from_object(Config)
+    app.config.from_object(config_class or Config)
 
     # Initialize extensions
     db.init_app(app)
@@ -36,8 +45,52 @@ def create_app():
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, user_datastore)
 
+    # Register RBAC deny-by-default guard and Jinja helpers
+    register_rbac(app)
+
+    @app.context_processor
+    def inject_navbar_notifications():
+        from flask_login import current_user
+
+        from .shared.navbar_notifications import build_navbar_notifications
+
+        if not getattr(current_user, "is_authenticated", False):
+            return {
+                "navbar_notifications": [],
+                "navbar_notification_count": 0,
+            }
+
+        notification_data = build_navbar_notifications()
+        return {
+            "navbar_notifications": notification_data["items"],
+            "navbar_notification_count": notification_data["count"],
+        }
+
+    # Register auth/security event listeners (login/logout/password/access events)
+    register_security_event_handlers(app)
+
     # Register error handlers
     register_error_handlers(app)
+
+    @app.after_request
+    def apply_auth_cache_control_headers(response):
+        response = process_login_attempt_response(response)
+
+        path = request.path or ""
+        protected_prefixes = ("/admin", "/login", "/logout", "/reset", "/verify")
+
+        if path.startswith(protected_prefixes):
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, max-age=0, private"
+            )
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+
+        return response
+
+    @app.before_request
+    def enforce_security_login_attempts_limit():
+        return enforce_login_attempt_limit()
 
     # Register blueprints
     from .login import login_bp
@@ -65,6 +118,18 @@ def create_app():
     from .reports import reports_bp
 
     app.register_blueprint(reports_bp, url_prefix="/admin/reports")
+
+    from .audit import audit_bp
+
+    app.register_blueprint(audit_bp, url_prefix="/admin/audit")
+
+    from .security_audit import security_audit_bp
+
+    app.register_blueprint(security_audit_bp, url_prefix="/admin/security-events")
+
+    from .notifications import notifications_bp
+
+    app.register_blueprint(notifications_bp, url_prefix="/admin/notifications")
 
     app.register_blueprint(colors_bp, url_prefix="/admin/catalogs/colors")
 
@@ -120,11 +185,11 @@ def create_app():
 
     from .sales import sales_bp
 
-    app.register_blueprint(sales_bp, url_prefix="/sales")
+    app.register_blueprint(sales_bp, url_prefix="/admin/sales")
 
     from .customer_orders import customer_orders_bp
 
-    app.register_blueprint(customer_orders_bp, url_prefix="/customer-orders")
+    app.register_blueprint(customer_orders_bp, url_prefix="/admin/customer-orders")
 
     from .production import production_bp
 

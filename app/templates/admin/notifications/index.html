@@ -1,0 +1,81 @@
+{% extends "layouts/admin.html" %}
+{% block title %}
+  Admin - Notificaciones
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Bandeja de notificaciones" %}
+    {% set admin_header_subtitle = "Gestiona alertas recientes de seguridad y actividad crítica. Puedes borrar cada aviso o limpiar toda la bandeja." %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+      <div class="p-3 2xl:p-4 border-b border-default-medium flex flex-wrap items-center justify-between gap-3">
+        <div class="text-xs 2xl:text-sm text-body">
+          {% if total %}
+            Mostrando {{ notifications|length }} de {{ total }} notificaciones recientes.
+          {% else %}
+            No hay notificaciones activas.
+          {% endif %}
+        </div>
+        <form action="{{ url_for('notifications.clear') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="inline-flex items-center justify-center text-fg-danger bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none cursor-pointer">
+            Borrar todo
+          </button>
+        </form>
+      </div>
+      <div class="divide-y divide-default-medium">
+        {% for notification in notifications %}
+          <div class="p-4 2xl:p-5 hover:bg-neutral-tertiary-medium transition-colors flex items-start gap-4">
+            <span class="mt-1 inline-flex w-2.5 h-2.5 rounded-full flex-none {% if notification.severity == 'danger' %}bg-fg-danger{% elif notification.severity == 'warning' %}bg-warning{% else %}bg-brand{% endif %}"></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p class="text-sm 2xl:text-base font-medium text-heading">{{ notification.title }}</p>
+                  <p class="text-xs 2xl:text-sm text-body mt-0.5">{{ notification.message }}</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-body">
+                    {{ notification.timestamp.strftime("%d/%m/%Y %H:%M") if notification.timestamp else '' }}
+                  </div>
+                  <div class="text-[11px] text-body uppercase tracking-wide">{{ notification.kind }}</div>
+                </div>
+              </div>
+              <div class="mt-3 flex flex-wrap items-center gap-3 text-xs 2xl:text-sm">
+                <a href="{{ notification.href }}"
+                   class="text-brand hover:text-brand-strong font-medium">Abrir detalle</a>
+                <form action="{{ notification.dismiss_url }}" method="post">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit"
+                          class="text-fg-danger hover:text-red-700 font-medium cursor-pointer">Borrar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="px-6 py-12 text-center text-body">No hay notificaciones para mostrar.</div>
+        {% endfor %}
+      </div>
+      <div class="p-3 2xl:p-4 border-t border-default-medium flex items-center justify-between gap-3">
+        <div class="text-xs 2xl:text-sm text-body">
+          Las alertas borradas desaparecen de esta bandeja, pero los logs originales permanecen intactos.
+        </div>
+        <div class="flex items-center gap-2">
+          {% if has_prev %}
+            <a href="{{ url_for('notifications.index', page=prev_page, per_page=per_page) }}"
+               class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+              Anterior
+            </a>
+          {% endif %}
+          {% if has_next %}
+            <a href="{{ url_for('notifications.index', page=next_page, per_page=per_page) }}"
+               class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+              Siguiente
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
