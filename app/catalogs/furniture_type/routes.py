@@ -5,12 +5,30 @@ Rutas/Endpoints para el módulo de tipo de mueble.
 import csv
 from datetime import datetime
 from io import StringIO
+
+import cloudinary.uploader
 from flask import flash, redirect, render_template, request, url_for, make_response
 from flask_security import auth_required
+
 from . import furniture_type_bp
 from .forms import FurnitureTypeForm
 from .services import FurnitureTypeService
 from app.exceptions import ConflictError
+
+
+def _resolve_furniture_type_image_url(form: FurnitureTypeForm) -> str | None:
+    image_url = (form.image_url.data or "").strip() or None
+
+    uploaded_file = form.image_file.data
+    if uploaded_file and getattr(uploaded_file, "filename", ""):
+        result = cloudinary.uploader.upload(
+            uploaded_file,
+            folder="furniture_types",
+            resource_type="image",
+        )
+        image_url = result.get("secure_url") or image_url
+
+    return image_url
 
 
 @furniture_type_bp.route("/", methods=["GET"])
@@ -48,8 +66,23 @@ def create_furniture_type():
 
     if form.validate_on_submit():
         raw_status = request.form.get("status", "1")
+        try:
+            image_url = _resolve_furniture_type_image_url(form)
+        except Exception:
+            flash("No fue posible subir la imagen del tipo de mueble", "error")
+            pagination = FurnitureTypeService.get_all()
+            return render_template(
+                "admin/furniture_types/index.html",
+                furniture_types=pagination.items,
+                pagination=pagination,
+                form=form,
+                show_create_modal=True,
+            )
+
         data = {
             "title": form.title.data,
+            "subtitle": form.subtitle.data,
+            "image_url": image_url,
             "status": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:
@@ -79,8 +112,25 @@ def edit_furniture_type(id_furniture_type: int):
 
     if form.validate_on_submit():
         raw_status = request.form.get("status", "1")
+        try:
+            image_url = _resolve_furniture_type_image_url(form)
+        except Exception:
+            flash("No fue posible subir la imagen del tipo de mueble", "error")
+            pagination = FurnitureTypeService.get_all()
+            blank_form = FurnitureTypeForm()
+            return render_template(
+                "admin/furniture_types/index.html",
+                furniture_types=pagination.items,
+                pagination=pagination,
+                form=blank_form,
+                edit_form=form,
+                show_edit_modal=id_furniture_type,
+            )
+
         data = {
             "title": form.title.data,
+            "subtitle": form.subtitle.data,
+            "image_url": image_url,
             "status": bool(int(raw_status)) if raw_status.isdigit() else True,
         }
         try:

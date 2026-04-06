@@ -70,3 +70,4 @@ Este documento define la lista oficial de categorias y subcategorias para la pag
 ## Notas
 - Esta lista se usa como referencia para mantener sincronizada la pagina de inicio.
 - Si se modifica una categoria aqui, se debe reflejar en el componente [app/templates/components/ecommerce/categories.html](../app/templates/components/ecommerce/categories.html).
+- Para el dataset inicial completo (productos, colores, tipos de madera, BOM y costos), consulta [INITIAL_SEED_BLUEPRINT.md](./INITIAL_SEED_BLUEPRINT.md).
