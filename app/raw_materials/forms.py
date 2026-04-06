@@ -51,6 +51,16 @@ class RawMaterialForm(FlaskForm):
         ],
     )
 
+    minimum_stock = DecimalField(
+        "Stock Mínimo Ideal",
+        places=3,
+        default=10.000,
+        validators=[
+            DataRequired(message="El stock mínimo es obligatorio"),
+            NumberRange(min=0, message="El stock mínimo no puede ser negativo"),
+        ],
+    )
+
     status = SelectField(
         "Estado",
         choices=[("active", "Activo"), ("inactive", "Inactivo")],
