@@ -4,23 +4,27 @@ This document defines the initial coherent dataset for categories, products, col
 
 _Generated from scripts/seed_dataset.py on 2026-04-05._
 
+> Official image sources for seeds:
+> - Product gallery images (`product_images`): `docs/imagenes.csv`
+> - Furniture type catalog images (`furniture_types.image_url`): `docs/Muebles.sql`
+
 ## 1. Category Catalog (13)
 
-| Category | Slug | Target products | Image (Unsplash) |
+| Category | Slug | Target products | Official image |
 | --- | --- | ---: | --- |
-| Salas | salas | 5 | https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200 |
-| Comedores | comedores | 5 | https://images.unsplash.com/photo-1617098474202-0d0d7f60a87b?auto=format&fit=crop&q=80&w=1200 |
-| Recamaras | recamaras | 5 | https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=1200 |
-| Closets y almacenamiento | closets-y-almacenamiento | 4 | https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=1200 |
-| Escritorios y oficina | escritorios-y-oficina | 5 | https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=1200 |
-| Muebles para TV | muebles-para-tv | 4 | https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&q=80&w=1200 |
-| Mesas | mesas | 5 | https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&q=80&w=1200 |
-| Estanterias y libreros | estanterias-y-libreros | 4 | https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=1200 |
-| Cocina | cocina | 4 | https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&q=80&w=1200 |
-| Muebles infantiles | muebles-infantiles | 5 | https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=1200 |
-| Muebles decorativos | muebles-decorativos | 4 | https://images.unsplash.com/photo-1616594039964-3ff3b7f1ec30?auto=format&fit=crop&q=80&w=1200 |
-| Muebles personalizados | muebles-personalizados | 0 | https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=1200 |
-| Muebles de jardin | muebles-de-jardin | 4 | https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&q=80&w=1200 |
+| Salas | salas | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775455612/furniture_types/fnvecygfqpm0rpyqn6rx.jpg |
+| Comedores | comedores | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775458010/furniture_types/ouqralxg3gka1vgoxfq2.jpg |
+| Recamaras | recamaras | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775496224/furniture_types/rsnhg0laxdefmgqcetfc.jpg |
+| Closets y almacenamiento | closets-y-almacenamiento | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775497577/furniture_types/tnuyy180ihuilnokvekd.jpg |
+| Escritorios y oficina | escritorios-y-oficina | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775497934/furniture_types/aw7rypycaeo6fmtp290i.jpg |
+| Muebles para TV | muebles-para-tv | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775497993/furniture_types/cr82qzc2ujersa886ter.jpg |
+| Mesas | mesas | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775498363/furniture_types/wpwoi4c898exi0iovggo.jpg |
+| Estanterias y libreros | estanterias-y-libreros | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775499187/furniture_types/rzn5lp82hzv0iqhg77s0.jpg |
+| Cocina | cocina | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775499233/furniture_types/rdflrqcsbcydjt7kanzc.jpg |
+| Muebles infantiles | muebles-infantiles | 5 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775499784/furniture_types/er3lzioxzajmuz229d9x.jpg |
+| Muebles decorativos | muebles-decorativos | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775500157/furniture_types/kuswchaxjcb9qybe67kc.jpg |
+| Muebles personalizados | muebles-personalizados | 0 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775500499/furniture_types/yst2uo1nbpipfrvioijs.jpg |
+| Muebles de jardin | muebles-de-jardin | 4 | https://res.cloudinary.com/dv26xoo6n/image/upload/v1775500555/furniture_types/s067dw7s6gr5xuyrubpg.jpg |
 
 ## 2. Global Catalog Inputs
 
