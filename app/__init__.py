@@ -105,6 +105,10 @@ def create_app(config_class=None):
 
     app.register_blueprint(audit_bp, url_prefix="/admin/audit")
 
+    from .security_audit import security_audit_bp
+
+    app.register_blueprint(security_audit_bp, url_prefix="/admin/security-events")
+
     app.register_blueprint(colors_bp, url_prefix="/admin/catalogs/colors")
 
     from .catalogs.roles import roles_bp

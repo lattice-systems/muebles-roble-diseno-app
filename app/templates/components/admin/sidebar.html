@@ -155,7 +155,10 @@
         {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
       {% endif %}
       {% if can('audit.read') %}
-        {{ sidebar_link("Control", url_for('audit.index') , icon_control, request.endpoint and request.endpoint.startswith('audit.')) }}
+        {% set control_items = [] %}
+        {% set _ = control_items.append({"label": "Auditoria operativa", "href": url_for('audit.index'), "icon": icon_control, "active": request.endpoint and request.endpoint.startswith('audit.')}) %}
+        {% set _ = control_items.append({"label": "Eventos de acceso", "href": url_for('security_audit.index'), "icon": icon_control, "active": request.endpoint and request.endpoint.startswith('security_audit.')}) %}
+        {{ sidebar_dropdown("Control", control_items, icon_control, "dropdown-control") }}
       {% endif %}
     </ul>
   </div>

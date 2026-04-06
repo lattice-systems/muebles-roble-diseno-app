@@ -582,6 +582,7 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         # Audit
         "audit.index": AUDIT_READ,
         "audit.details": AUDIT_READ,
+        "security_audit.index": AUDIT_READ,
         # Sales POS
         "sales.pos": SALES_READ,
         "sales.ticket": SALES_READ,
