@@ -46,57 +46,100 @@ class ReportService:
         return start_dt, end_dt
 
     @staticmethod
-    def _weekday_name(target_date: date) -> str:
-        names = [
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-            "Sábado",
-            "Domingo",
-        ]
-        return names[target_date.weekday()]
+    def _normalize_date_range(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> tuple[date, date]:
+        date_to = date_to or date.today()
+        date_from = date_from or date_to
+
+        if date_from > date_to:
+            date_from, date_to = date_to, date_from
+
+        return date_from, date_to
 
     @staticmethod
-    def _build_recent_sale_row(
-        source: str, record_id: int, record_date, total, payment_method_name: str | None
-    ):
-        total_decimal = ReportService._to_decimal(total)
-        subtotal = total_decimal / (Decimal("1.00") + ReportService.TAX_RATE)
-        iva = total_decimal - subtotal
+    def _start_end_for_range(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> tuple[datetime, datetime, date, date]:
+        date_from, date_to = ReportService._normalize_date_range(date_from, date_to)
+        start_dt = datetime.combine(date_from, time.min)
+        end_dt = datetime.combine(date_to, time.max)
+        return start_dt, end_dt, date_from, date_to
 
-        return {
-            "source": source,
-            "label": f"{'POS' if source == 'POS' else 'ECOM'} #{record_id}",
-            "date": record_date.strftime("%d %b %Y") if record_date else "",
-            "subtotal": ReportService._money(subtotal),
-            "iva": ReportService._money(iva),
-            "total": ReportService._money(total_decimal),
-            "payment_method": payment_method_name or "N/D",
-            "sort_date": record_date,
+    @staticmethod
+    def _invalid_order_statuses() -> set[str]:
+        return {"cancelada", "cancelled", "rechazada", "rejected"}
+
+    @staticmethod
+    def _is_valid_order(order) -> bool:
+        return str(order.status).lower() not in ReportService._invalid_order_statuses()
+
+    @staticmethod
+    def _is_completed_production_status(status: str | None) -> bool:
+        return str(status or "").strip().lower() in {
+            value.lower() for value in ReportService.PRODUCTION_COMPLETED_STATUSES
         }
 
     @staticmethod
-    def generate_daily_sales_snapshot(target_date: date | None = None) -> dict:
-        target_date = target_date or date.today()
-        start_dt, end_dt = ReportService._start_end_for_day(target_date)
+    def _get_completed_production_orders_in_range(
+        date_from: date | None = None, date_to: date | None = None
+    ) -> list:
+        date_from, date_to = ReportService._normalize_date_range(date_from, date_to)
 
-        sales = Sale.query.filter(
-            Sale.sale_date >= start_dt, Sale.sale_date <= end_dt
-        ).all()
-        orders = Order.query.filter(
-            Order.order_date >= start_dt,
-            Order.order_date <= end_dt,
-            Order.source == "ecommerce",
+        orders = ProductionOrder.query.filter(
+            ProductionOrder.scheduled_date >= date_from,
+            ProductionOrder.scheduled_date <= date_to,
         ).all()
 
-        pos_total = sum(ReportService._to_decimal(s.total) for s in sales)
+        return [
+            order
+            for order in orders
+            if ReportService._is_completed_production_status(order.status)
+        ]
+
+    @staticmethod
+    def _get_sales_and_orders_in_range(
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> tuple[list, list, date, date]:
+        start_dt, end_dt, date_from, date_to = ReportService._start_end_for_range(
+            date_from, date_to
+        )
+
+        sales = (
+            Sale.query.filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt)
+            .order_by(Sale.sale_date.desc(), Sale.id.desc())
+            .all()
+        )
+
+        orders = (
+            Order.query.filter(
+                Order.order_date >= start_dt,
+                Order.order_date <= end_dt,
+                Order.source == "ecommerce",
+            )
+            .order_by(Order.order_date.desc(), Order.id.desc())
+            .all()
+        )
+
+        valid_orders = [
+            order for order in orders if ReportService._is_valid_order(order)
+        ]
+
+        return sales, valid_orders, date_from, date_to
+
+    @staticmethod
+    def _calculate_sales_summary(
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> dict:
+        sales, valid_orders, date_from, date_to = (
+            ReportService._get_sales_and_orders_in_range(date_from, date_to)
+        )
+
+        pos_total = sum(ReportService._to_decimal(sale.total) for sale in sales)
         ecommerce_total = sum(
-            ReportService._to_decimal(o.total)
-            for o in orders
-            if str(o.status).lower()
-            not in {"cancelada", "cancelled", "rechazada", "rejected"}
+            ReportService._to_decimal(order.total) for order in valid_orders
         )
         grand_total = pos_total + ecommerce_total
 
@@ -113,15 +156,7 @@ class ReportService:
             )
             payment_methods[method_name]["count"] += 1
 
-        for order in orders:
-            if str(order.status).lower() in {
-                "cancelada",
-                "cancelled",
-                "rechazada",
-                "rejected",
-            }:
-                continue
-
+        for order in valid_orders:
             method_name = (
                 order.payment_method.name
                 if order.payment_method is not None
@@ -142,30 +177,24 @@ class ReportService:
         ]
         payment_methods_data.sort(key=lambda x: x["amount"], reverse=True)
 
-        doc = {
-            "report_date": target_date.isoformat(),
-            "totals": {
-                "pos_sales": ReportService._money(pos_total),
-                "ecommerce_sales": ReportService._money(ecommerce_total),
-                "grand_total": ReportService._money(grand_total),
-                "transactions_count": len(sales) + len(orders),
-            },
+        return {
+            "date_from": date_from,
+            "date_to": date_to,
+            "pos_total": pos_total,
+            "ecommerce_total": ecommerce_total,
+            "grand_total": grand_total,
+            "transactions_count": len(sales) + len(valid_orders),
             "payment_methods": payment_methods_data,
-            "generated_at": datetime.utcnow(),
         }
 
-        collections = get_report_collections()
-        collections["daily_sales"].replace_one(
-            {"report_date": target_date.isoformat()},
-            doc,
-            upsert=True,
-        )
-        return doc
-
     @staticmethod
-    def generate_daily_profit_snapshot(target_date: date | None = None) -> dict:
-        target_date = target_date or date.today()
-        start_dt, end_dt = ReportService._start_end_for_day(target_date)
+    def _calculate_profit_summary(
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> dict:
+        start_dt, end_dt, date_from, date_to = ReportService._start_end_for_range(
+            date_from, date_to
+        )
 
         sale_items = (
             SaleItem.query.join(Sale)
@@ -190,6 +219,7 @@ class ReportService:
             product = item.product
             qty = item.quantity or 0
             line_revenue = ReportService._to_decimal(item.price) * qty
+
             summary = CostService.calculate_product_cost_summary(product)
             estimated_unit_cost = (
                 ReportService._to_decimal(summary["unit_cost"])
@@ -220,17 +250,13 @@ class ReportService:
             row["estimated_profit"] = row["revenue"] - row["estimated_total_cost"]
 
         for item in order_items:
-            if str(item.order.status).lower() in {
-                "cancelada",
-                "cancelled",
-                "rechazada",
-                "rejected",
-            }:
+            if not ReportService._is_valid_order(item.order):
                 continue
 
             product = item.product
             qty = item.quantity or 0
             line_revenue = ReportService._to_decimal(item.price) * qty
+
             summary = CostService.calculate_product_cost_summary(product)
             estimated_unit_cost = (
                 ReportService._to_decimal(summary["unit_cost"])
@@ -260,38 +286,139 @@ class ReportService:
             row["estimated_total_cost"] += line_cost
             row["estimated_profit"] = row["revenue"] - row["estimated_total_cost"]
 
-        products = []
-        for row in product_rows.values():
-            products.append(
-                {
-                    "product_id": row["product_id"],
-                    "sku": row["sku"],
-                    "product_name": row["product_name"],
-                    "quantity_sold": row["quantity_sold"],
-                    "revenue": ReportService._money(row["revenue"]),
-                    "estimated_unit_cost": ReportService._money(
-                        row["estimated_unit_cost"]
-                    ),
-                    "estimated_total_cost": ReportService._money(
-                        row["estimated_total_cost"]
-                    ),
-                    "estimated_profit": ReportService._money(row["estimated_profit"]),
-                }
-            )
-
+        products = [
+            {
+                "product_id": row["product_id"],
+                "sku": row["sku"],
+                "product_name": row["product_name"],
+                "quantity_sold": row["quantity_sold"],
+                "revenue": ReportService._money(row["revenue"]),
+                "estimated_unit_cost": ReportService._money(
+                    row["estimated_unit_cost"]
+                ),
+                "estimated_total_cost": ReportService._money(
+                    row["estimated_total_cost"]
+                ),
+                "estimated_profit": ReportService._money(row["estimated_profit"]),
+            }
+            for row in product_rows.values()
+        ]
         products.sort(key=lambda x: x["estimated_profit"], reverse=True)
+
         estimated_profit_total = revenue_total - estimated_cost_total
         margin_pct = Decimal("0")
         if revenue_total > 0:
             margin_pct = (estimated_profit_total / revenue_total) * Decimal("100")
 
+        return {
+            "date_from": date_from,
+            "date_to": date_to,
+            "revenue_total": revenue_total,
+            "estimated_cost_total": estimated_cost_total,
+            "estimated_profit_total": estimated_profit_total,
+            "margin_percentage": margin_pct,
+            "products": products,
+        }
+
+    @staticmethod
+    def _previous_period(date_from: date, date_to: date) -> tuple[date, date]:
+        delta_days = (date_to - date_from).days + 1
+        prev_date_to = date_from - timedelta(days=1)
+        prev_date_from = prev_date_to - timedelta(days=delta_days - 1)
+        return prev_date_from, prev_date_to
+
+    @staticmethod
+    def _calculate_change(current_value, previous_value) -> float:
+        current_value = ReportService._to_decimal(current_value)
+        previous_value = ReportService._to_decimal(previous_value)
+
+        if previous_value == 0:
+            if current_value == 0:
+                return 0.0
+            return 100.0
+
+        change = ((current_value - previous_value) / previous_value) * Decimal("100")
+        return ReportService._money(change)
+
+    @staticmethod
+    def _weekday_name(target_date: date) -> str:
+        names = [
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado",
+            "Domingo",
+        ]
+        return names[target_date.weekday()]
+
+    @staticmethod
+    def _build_recent_sale_row(
+        source: str, record_id: int, record_date, total, payment_method_name: str | None
+    ):
+        total_decimal = ReportService._to_decimal(total)
+        subtotal = total_decimal / (Decimal("1.00") + ReportService.TAX_RATE)
+        iva = total_decimal - subtotal
+
+        return {
+            "row_id": f"{source}_{record_id}",
+            "record_id": record_id,
+            "source": source,
+            "label": f"{'POS' if source == 'POS' else 'ECOM'} #{record_id}",
+            "date": record_date.strftime("%d %b %Y") if record_date else "",
+            "subtotal": ReportService._money(subtotal),
+            "iva": ReportService._money(iva),
+            "total": ReportService._money(total_decimal),
+            "payment_method": payment_method_name or "N/D",
+            "sort_date": record_date,
+        }
+
+    @staticmethod
+    def generate_daily_sales_snapshot(target_date: date | None = None) -> dict:
+        target_date = target_date or date.today()
+        summary = ReportService._calculate_sales_summary(target_date, target_date)
+
         doc = {
             "report_date": target_date.isoformat(),
-            "revenue_total": ReportService._money(revenue_total),
-            "estimated_cost_total": ReportService._money(estimated_cost_total),
-            "estimated_profit_total": ReportService._money(estimated_profit_total),
-            "margin_percentage": ReportService._money(margin_pct),
-            "products": products,
+            "date_from": target_date.isoformat(),
+            "date_to": target_date.isoformat(),
+            "totals": {
+                "pos_sales": ReportService._money(summary["pos_total"]),
+                "ecommerce_sales": ReportService._money(summary["ecommerce_total"]),
+                "grand_total": ReportService._money(summary["grand_total"]),
+                "transactions_count": summary["transactions_count"],
+            },
+            "payment_methods": summary["payment_methods"],
+            "generated_at": datetime.utcnow(),
+        }
+
+        collections = get_report_collections()
+        collections["daily_sales"].replace_one(
+            {"report_date": target_date.isoformat()},
+            doc,
+            upsert=True,
+        )
+        return doc
+
+    @staticmethod
+    def generate_daily_profit_snapshot(target_date: date | None = None) -> dict:
+        target_date = target_date or date.today()
+        summary = ReportService._calculate_profit_summary(target_date, target_date)
+
+        doc = {
+            "report_date": target_date.isoformat(),
+            "date_from": target_date.isoformat(),
+            "date_to": target_date.isoformat(),
+            "revenue_total": ReportService._money(summary["revenue_total"]),
+            "estimated_cost_total": ReportService._money(
+                summary["estimated_cost_total"]
+            ),
+            "estimated_profit_total": ReportService._money(
+                summary["estimated_profit_total"]
+            ),
+            "margin_percentage": ReportService._money(summary["margin_percentage"]),
+            "products": summary["products"],
             "generated_at": datetime.utcnow(),
         }
 
@@ -313,26 +440,9 @@ class ReportService:
 
         for i in range(7):
             current_day = start_date + timedelta(days=i)
-            start_dt, end_dt = ReportService._start_end_for_day(current_day)
+            summary = ReportService._calculate_sales_summary(current_day, current_day)
 
-            pos_total = sum(
-                ReportService._to_decimal(s.total)
-                for s in Sale.query.filter(
-                    Sale.sale_date >= start_dt, Sale.sale_date <= end_dt
-                ).all()
-            )
-            ecommerce_total = sum(
-                ReportService._to_decimal(o.total)
-                for o in Order.query.filter(
-                    Order.order_date >= start_dt,
-                    Order.order_date <= end_dt,
-                    Order.source == "ecommerce",
-                ).all()
-                if str(o.status).lower()
-                not in {"cancelada", "cancelled", "rechazada", "rejected"}
-            )
-
-            total = pos_total + ecommerce_total
+            total = summary["grand_total"]
             if total > max_value:
                 max_value = total
 
@@ -341,6 +451,9 @@ class ReportService:
                     "date": current_day.isoformat(),
                     "label": ReportService._weekday_name(current_day),
                     "amount": ReportService._money(total),
+                    "pos_sales": ReportService._money(summary["pos_total"]),
+                    "ecommerce_sales": ReportService._money(summary["ecommerce_total"]),
+                    "transactions_count": summary["transactions_count"],
                 }
             )
 
@@ -409,12 +522,7 @@ class ReportService:
             rows[product.id]["pos_quantity"] += qty
 
         for item in order_items:
-            if str(item.order.status).lower() in {
-                "cancelada",
-                "cancelled",
-                "rechazada",
-                "rejected",
-            }:
+            if not ReportService._is_valid_order(item.order):
                 continue
 
             product = item.product
@@ -476,63 +584,11 @@ class ReportService:
         target_date: date | None = None, limit: int = 10
     ) -> dict:
         target_date = target_date or date.today()
-        start_dt, end_dt = ReportService._start_end_for_day(target_date)
 
-        rows = []
+        rows = ReportService.get_recent_sales_rows(target_date=target_date)
 
-        sales = (
-            Sale.query.filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt)
-            .order_by(Sale.sale_date.desc(), Sale.id.desc())
-            .all()
-        )
-        for sale in sales:
-            rows.append(
-                ReportService._build_recent_sale_row(
-                    source="POS",
-                    record_id=sale.id,
-                    record_date=sale.sale_date,
-                    total=sale.total,
-                    payment_method_name=(
-                        sale.payment_method.name if sale.payment_method else None
-                    ),
-                )
-            )
-
-        orders = (
-            Order.query.filter(
-                Order.order_date >= start_dt,
-                Order.order_date <= end_dt,
-                Order.source == "ecommerce",
-            )
-            .order_by(Order.order_date.desc(), Order.id.desc())
-            .all()
-        )
-        for order in orders:
-            if str(order.status).lower() in {
-                "cancelada",
-                "cancelled",
-                "rechazada",
-                "rejected",
-            }:
-                continue
-
-            rows.append(
-                ReportService._build_recent_sale_row(
-                    source="ECOM",
-                    record_id=order.id,
-                    record_date=order.order_date,
-                    total=order.total,
-                    payment_method_name=(
-                        order.payment_method.name if order.payment_method else None
-                    ),
-                )
-            )
-
-        rows.sort(key=lambda x: x["sort_date"], reverse=True)
-        rows = rows[:limit]
-
-        for row in rows:
-            row.pop("sort_date", None)
+        if limit:
+            rows = rows[:limit]
 
         doc = {
             "report_date": target_date.isoformat(),
@@ -554,13 +610,16 @@ class ReportService:
 
         daily_sales = ReportService.generate_daily_sales_snapshot(target_date)
         daily_profit = ReportService.generate_daily_profit_snapshot(target_date)
-
-        completed_production_orders = ProductionOrder.query.filter(
-            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES)
-        ).count()
+        completed_production_orders = len(
+            ReportService._get_completed_production_orders_in_range(
+                target_date, target_date
+            )
+        )
 
         doc = {
             "report_date": target_date.isoformat(),
+            "date_from": target_date.isoformat(),
+            "date_to": target_date.isoformat(),
             "summary": {
                 "sales_total": daily_sales["totals"]["grand_total"],
                 "estimated_profit_total": daily_profit["estimated_profit_total"],
@@ -637,33 +696,43 @@ class ReportService:
             {"report_date": target_date.isoformat()}
         )
 
-        if not all(
-            [
-                daily_sales,
-                daily_profit,
-                weekly_sales,
-                recent_sales,
-                top_products,
-                general,
-            ]
-        ):
-            return ReportService.refresh_dashboard_snapshots(target_date)
-
-        return {
+        snapshots = {
             "daily_sales": daily_sales,
             "daily_profit": daily_profit,
             "weekly_sales": weekly_sales,
-            "top_products": top_products,
             "recent_sales": recent_sales,
+            "top_products": top_products,
             "general": general,
         }
+
+        if not all(snapshots.values()):
+            return ReportService.refresh_dashboard_snapshots(target_date)
+
+        weekly_items = weekly_sales.get("items", []) if weekly_sales else []
+        weekly_has_data_shape = len(weekly_items) == 7 and "max_amount" in weekly_sales
+
+        if not weekly_has_data_shape:
+            return ReportService.refresh_dashboard_snapshots(target_date)
+
+        if recent_sales is not None and "items" not in recent_sales:
+            return ReportService.refresh_dashboard_snapshots(target_date)
+
+        if top_products is not None and "items" not in top_products:
+            return ReportService.refresh_dashboard_snapshots(target_date)
+
+        expected_total = daily_sales.get("totals", {}).get("grand_total", 0)
+        weekly_last_day_amount = weekly_items[-1].get("amount", 0) if weekly_items else 0
+
+        if expected_total and weekly_last_day_amount == 0:
+            return ReportService.refresh_dashboard_snapshots(target_date)
+
+        return snapshots
 
     @staticmethod
     def get_raw_material_consumption_report(
         date_from: date | None = None, date_to: date | None = None
     ) -> dict:
-        date_to = date_to or date.today()
-        date_from = date_from or (date_to - timedelta(days=29))
+        date_from, date_to = ReportService._normalize_date_range(date_from, date_to)
 
         rows = defaultdict(
             lambda: {
@@ -676,11 +745,9 @@ class ReportService:
             }
         )
 
-        orders = ProductionOrder.query.filter(
-            ProductionOrder.scheduled_date >= date_from,
-            ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
-        ).all()
+        orders = ReportService._get_completed_production_orders_in_range(
+            date_from, date_to
+        )
 
         for order in orders:
             for material in order.material_consumptions:
@@ -695,7 +762,10 @@ class ReportService:
                 )
                 rows[key]["estimated_waste"] += ReportService._to_decimal(
                     material.quantity_used
-                ) * (ReportService._to_decimal(material.waste_applied) / Decimal("100"))
+                ) * (
+                    ReportService._to_decimal(material.waste_applied)
+                    / Decimal("100")
+                )
 
                 rows[key]["products"].append(
                     {
@@ -730,36 +800,162 @@ class ReportService:
     def get_general_report(
         date_from: date | None = None, date_to: date | None = None
     ) -> dict:
-        date_to = date_to or date.today()
-        date_from = date_from or (date_to - timedelta(days=29))
-
-        dashboard = ReportService.get_dashboard(target_date=date.today())
-        consumption = ReportService.get_raw_material_consumption_report(
+        _, _, date_from, date_to = ReportService._start_end_for_range(
             date_from, date_to
         )
 
-        completed_orders = ProductionOrder.query.filter(
-            ProductionOrder.scheduled_date >= date_from,
-            ProductionOrder.scheduled_date <= date_to,
-            ProductionOrder.status.in_(ReportService.PRODUCTION_COMPLETED_STATUSES),
-        ).count()
+        sales_summary = ReportService._calculate_sales_summary(date_from, date_to)
+        profit_summary = ReportService._calculate_profit_summary(date_from, date_to)
+        consumption = ReportService.get_raw_material_consumption_report(
+            date_from, date_to
+        )
+        top_products = ReportService.generate_top_products_snapshot(date_from, date_to)
+        completed_orders = len(
+            ReportService._get_completed_production_orders_in_range(date_from, date_to)
+        )
+
+        sales_doc = {
+            "date_from": date_from.isoformat(),
+            "date_to": date_to.isoformat(),
+            "totals": {
+                "pos_sales": ReportService._money(sales_summary["pos_total"]),
+                "ecommerce_sales": ReportService._money(
+                    sales_summary["ecommerce_total"]
+                ),
+                "grand_total": ReportService._money(sales_summary["grand_total"]),
+                "transactions_count": sales_summary["transactions_count"],
+            },
+            "payment_methods": sales_summary["payment_methods"],
+        }
+
+        profit_doc = {
+            "date_from": date_from.isoformat(),
+            "date_to": date_to.isoformat(),
+            "revenue_total": ReportService._money(profit_summary["revenue_total"]),
+            "estimated_cost_total": ReportService._money(
+                profit_summary["estimated_cost_total"]
+            ),
+            "estimated_profit_total": ReportService._money(
+                profit_summary["estimated_profit_total"]
+            ),
+            "margin_percentage": ReportService._money(
+                profit_summary["margin_percentage"]
+            ),
+            "products": profit_summary["products"],
+        }
 
         return {
             "date_from": date_from.isoformat(),
             "date_to": date_to.isoformat(),
             "summary": {
-                "sales_total": dashboard["daily_sales"]["totals"]["grand_total"],
-                "estimated_profit_total": dashboard["daily_profit"][
-                    "estimated_profit_total"
-                ],
-                "transactions_count": dashboard["daily_sales"]["totals"][
-                    "transactions_count"
-                ],
+                "sales_total": sales_doc["totals"]["grand_total"],
+                "estimated_profit_total": profit_doc["estimated_profit_total"],
+                "transactions_count": sales_doc["totals"]["transactions_count"],
                 "completed_production_orders": completed_orders,
                 "raw_materials_consumed": len(consumption["items"]),
             },
-            "sales": dashboard["daily_sales"],
-            "profit": dashboard["daily_profit"],
-            "top_products": dashboard["top_products"],
+            "sales": sales_doc,
+            "profit": profit_doc,
+            "top_products": top_products,
             "raw_material_consumption": consumption,
+        }
+
+    @staticmethod
+    def get_recent_sales_rows(
+        target_date: date | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        search_term: str = "",
+        source_filter: str = "all",
+    ) -> list[dict]:
+        if target_date is not None and date_from is None and date_to is None:
+            date_from = target_date
+            date_to = target_date
+
+        sales, valid_orders, _, _ = ReportService._get_sales_and_orders_in_range(
+            date_from, date_to
+        )
+
+        rows = []
+
+        for sale in sales:
+            rows.append(
+                ReportService._build_recent_sale_row(
+                    source="POS",
+                    record_id=sale.id,
+                    record_date=sale.sale_date,
+                    total=sale.total,
+                    payment_method_name=(
+                        sale.payment_method.name if sale.payment_method else None
+                    ),
+                )
+            )
+
+        for order in valid_orders:
+            rows.append(
+                ReportService._build_recent_sale_row(
+                    source="ECOM",
+                    record_id=order.id,
+                    record_date=order.order_date,
+                    total=order.total,
+                    payment_method_name=(
+                        order.payment_method.name if order.payment_method else None
+                    ),
+                )
+            )
+
+        if source_filter == "pos":
+            rows = [row for row in rows if row["source"] == "POS"]
+        elif source_filter == "ecommerce":
+            rows = [row for row in rows if row["source"] == "ECOM"]
+
+        if search_term:
+            term = search_term.strip().lower()
+            rows = [
+                row
+                for row in rows
+                if term in row["label"].lower()
+                or term in row["date"].lower()
+                or term in row["payment_method"].lower()
+                or term in row["source"].lower()
+            ]
+
+        rows.sort(key=lambda x: x["sort_date"], reverse=True)
+
+        for row in rows:
+            row.pop("sort_date", None)
+
+        return rows
+
+    @staticmethod
+    def get_dashboard_comparison_metrics(target_date: date | None = None) -> dict:
+        target_date = target_date or date.today()
+
+        current_sales = ReportService._calculate_sales_summary(target_date, target_date)
+        previous_day = target_date - timedelta(days=1)
+        previous_sales = ReportService._calculate_sales_summary(
+            previous_day, previous_day
+        )
+
+        current_profit = ReportService._calculate_profit_summary(
+            target_date, target_date
+        )
+        previous_profit = ReportService._calculate_profit_summary(
+            previous_day, previous_day
+        )
+
+        sales_change_pct = ReportService._calculate_change(
+            current_sales["grand_total"],
+            previous_sales["grand_total"],
+        )
+        profit_change_pct = ReportService._calculate_change(
+            current_profit["estimated_profit_total"],
+            previous_profit["estimated_profit_total"],
+        )
+
+        return {
+            "sales_change_pct": sales_change_pct,
+            "profit_change_pct": profit_change_pct,
+            "sales_direction": "up" if sales_change_pct >= 0 else "down",
+            "profit_direction": "up" if profit_change_pct >= 0 else "down",
         }

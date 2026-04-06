@@ -621,12 +621,18 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "costs.details": COSTS_READ,
         "costs.export_cost_csv": COSTS_EXPORT,
         # Reports + dashboard
-        "reports.index": REPORTS_READ,
+                "reports.index": REPORTS_READ,
         "reports.sales_details": REPORTS_READ,
         "reports.top_products_details": REPORTS_READ,
         "reports.raw_material_consumption_details": REPORTS_READ,
         "reports.general_report_details": REPORTS_READ,
         "reports.export_daily_cut_csv": REPORTS_EXPORT,
+        "reports.export_recent_sale": REPORTS_EXPORT,
+        "reports.bulk_action_reports": lambda: resolve_action_permission(
+            {
+                "export": REPORTS_EXPORT,
+            }
+        ),
         "reports.refresh": REPORTS_REFRESH,
         # Audit
         "audit.index": AUDIT_READ,
