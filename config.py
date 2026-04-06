@@ -41,6 +41,8 @@ class Config:
     # Flask Security
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SECURITY_POST_LOGIN_VIEW = "/admin"
+    SECURITY_RECOVERABLE = True
+    SECURITY_AUTO_LOGIN_AFTER_RESET = False
     SECURITY_TWO_FACTOR = True
     SECURITY_TWO_FACTOR_REQUIRED = False
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ["authenticator"]
@@ -88,6 +90,24 @@ class Config:
         "El metodo seleccionado no es valido para tu cuenta.",
         "error",
     )
+    SECURITY_MSG_PASSWORD_RESET_REQUEST = (
+        "Si el correo existe, enviamos instrucciones para recuperar tu contrasena.",
+        "info",
+    )
+    SECURITY_MSG_PASSWORD_RESET_EXPIRED = (
+        "El enlace de recuperacion expiro. Solicita uno nuevo.",
+        "error",
+    )
+    SECURITY_MSG_INVALID_RESET_PASSWORD_TOKEN = (
+        "El enlace de recuperacion no es valido.",
+        "error",
+    )
+    SECURITY_MSG_PASSWORD_RESET_NO_LOGIN = (
+        "Tu contrasena fue restablecida. Inicia sesion con la nueva contrasena.",
+        "success",
+    )
+    SECURITY_EMAIL_SUBJECT_PASSWORD_RESET = "Instrucciones para recuperar tu contrasena"
+    SECURITY_EMAIL_SUBJECT_PASSWORD_NOTICE = "Tu contrasena fue restablecida"
     SECURITY_EMAIL_SUBJECT_TWO_FACTOR_RESCUE = (
         "Solicitud de recuperacion de autenticacion de dos factores"
     )

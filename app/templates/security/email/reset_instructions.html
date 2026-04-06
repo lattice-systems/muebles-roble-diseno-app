@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperacion de contrasena - Roble y Diseno</title>
+    <!--[if mso]>
+    <noscript>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+    </noscript>
+    <![endif]-->
+  </head>
+  <body style="margin:0;
+               padding:0;
+               background-color:#f3f4f6;
+               font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+               -webkit-text-size-adjust:100%;
+               -ms-text-size-adjust:100%">
+    <table role="presentation"
+           width="100%"
+           cellpadding="0"
+           cellspacing="0"
+           style="background-color:#f3f4f6">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation"
+                 width="600"
+                 cellpadding="0"
+                 cellspacing="0"
+                 style="max-width:600px;
+                        width:100%;
+                        background-color:#ffffff;
+                        border-radius:12px;
+                        overflow:hidden;
+                        box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)">
+            <tr>
+              <td style="background-color:#1e3a5f; padding:32px; text-align:center;">
+                <img src="cid:company_logo"
+                     alt="Roble y Diseno"
+                     width="180"
+                     style="display:block;
+                            margin:0 auto 14px;
+                            max-width:180px;
+                            height:auto">
+                <p style="margin:0;
+                          color:#d1e3f6;
+                          font-size:12px;
+                          font-weight:600;
+                          letter-spacing:1px;
+                          text-transform:uppercase">Roble y Diseno</p>
+                <h1 style="margin:8px 0 0;
+                           color:#ffffff;
+                           font-size:22px;
+                           font-weight:700">Recuperacion de contrasena</h1>
+                <p style="margin:8px 0 0; color:#d1e3f6; font-size:14px;">Solicitud de acceso seguro a tu cuenta</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 8px;">
+                <p style="margin:0; color:#374151; font-size:15px; line-height:1.6;">
+                  Hola <strong style="color:#1e3a5f;">{{ user.full_name if user and user.full_name else "usuario" }}</strong>,
+                </p>
+                <p style="margin:8px 0 0;
+                          color:#6b7280;
+                          font-size:14px;
+                          line-height:1.6">Recibimos una solicitud para restablecer la contrasena de tu cuenta.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px;">
+                <table role="presentation"
+                       width="100%"
+                       cellpadding="0"
+                       cellspacing="0"
+                       style="background-color:#f8fafc;
+                              border:1px solid #e5e7eb;
+                              border-radius:8px">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <p style="margin:0 0 8px;
+                                color:#1e3a5f;
+                                font-size:13px;
+                                font-weight:700">Resumen de la solicitud</p>
+                      <p style="margin:0; color:#374151; font-size:13px; line-height:1.7;">
+                        Cuenta: {{ user.email if user and user.email else "N/D" }}
+                        <br>
+                        Motivo: Restablecer contrasena
+                        <br>
+                        Enlace de un solo uso y con vigencia limitada
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 32px 20px; text-align:center;">
+                <a href="{{ reset_link }}"
+                   style="display:inline-block;
+                          background-color:#1e3a5f;
+                          color:#ffffff;
+                          text-decoration:none;
+                          font-size:14px;
+                          font-weight:600;
+                          padding:12px 20px;
+                          border-radius:8px">Restablecer contrasena</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 20px;">
+                <p style="margin:0 0 8px;
+                          color:#6b7280;
+                          font-size:12px;
+                          line-height:1.6">Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
+                <p style="margin:0;
+                          color:#334155;
+                          font-size:12px;
+                          word-break:break-all;
+                          line-height:1.6">{{ reset_link }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 24px;">
+                <table role="presentation"
+                       width="100%"
+                       cellpadding="0"
+                       cellspacing="0"
+                       style="background-color:#fef2f2;
+                              border:1px solid #fecaca;
+                              border-radius:8px">
+                  <tr>
+                    <td style="padding:14px 16px;">
+                      <p style="margin:0; color:#991b1b; font-size:12px; line-height:1.6;">
+                        Si no solicitaste este cambio, ignora este mensaje.
+                        Tu contrasena no sera modificada hasta que completes el proceso desde el enlace.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#1e3a5f;
+                         padding:24px 32px;
+                         text-align:center;
+                         border-radius:0 0 12px 12px">
+                <p style="margin:0 0 4px;
+                          color:#ffffff;
+                          font-size:13px;
+                          font-weight:600">Roble y Diseno - Muebleria Fina S.A. de C.V.</p>
+                <p style="margin:0; color:#94a3b8; font-size:11px; line-height:1.5;">
+                  Blvd. Universidad Tecnologica #2000, Col. Industrial, Leon, Gto. C.P. 37201
+                  <br>
+                  Tel: (477) 444-4444 - ventas@robleydiseno.com
+                  <br>
+                  RFC: RODI890214XYZ
+                </p>
+                <p style="margin:12px 0 0; color:#64748b; font-size:10px;">
+                  Este correo fue generado automaticamente. Por favor no respondas a este mensaje.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
