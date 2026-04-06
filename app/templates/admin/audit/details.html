@@ -5,7 +5,7 @@
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalle de evento de auditoria" %}
-    {% set admin_header_subtitle = "Revision de estado anterior y nuevo para trazabilidad." %}
+    {% set admin_header_subtitle = "Revision amigable de cambios para trazabilidad." %}
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="flex items-center">
@@ -17,46 +17,84 @@
     <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-sm">
       <div>
         <span class="text-body text-xs uppercase tracking-wide">ID evento</span>
-        <p class="text-heading font-medium">{{ entry.id }}</p>
+        <p class="text-heading font-medium">{{ detail.id }}</p>
       </div>
       <div>
         <span class="text-body text-xs uppercase tracking-wide">Tabla</span>
-        <p class="text-heading font-medium">{{ entry.table_name }}</p>
+        <p class="text-heading font-medium">{{ detail.table_name }}</p>
       </div>
       <div>
         <span class="text-body text-xs uppercase tracking-wide">Accion</span>
-        <p class="text-heading font-medium">{{ entry.action }}</p>
+        <p class="text-heading font-medium">{{ detail.action_label }}</p>
       </div>
       <div>
         <span class="text-body text-xs uppercase tracking-wide">Record ID</span>
-        <p class="text-heading font-medium">{{ entry.record_id or '-' }}</p>
+        <p class="text-heading font-medium">{{ detail.record_id or '-' }}</p>
       </div>
       <div>
-        <span class="text-body text-xs uppercase tracking-wide">Usuario</span>
-        <p class="text-heading font-medium">{{ entry.user.full_name if entry.user else 'Sistema/No asociado' }}</p>
+        <span class="text-body text-xs uppercase tracking-wide">Actor</span>
+        <p class="text-heading font-medium">{{ detail.actor_name }}</p>
       </div>
       <div>
+        <span class="text-body text-xs uppercase tracking-wide">Tipo de actor</span>
+        <p class="text-heading font-medium">{{ detail.actor_role }}</p>
+      </div>
+      <div class="md:col-span-2">
         <span class="text-body text-xs uppercase tracking-wide">Fuente</span>
-        <p class="text-heading font-medium">{{ entry.source }}</p>
+        <p class="text-heading font-medium">{{ detail.source_label }}</p>
       </div>
       <div class="md:col-span-2">
         <span class="text-body text-xs uppercase tracking-wide">Timestamp</span>
-        <p class="text-heading font-medium">{{ entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") if entry.timestamp else '-' }}</p>
+        <p class="text-heading font-medium">
+          {{ detail.timestamp.strftime("%Y-%m-%d %H:%M:%S") if detail.timestamp else '-' }}
+        </p>
       </div>
     </div>
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
-        <div class="px-4 py-3 border-b border-default-medium">
-          <h2 class="text-heading text-sm font-semibold">Estado previo</h2>
-        </div>
-        <pre class="p-4 text-xs 2xl:text-sm text-body overflow-auto max-h-[28rem]">{{ entry.previous_data | tojson(indent=2) if entry.previous_data else 'null' }}</pre>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+      <div class="px-4 py-3 border-b border-default-medium">
+        <h2 class="text-heading text-sm font-semibold">{{ detail.change_title }}</h2>
       </div>
-      <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
-        <div class="px-4 py-3 border-b border-default-medium">
-          <h2 class="text-heading text-sm font-semibold">Estado nuevo</h2>
+      {% if detail.has_changes %}
+        <div class="relative overflow-x-auto">
+          <table class="w-full text-left text-xs 2xl:text-sm text-body">
+            <thead class="uppercase bg-neutral-secondary-soft text-heading border-b border-default-medium">
+              <tr>
+                <th class="px-4 py-3">Campo</th>
+                <th class="px-4 py-3">Antes</th>
+                <th class="px-4 py-3">Despues</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in detail.changes %}
+                <tr class="border-b border-default-medium last:border-b-0">
+                  <td class="px-4 py-3 text-heading font-medium">{{ row.field_label }}</td>
+                  <td class="px-4 py-3">{{ row.previous_display }}</td>
+                  <td class="px-4 py-3">{{ row.new_display }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <pre class="p-4 text-xs 2xl:text-sm text-body overflow-auto max-h-[28rem]">{{ entry.new_data | tojson(indent=2) if entry.new_data else 'null' }}</pre>
-      </div>
+      {% else %}
+        <p class="p-4 text-sm text-body">No hay cambios de campos para mostrar.</p>
+      {% endif %}
     </div>
+    <details class="bg-white border border-default rounded-base shadow-xs p-3">
+      <summary class="cursor-pointer text-sm font-semibold text-heading">Ver datos tecnicos (JSON)</summary>
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-3">
+        <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+          <div class="px-4 py-3 border-b border-default-medium">
+            <h3 class="text-heading text-sm font-semibold">Estado previo</h3>
+          </div>
+          <pre class="p-4 text-xs 2xl:text-sm text-body overflow-auto max-h-112">{{ detail.previous_raw | tojson(indent=2) if detail.previous_raw else 'null' }}</pre>
+        </div>
+        <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+          <div class="px-4 py-3 border-b border-default-medium">
+            <h3 class="text-heading text-sm font-semibold">Estado nuevo</h3>
+          </div>
+          <pre class="p-4 text-xs 2xl:text-sm text-body overflow-auto max-h-112">{{ detail.new_raw | tojson(indent=2) if detail.new_raw else 'null' }}</pre>
+        </div>
+      </div>
+    </details>
   </div>
 {% endblock content %}

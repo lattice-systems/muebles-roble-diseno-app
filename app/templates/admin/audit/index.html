@@ -39,8 +39,9 @@
                   name="action"
                   class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
             <option value="">Todas las acciones</option>
-            {% for item in action_options %}
-              <option value="{{ item }}" {% if action == item %}selected{% endif %}>{{ item }}</option>
+            {% for option in action_options %}
+              <option value="{{ option[0] }}"
+                      {% if action == option[0] %}selected{% endif %}>{{ option[1] }}</option>
             {% endfor %}
           </select>
         </div>
@@ -50,8 +51,9 @@
                   name="source"
                   class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
             <option value="">Todas las fuentes</option>
-            {% for item in source_options %}
-              <option value="{{ item }}" {% if source == item %}selected{% endif %}>{{ item }}</option>
+            {% for option in source_options %}
+              <option value="{{ option[0] }}"
+                      {% if source == option[0] %}selected{% endif %}>{{ option[1] }}</option>
             {% endfor %}
           </select>
         </div>
@@ -100,7 +102,7 @@
               <th class="px-6 py-4">Tabla</th>
               <th class="px-6 py-4">Accion</th>
               <th class="px-6 py-4">Record ID</th>
-              <th class="px-6 py-4">Usuario</th>
+              <th class="px-6 py-4">Actor</th>
               <th class="px-6 py-4">Fuente</th>
               <th class="px-6 py-4 text-right">Detalle</th>
             </tr>
@@ -111,19 +113,24 @@
                 <td class="px-6 py-4">{{ entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") if entry.timestamp else '-' }}</td>
                 <td class="px-6 py-4 text-heading font-medium">{{ entry.table_name }}</td>
                 <td class="px-6 py-4">
-                  {% if entry.action == 'INSERT' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-100 text-green-700">INSERT</span>
-                  {% elif entry.action == 'UPDATE' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">UPDATE</span>
-                  {% elif entry.action == 'DELETE' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-100 text-red-700">DELETE</span>
+                  {% if entry.action_code == 'INSERT' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-100 text-green-700">{{ entry.action_label }}</span>
+                  {% elif entry.action_code == 'UPDATE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">{{ entry.action_label }}</span>
+                  {% elif entry.action_code == 'DELETE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-100 text-red-700">{{ entry.action_label }}</span>
                   {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700">{{ entry.action }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700">{{ entry.action_label }}</span>
                   {% endif %}
                 </td>
                 <td class="px-6 py-4">{{ entry.record_id or '-' }}</td>
-                <td class="px-6 py-4">{{ entry.user.full_name if entry.user else 'Sistema/No asociado' }}</td>
-                <td class="px-6 py-4">{{ entry.source }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="text-heading font-medium">{{ entry.actor_name }}</span>
+                    <span class="text-xs text-body">{{ entry.actor_role }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">{{ entry.source_label }}</td>
                 <td class="px-6 py-4 text-right">
                   <a href="{{ url_for('audit.details', audit_id=entry.id) }}"
                      class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">Ver detalle</a>

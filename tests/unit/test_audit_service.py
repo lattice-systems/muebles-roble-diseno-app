@@ -87,3 +87,45 @@ class TestAuditService:
         assert "UPDATE" in options["actions"]
         assert "application" in options["sources"]
         assert any(item[0] == user.id for item in options["users"])
+
+    def test_to_detail_view_redacts_sensitive_fields(self):
+        entry = AuditLog(
+            table_name="users",
+            action="UPDATE",
+            source="db_trigger",
+            previous_data={
+                "email": "old@example.com",
+                "password_hash": "old_hash",
+                "tf_totp_secret": "old_secret",
+            },
+            new_data={
+                "email": "new@example.com",
+                "password_hash": "new_hash",
+                "tf_totp_secret": "new_secret",
+            },
+        )
+
+        detail = AuditService.to_detail_view(entry)
+
+        rows_by_key = {row["field_key"]: row for row in detail["changes"]}
+
+        assert rows_by_key["email"]["previous_display"] == "old@example.com"
+        assert rows_by_key["email"]["new_display"] == "new@example.com"
+
+        assert (
+            rows_by_key["password_hash"]["previous_display"] == "Oculto (dato sensible)"
+        )
+        assert rows_by_key["password_hash"]["new_display"] == "Oculto (dato sensible)"
+        assert rows_by_key["password_hash"]["previous_value"] is None
+        assert rows_by_key["password_hash"]["new_value"] is None
+
+        assert (
+            rows_by_key["tf_totp_secret"]["previous_display"]
+            == "Oculto (dato sensible)"
+        )
+        assert rows_by_key["tf_totp_secret"]["new_display"] == "Oculto (dato sensible)"
+
+        assert detail["previous_raw"]["password_hash"] == "[REDACTED]"
+        assert detail["new_raw"]["password_hash"] == "[REDACTED]"
+        assert detail["previous_raw"]["tf_totp_secret"] == "[REDACTED]"
+        assert detail["new_raw"]["tf_totp_secret"] == "[REDACTED]"

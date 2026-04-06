@@ -39,10 +39,17 @@ def index():
     )
 
     options = AuditService.get_filter_options()
+    action_options = [
+        (value, AuditService.get_action_label(value)) for value in options["actions"]
+    ]
+    source_options = [
+        (value, AuditService.get_source_label(value)) for value in options["sources"]
+    ]
+    logs = [AuditService.to_list_item(entry) for entry in pagination.items]
 
     return render_template(
         "admin/audit/index.html",
-        logs=pagination.items,
+        logs=logs,
         pagination=pagination,
         search_term=search_term,
         table_name=table_name,
@@ -52,8 +59,8 @@ def index():
         date_from=date_from_raw,
         date_to=date_to_raw,
         table_options=options["table_names"],
-        action_options=options["actions"],
-        source_options=options["sources"],
+        action_options=action_options,
+        source_options=source_options,
         user_options=options["users"],
     )
 
@@ -68,4 +75,5 @@ def details(audit_id: int):
         flash(error.message, "error")
         return redirect(url_for("audit.index"))
 
-    return render_template("admin/audit/details.html", entry=entry)
+    detail = AuditService.to_detail_view(entry)
+    return render_template("admin/audit/details.html", detail=detail)

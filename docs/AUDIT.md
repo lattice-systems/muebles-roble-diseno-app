@@ -67,7 +67,13 @@ Overrides opcionales por configuracion:
 Ruta admin:
 
 - `GET /admin/audit`: listado con filtros (tabla, accion, fuente, usuario y rango de fechas).
-- `GET /admin/audit/<id>/details`: detalle con JSON previo/nuevo.
+- `GET /admin/audit/<id>/details`: detalle amigable por campo y JSON tecnico opcional.
+
+Seguridad de datos sensibles en detalle:
+
+- Nunca se exponen credenciales o secretos en texto claro ni en hash visible.
+- Campos sensibles (ejemplo: `password_hash`, `password`, `fs_uniquifier`, `tf_totp_secret`) se muestran como `Oculto (dato sensible)`.
+- El bloque JSON tecnico del detalle tambien aplica redaccion (`[REDACTED]`) para esos campos.
 
 Permiso RBAC:
 
@@ -78,6 +84,85 @@ Permiso RBAC:
 - RBAC: solo `admin` con `audit.read`.
 - Integracion: ruta `/admin/audit` requiere autenticacion.
 - Unitario: filtros de `AuditService` y consulta de detalle.
+
+## Estructura recomendada (separacion por tipo de registro)
+
+### 1) Auditoria de negocio (para backoffice)
+
+Objetivo:
+
+- Trazar cambios funcionales del sistema (ventas, compras, inventario, catalogos, usuarios, estados).
+
+Fuente:
+
+- Principalmente triggers MySQL sobre tablas de negocio.
+
+Visualizacion:
+
+- Visible solo para personal autorizado (permiso `audit.read`).
+- Mostrar resumen amigable: tabla, accion, actor, fecha, cambios por campo.
+- Nunca exponer campos sensibles.
+
+Tabla sugerida:
+
+- `audit_log` (actual): `table_name`, `action`, `user_id`, `record_id`, `source`, `timestamp`, `previous_data`, `new_data`.
+
+### 2) Auditoria de seguridad (autenticacion/autorizacion)
+
+Objetivo:
+
+- Registrar eventos de seguridad y acceso.
+
+Eventos recomendados:
+
+- `auth.login.success`
+- `auth.login.failed`
+- `auth.logout`
+- `auth.password.changed`
+- `auth.password.reset.requested`
+- `auth.password.reset.completed`
+- `auth.rbac.denied`
+- `auth.account.locked`
+
+Campos sugeridos:
+
+- `event_type`, `user_id` (nullable), `email_or_identifier`, `ip_address`, `user_agent`, `result`, `reason`, `timestamp`, `metadata`.
+
+Tabla sugerida:
+
+- `security_event_log` (separada de `audit_log`).
+
+Visualizacion:
+
+- Solo para administradores de seguridad o soporte avanzado.
+- No mostrar al cliente final.
+
+### 3) Logging tecnico (observabilidad)
+
+Objetivo:
+
+- Diagnosticar errores, performance y fallos de infraestructura.
+
+Contenido:
+
+- Errores de aplicacion, excepciones, stack trace, tiempos de respuesta, eventos de integraciones externas.
+
+Destino recomendado:
+
+- Consola/archivo en desarrollo.
+- Plataforma de logs en produccion (por ejemplo ELK, Loki, Cloud Logging, Datadog).
+
+Visualizacion:
+
+- Exclusivo para equipo tecnico.
+- No mostrar al cliente final ni en pantallas funcionales del negocio.
+
+## Regla de visibilidad por audiencia
+
+- Cliente final: no ve logs internos.
+- Usuario administrativo: solo auditoria de negocio relevante al proceso.
+- Soporte/seguridad: auditoria de seguridad.
+- Equipo tecnico: logs tecnicos completos.
 
 ## Scripts operativos
 
