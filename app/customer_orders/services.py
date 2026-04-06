@@ -404,7 +404,10 @@ class CustomerOrderService:
         if new_status not in Order.VALID_STATUSES:
             raise ValueError(f"Estado inválido: {new_status}")
 
-        order = Order.query.get_or_404(order_id)
+        order = Order.query.options(
+            selectinload(Order.customer),
+            selectinload(Order.production_orders),
+        ).get_or_404(order_id)
 
         # Idempotencia: si ya tiene el estado destino, no hacer nada
         if order.status == new_status:
@@ -419,6 +422,30 @@ class CustomerOrderService:
             )
 
         prev_data = order.to_dict()
+
+        # ── Reglas de negocio para el estado 'enviado' ──
+        # Solo las órdenes con flete pueden pasar por 'enviado'.
+        customer = order.customer
+        has_freight = customer and customer.requires_freight
+
+        if new_status == "enviado" and not has_freight:
+            raise ValueError(
+                "El estado 'Enviado' solo aplica para órdenes con envío (flete). "
+                "Esta orden no tiene envío; use 'Entregado' directamente."
+            )
+
+        # Si la orden tiene flete y se intenta pasar de terminado a entregado
+        # sin pasar por enviado, bloquear.
+        if (
+            new_status == "entregado"
+            and order.status == "terminado"
+            and has_freight
+        ):
+            raise ValueError(
+                "Esta orden tiene envío. Primero debe marcarse como 'Enviado' "
+                "antes de marcarla como 'Entregado'."
+            )
+
         order.status = new_status
 
         # Al entregar, verificar que producción haya terminado todos los ítems
