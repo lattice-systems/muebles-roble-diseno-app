@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime, timedelta
 
 from flask import session
 from flask_login import user_logged_out
@@ -151,6 +152,37 @@ class TestSecurityEventLogging:
         ).first()
         assert unlock_event is not None
         assert unlock_event.email_or_identifier == "unlock@test.com"
+
+    def test_login_lock_persists_across_sessions(self, app, db_session):
+        now = datetime.utcnow()
+
+        for attempt in range(3):
+            db_session.add(
+                SecurityEventLog(
+                    event_type="auth.login.failed",
+                    result="denied",
+                    user_id=None,
+                    email_or_identifier="persist@test.com",
+                    ip_address="127.0.0.1",
+                    reason=f"Intento fallido #{attempt + 1}",
+                    source="unit_test",
+                    timestamp=now - timedelta(minutes=attempt),
+                )
+            )
+        db_session.commit()
+
+        with app.test_request_context(
+            "/login",
+            method="POST",
+            data={"email": "persist@test.com"},
+            headers={"Accept": "application/json"},
+        ):
+            response = enforce_login_attempt_limit()
+
+            assert response is not None
+            assert response.status_code == 429
+            assert response.json["meta"]["retry_after_seconds"] > 0
+            assert int(session[LOGIN_BLOCKED_UNTIL_SESSION_KEY]) > int(time.time())
 
     def test_rbac_forbidden_is_logged(self, app, db_session):
         with app.test_request_context(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime, timedelta
 from typing import Any
 
 from flask import current_app, g, has_request_context, jsonify, request, session
@@ -14,8 +15,10 @@ from flask_security.signals import (
     user_authenticated,
     user_unauthenticated,
 )
+from sqlalchemy import or_
 
 from app.extensions import db
+from app.models.security_event_log import SecurityEventLog
 from app.shared.security_logging import log_security_event
 
 LOGIN_ATTEMPTS_SESSION_KEY = "security_login_attempts"
@@ -118,6 +121,71 @@ def _set_lock_window() -> int:
     session[LOGIN_BLOCKED_UNTIL_SESSION_KEY] = lock_until
     session.modified = True
     return lock_until
+
+
+def _matching_login_identity_filter():
+    predicates = []
+    identifier = _request_identifier()
+    ip_address = _request_ip()
+
+    if identifier:
+        predicates.append(SecurityEventLog.email_or_identifier == identifier)
+    if ip_address:
+        predicates.append(SecurityEventLog.ip_address == ip_address)
+
+    if not predicates:
+        return None
+
+    if len(predicates) == 1:
+        return predicates[0]
+
+    return or_(*predicates)
+
+
+def _persistent_login_lock_state() -> dict[str, int] | None:
+    if not has_request_context():
+        return None
+
+    identity_filter = _matching_login_identity_filter()
+    if identity_filter is None:
+        return None
+
+    lock_minutes = _lock_minutes()
+    now_utc = datetime.utcnow()
+    window_start = now_utc - timedelta(minutes=lock_minutes)
+    reset_event = (
+        SecurityEventLog.query.filter(identity_filter)
+        .filter(
+            SecurityEventLog.event_type.in_(
+                ["auth.login.success", "auth.account.unlocked.auto"]
+            )
+        )
+        .filter(SecurityEventLog.timestamp > window_start)
+        .order_by(SecurityEventLog.timestamp.desc(), SecurityEventLog.id.desc())
+        .first()
+    )
+    anchor = reset_event.timestamp if reset_event else window_start
+
+    failed_events = (
+        SecurityEventLog.query.filter(identity_filter)
+        .filter(SecurityEventLog.event_type == "auth.login.failed")
+        .filter(SecurityEventLog.timestamp > anchor)
+        .order_by(SecurityEventLog.timestamp.asc(), SecurityEventLog.id.asc())
+        .all()
+    )
+
+    if len(failed_events) < _max_login_attempts():
+        return None
+
+    last_failed_event = failed_events[-1]
+    blocked_until_epoch = int(last_failed_event.timestamp.timestamp()) + (
+        lock_minutes * 60
+    )
+    return {
+        "blocked_until_epoch": blocked_until_epoch,
+        "attempts": len(failed_events),
+        "identifier": _request_identifier(),
+    }
 
 
 def _wants_json_response() -> bool:
@@ -307,7 +375,72 @@ def enforce_login_attempt_limit():
             },
             source="security_signal",
         )
+        blocked_until_epoch = None
+
+        persistent_lock = _persistent_login_lock_state()
+        if persistent_lock and persistent_lock["blocked_until_epoch"] > now_epoch:
+            blocked_until_epoch = persistent_lock["blocked_until_epoch"]
+            session[LOGIN_BLOCKED_UNTIL_SESSION_KEY] = blocked_until_epoch
+            session[LOGIN_ATTEMPTS_SESSION_KEY] = max(
+                attempts, persistent_lock["attempts"]
+            )
+            session.modified = True
+            g.skip_login_attempt_tracking = True
+            _safe_commit_log(
+                event_type="auth.account.locked",
+                result="denied",
+                user_id=None,
+                email_or_identifier=persistent_lock["identifier"],
+                ip_address=_request_ip(),
+                user_agent=_request_user_agent(),
+                reason=(
+                    f"Cuenta bloqueada temporalmente por superar {max_attempts} intentos"
+                ),
+                context_data={
+                    "path": _request_path(),
+                    "attempt": persistent_lock["attempts"],
+                    "max_attempts": max_attempts,
+                    "lock_minutes": _lock_minutes(),
+                    "blocked_until_epoch": blocked_until_epoch,
+                    "enforcement": "persistent_event_lock",
+                },
+                source="security_signal",
+            )
+            return _build_locked_response(blocked_until_epoch)
+
         return None
+
+    if not blocked_until_epoch:
+        persistent_lock = _persistent_login_lock_state()
+        if persistent_lock and persistent_lock["blocked_until_epoch"] > now_epoch:
+            blocked_until_epoch = persistent_lock["blocked_until_epoch"]
+            session[LOGIN_BLOCKED_UNTIL_SESSION_KEY] = blocked_until_epoch
+            session[LOGIN_ATTEMPTS_SESSION_KEY] = max(
+                attempts, persistent_lock["attempts"]
+            )
+            session.modified = True
+            g.skip_login_attempt_tracking = True
+            _safe_commit_log(
+                event_type="auth.account.locked",
+                result="denied",
+                user_id=None,
+                email_or_identifier=persistent_lock["identifier"],
+                ip_address=_request_ip(),
+                user_agent=_request_user_agent(),
+                reason=(
+                    f"Cuenta bloqueada temporalmente por superar {max_attempts} intentos"
+                ),
+                context_data={
+                    "path": _request_path(),
+                    "attempt": persistent_lock["attempts"],
+                    "max_attempts": max_attempts,
+                    "lock_minutes": _lock_minutes(),
+                    "blocked_until_epoch": blocked_until_epoch,
+                    "enforcement": "persistent_event_lock",
+                },
+                source="security_signal",
+            )
+            return _build_locked_response(blocked_until_epoch)
 
     if not blocked_until_epoch and attempts < max_attempts:
         return None

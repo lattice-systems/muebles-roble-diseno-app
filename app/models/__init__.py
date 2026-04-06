@@ -27,6 +27,7 @@ from .user import User
 from .wood_type import WoodType
 from .material_category import MaterialCategory
 from .product_image import ProductImage
+from .navbar_notification_dismissal import NavbarNotificationDismissal
 
 __all__ = [
     "AuditLog",
@@ -58,4 +59,5 @@ __all__ = [
     "WoodType",
     "MaterialCategory",
     "ProductImage",
+    "NavbarNotificationDismissal",
 ]

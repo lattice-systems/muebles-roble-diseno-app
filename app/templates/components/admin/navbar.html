@@ -27,18 +27,97 @@
       </form>
     </div>
     <div class="flex gap-3 2xl:gap-4">
-      <div class="relative flex justify-center items-center">
-        <svg class="w-5 h-5 2xl:w-6 2xl:h-6 text-body"
-             aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             fill="none"
-             viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z">
-          </path>
-        </svg>
-        <span class="top-2 left-3 absolute w-2.5 h-2.5 2xl:top-2.5 2xl:left-3.5 2xl:w-3 2xl:h-3 bg-warning border-2 border-buffer rounded-full"></span>
+      <div class="relative">
+        <button id="navbarNotificationsButton"
+                type="button"
+                data-dropdown-toggle="navbarNotificationsDropdown"
+                data-dropdown-placement="bottom-end"
+                class="relative flex items-center justify-center w-9 h-9 2xl:w-10 2xl:h-10 rounded-full border border-default-medium bg-neutral-secondary-medium text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
+                aria-label="Abrir notificaciones">
+          <svg class="w-5 h-5 2xl:w-6 2xl:h-6"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               fill="none"
+               viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z">
+            </path>
+          </svg>
+          {% if navbar_notification_count %}
+            <span class="absolute -top-0.5 -right-0.5 inline-flex min-w-5 h-5 px-1 items-center justify-center text-2xs font-semibold text-white bg-fg-danger rounded-full border-2 border-buffer">
+              {{ navbar_notification_count if navbar_notification_count < 100 else '99+' }}
+            </span>
+          {% endif %}
+        </button>
+        <div id="navbarNotificationsDropdown"
+             class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-80 2xl:w-96 overflow-hidden">
+          <div class="px-4 py-3 border-b border-default-medium">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-sm font-medium text-heading">Alertas importantes</div>
+                <div class="text-xs text-body">Eventos recientes de seguridad y actividad crítica</div>
+              </div>
+              <a href="{{ url_for('notifications.index') }}"
+                 class="text-xs font-medium text-brand hover:text-brand-strong whitespace-nowrap">Ver bandeja</a>
+            </div>
+          </div>
+          <div class="max-h-96 overflow-y-auto">
+            {% if navbar_notifications %}
+              <ul class="divide-y divide-default-medium">
+                {% for notification in navbar_notifications %}
+                  <li>
+                    <div class="px-4 py-3 hover:bg-neutral-tertiary-medium transition-colors flex items-start gap-3">
+                      <a href="{{ notification.href }}"
+                         class="flex items-start gap-3 min-w-0 flex-1">
+                        <span class="mt-0.5 inline-flex w-2.5 h-2.5 rounded-full flex-none {% if notification.severity == 'danger' %}bg-fg-danger{% elif notification.severity == 'warning' %}bg-warning{% else %}bg-brand{% endif %}"></span>
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-medium text-heading truncate">{{ notification.title }}</p>
+                            <span class="text-[11px] text-body flex-none">{{ notification.timestamp.strftime("%d/%m %H:%M") if notification.timestamp else '' }}</span>
+                          </div>
+                          <p class="text-xs text-body mt-0.5 truncate">{{ notification.message }}</p>
+                        </div>
+                      </a>
+                      <form action="{{ notification.dismiss_url }}"
+                            method="post"
+                            class="flex-none">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-full text-body hover:bg-neutral-primary-soft hover:text-fg-danger transition-colors"
+                                aria-label="Eliminar notificacion">
+                          <svg class="w-4 h-4"
+                               aria-hidden="true"
+                               xmlns="http://www.w3.org/2000/svg"
+                               fill="none"
+                               viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-10 0V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-7 0h10m-9 0 .6 12.2A1 1 0 0 0 8.6 20h6.8a1 1 0 0 0 .999-.8L17 7M10 11v5m4-5v5" />
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="px-4 py-6 text-sm text-body text-center">No hay alertas recientes.</div>
+            {% endif %}
+          </div>
+          <div class="px-4 py-3 border-t border-default-medium bg-neutral-secondary-medium flex items-center justify-between gap-3 text-xs">
+            <span class="text-body">Revisa los eventos de acceso si necesitas más detalle.</span>
+            <div class="flex items-center gap-2">
+              {% if navbar_notifications %}
+                <form action="{{ url_for('notifications.clear') }}" method="post">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit"
+                          class="text-fg-danger hover:text-red-700 font-medium whitespace-nowrap">Borrar todo</button>
+                </form>
+              {% endif %}
+              <a href="{{ url_for('security_audit.index') }}"
+                 class="text-brand hover:text-brand-strong font-medium whitespace-nowrap">Ver todo</a>
+            </div>
+          </div>
+        </div>
       </div>
       <div id="avatarButton"
            type="button"

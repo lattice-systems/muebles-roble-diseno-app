@@ -32,6 +32,12 @@ class User(AuditMixin, db.Model, UserMixin):
     security_events = db.relationship(
         "SecurityEventLog", back_populates="user", lazy=True
     )
+    notification_dismissals = db.relationship(
+        "NavbarNotificationDismissal",
+        back_populates="user",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
 
     def to_dict(self) -> dict:
         return {

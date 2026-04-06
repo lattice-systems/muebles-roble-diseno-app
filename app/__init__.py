@@ -48,6 +48,24 @@ def create_app(config_class=None):
     # Register RBAC deny-by-default guard and Jinja helpers
     register_rbac(app)
 
+    @app.context_processor
+    def inject_navbar_notifications():
+        from flask_login import current_user
+
+        from .shared.navbar_notifications import build_navbar_notifications
+
+        if not getattr(current_user, "is_authenticated", False):
+            return {
+                "navbar_notifications": [],
+                "navbar_notification_count": 0,
+            }
+
+        notification_data = build_navbar_notifications()
+        return {
+            "navbar_notifications": notification_data["items"],
+            "navbar_notification_count": notification_data["count"],
+        }
+
     # Register auth/security event listeners (login/logout/password/access events)
     register_security_event_handlers(app)
 
@@ -108,6 +126,10 @@ def create_app(config_class=None):
     from .security_audit import security_audit_bp
 
     app.register_blueprint(security_audit_bp, url_prefix="/admin/security-events")
+
+    from .notifications import notifications_bp
+
+    app.register_blueprint(notifications_bp, url_prefix="/admin/notifications")
 
     app.register_blueprint(colors_bp, url_prefix="/admin/catalogs/colors")
 
