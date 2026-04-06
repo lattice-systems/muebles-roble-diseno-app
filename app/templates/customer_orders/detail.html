@@ -274,79 +274,123 @@
               <span class="font-medium text-xs">Orden cancelada.</span>
             </div>
           {% endif %}
-          {# ── Stepper de progreso ── #}
-          <div class="mt-2">
-            <p class="text-xs font-semibold text-body mb-2"
-               style="text-transform:uppercase;
-                      letter-spacing:0.05em">Progreso</p>
-            {# Definir pasos dinámicamente según si el cliente tiene flete #}
-            {% if order.customer.requires_freight %}
-              {% set steps = [('pendiente', 'Pendiente'), ('en_produccion', 'En Producción'), ('terminado', 'Terminado'), ('enviado', 'Enviado'), ('entregado', 'Entregado')] %}
-              {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'enviado', 'entregado'] %}
-            {% else %}
-              {% set steps = [('pendiente', 'Pendiente'), ('en_produccion', 'En Producción'), ('terminado', 'Terminado'), ('entregado', 'Entregado')] %}
-              {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'entregado'] %}
-            {% endif %}
-            {% set current_idx = statuses_order.index(order.status) if order.status in statuses_order else -1 %}
-            <ol class="flex flex-col gap-2">
-              {% for s, label in steps %}
-                {% set idx = loop.index0 %}
-                {% if current_idx >= idx %}
-                  <li class="flex items-center gap-2"
-                      style="color:var(--color-fg-brand,#2563eb);
-                             font-size:0.75rem;
-                             font-weight:500">
-                    <span style="display:flex;
-                                 align-items:center;
-                                 justify-content:center;
-                                 width:20px;
-                                 height:20px;
-                                 border-radius:50%;
-                                 background:#dbeafe;
-                                 border:1.5px solid var(--color-fg-brand,#2563eb);
-                                 flex-shrink:0">
-                      {% if current_idx > idx %}
-                        <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 13 4 4L19 7" />
-                        </svg>
-                      {% else %}
-                        <span style="width:6px;
-                                     height:6px;
-                                     border-radius:50%;
-                                     background:var(--color-fg-brand,#2563eb);
-                                     display:block"></span>
-                      {% endif %}
-                    </span>
-                    {{ label }}
-                  </li>
-                {% else %}
-                  <li class="flex items-center gap-2"
-                      style="color:#9ca3af;
-                             font-size:0.75rem">
-                    <span style="display:flex;
-                                 align-items:center;
-                                 justify-content:center;
-                                 width:20px;
-                                 height:20px;
-                                 border-radius:50%;
-                                 border:1.5px solid #e5e7eb;
-                                 flex-shrink:0">
-                      <span style="width:6px;
-                                   height:6px;
-                                   border-radius:50%;
-                                   background:#e5e7eb;
-                                   display:block"></span>
-                    </span>
-                    {{ label }}
-                  </li>
-                {% endif %}
-              {% endfor %}
-            </ol>
-          </div>
         </div>
       </div>
       {# /grid header #}
     </div>
+    {# ══════════════════════════════════════════════════════════ #}
+    {# ── Stepper Horizontal de Progreso                       ── #}
+    {# ══════════════════════════════════════════════════════════ #}
+    {% if order.status != 'cancelado' %}
+      {# Definir pasos dinámicamente según flete #}
+      {% if order.customer.requires_freight %}
+        {% set steps = [('pendiente', 'Pendiente', '1'), ('en_produccion', 'Producción', '2'), ('terminado', 'Terminado', '3'), ('enviado', 'Enviado', '4'), ('entregado', 'Entregado', '5')] %}
+        {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'enviado', 'entregado'] %}
+      {% else %}
+        {% set steps = [('pendiente', 'Pendiente', '1'), ('en_produccion', 'Producción', '2'), ('terminado', 'Terminado', '3'), ('entregado', 'Entregado', '4')] %}
+        {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'entregado'] %}
+      {% endif %}
+      {% set current_idx = statuses_order.index(order.status) if order.status in statuses_order else -1 %}
+      {% set total_steps = steps | length %}
+      <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-6">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;position:relative;">
+          {# ── Connecting line (background track) ── #}
+          <div style="position:absolute;
+                      top:18px;
+                      left:calc(100% / {{ total_steps }} / 2);
+                      right:calc(100% / {{ total_steps }} / 2);
+                      height:3px;
+                      background:#e5e7eb;
+                      border-radius:2px;
+                      z-index:0;"></div>
+          {# ── Connecting line (filled progress) ── #}
+          {% if current_idx > 0 %}
+            {% set progress_pct = (current_idx * 100) / (total_steps - 1) %}
+            <div style="position:absolute;
+                        top:18px;
+                        left:calc(100% / {{ total_steps }} / 2);
+                        width:calc((100% - 100% / {{ total_steps }}) * {{ progress_pct }} / 100);
+                        height:3px;
+                        background:var(--color-fg-brand, #2563eb);
+                        border-radius:2px;
+                        z-index:1;
+                        transition:width 0.5s ease;"></div>
+          {% endif %}
+          {# ── Step circles ── #}
+          {% for status_key, label, num in steps %}
+            {% set idx = loop.index0 %}
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:2;">
+              {% if current_idx > idx %}
+                {# ── Completed step ── #}
+                <div style="width:36px;
+                            height:36px;
+                            border-radius:50%;
+                            background:var(--color-fg-brand, #2563eb);
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            box-shadow:0 0 0 4px rgba(37,99,235,0.15);
+                            transition:all 0.3s ease;">
+                  <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 13 4 4L19 7" />
+                  </svg>
+                </div>
+                <p style="margin:8px 0 0;font-size:0.7rem;font-weight:600;color:var(--color-fg-brand, #2563eb);text-align:center;letter-spacing:0.01em;">{{ label }}</p>
+              {% elif current_idx == idx %}
+                {# ── Current / Active step ── #}
+                <div style="width:36px;
+                            height:36px;
+                            border-radius:50%;
+                            background:var(--color-fg-brand, #2563eb);
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            box-shadow:0 0 0 4px rgba(37,99,235,0.2);
+                            animation:stepPulse 2s ease-in-out infinite;
+                            transition:all 0.3s ease;">
+                  <span style="color:#fff;font-size:0.8rem;font-weight:700;line-height:1;">{{ num }}</span>
+                </div>
+                <p style="margin:8px 0 0;font-size:0.7rem;font-weight:700;color:var(--color-text-heading, #111827);text-align:center;">{{ label }}</p>
+              {% else %}
+                {# ── Future / Pending step ── #}
+                <div style="width:36px;
+                            height:36px;
+                            border-radius:50%;
+                            background:var(--color-bg-neutral-secondary-medium, #f3f4f6);
+                            border:2px solid #d1d5db;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            transition:all 0.3s ease;">
+                  <span style="color:#9ca3af;font-size:0.8rem;font-weight:600;line-height:1;">{{ num }}</span>
+                </div>
+                <p style="margin:8px 0 0;font-size:0.7rem;font-weight:500;color:#9ca3af;text-align:center;">{{ label }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <style>
+        @keyframes stepPulse {
+          0%, 100% { box-shadow: 0 0 0 4px rgba(37,99,235,0.2); }
+          50% { box-shadow: 0 0 0 8px rgba(37,99,235,0.1); }
+        }
+      </style>
+    {% else %}
+      {# ── Cancelled state banner ── #}
+      <div class="border rounded-base shadow-xs p-5 flex items-center gap-3"
+           style="background:#fef2f2;border-color:#fca5a5;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <div>
+          <p style="margin:0;font-size:0.85rem;font-weight:700;color:#991b1b;">Orden Cancelada</p>
+          <p style="margin:2px 0 0;font-size:0.75rem;color:#b91c1c;">Esta orden fue cancelada y no puede avanzar en el flujo.</p>
+        </div>
+      </div>
+    {% endif %}
     {# ══════════════════════════════════════════════════════════ #}
     {# ── Sección inferior: Productos + Historial              ── #}
     {# ══════════════════════════════════════════════════════════ #}
