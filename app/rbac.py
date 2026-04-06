@@ -20,6 +20,8 @@ from flask import current_app, jsonify, redirect, request
 from flask_security import current_user, url_for_security
 
 from app.exceptions import ForbiddenError
+from app.extensions import db
+from app.shared.security_logging import log_security_event
 
 # ---------------------------------------------------------------------------
 # Roles canónicos
@@ -340,6 +342,12 @@ def _wants_json_forbidden(endpoint: str | None = None) -> bool:
 
 
 def _unauthorized_response():
+    _log_security_access_event(
+        event_type="auth.unauthenticated.access",
+        result="denied",
+        reason="Intento de acceso sin sesion autenticada",
+        endpoint=request.endpoint,
+    )
     login_url = url_for_security("login", next=request.url)
     return redirect(login_url)
 
@@ -348,6 +356,12 @@ def _forbidden_response(
     message: str = "No tienes permisos para realizar esta acción.",
     endpoint: str | None = None,
 ):
+    _log_security_access_event(
+        event_type="auth.rbac.denied",
+        result="denied",
+        reason=message,
+        endpoint=endpoint,
+    )
     if _wants_json_forbidden(endpoint=endpoint):
         return (
             jsonify(
@@ -362,6 +376,41 @@ def _forbidden_response(
             403,
         )
     raise ForbiddenError(message)
+
+
+def _log_security_access_event(
+    *,
+    event_type: str,
+    result: str,
+    reason: str,
+    endpoint: str | None,
+) -> None:
+    try:
+        user_id = None
+        email = None
+        if getattr(current_user, "is_authenticated", False):
+            user_id = getattr(current_user, "id", None)
+            email = getattr(current_user, "email", None)
+
+        log_security_event(
+            event_type=event_type,
+            result=result,
+            user_id=user_id,
+            email_or_identifier=email,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            reason=reason,
+            context_data={
+                "path": request.path,
+                "method": request.method,
+                "endpoint": endpoint,
+            },
+            source="rbac_guard",
+            commit=True,
+        )
+    except Exception as exc:
+        db.session.rollback()
+        current_app.logger.warning("No se pudo registrar evento RBAC: %s", exc)
 
 
 def _normalize_required_permissions(required: Any) -> list[str]:
@@ -579,6 +628,14 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "reports.general_report_details": REPORTS_READ,
         "reports.export_daily_cut_csv": REPORTS_EXPORT,
         "reports.refresh": REPORTS_REFRESH,
+        # Audit
+        "audit.index": AUDIT_READ,
+        "audit.details": AUDIT_READ,
+        "security_audit.index": AUDIT_READ,
+        "security_audit.details": AUDIT_READ,
+        "notifications.index": AUDIT_READ,
+        "notifications.dismiss": AUDIT_READ,
+        "notifications.clear": AUDIT_READ,
         # Sales POS
         "sales.pos": SALES_READ,
         "sales.ticket": SALES_READ,

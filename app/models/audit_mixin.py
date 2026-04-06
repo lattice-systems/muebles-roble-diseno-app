@@ -10,6 +10,9 @@ Uso:
         ...
 """
 
+from flask import has_request_context
+from flask_security import current_user
+from sqlalchemy import event
 from sqlalchemy.orm import declared_attr
 
 from ..extensions import db
@@ -59,3 +62,45 @@ class AuditMixin:
             "updated_by": self.updated_by,
             "deactivated_by": self.deactivated_by,
         }
+
+
+def _resolve_actor_user_id() -> int | None:
+    if not has_request_context():
+        return None
+
+    if not getattr(current_user, "is_authenticated", False):
+        return None
+
+    raw_id = getattr(current_user, "id", None)
+    if raw_id is None:
+        return None
+
+    try:
+        return int(raw_id)
+    except (TypeError, ValueError):
+        return None
+
+
+@event.listens_for(AuditMixin, "before_insert", propagate=True)
+def _set_created_and_updated_by(mapper, connection, target) -> None:
+    """Completa created_by y updated_by de forma centralizada cuando hay usuario autenticado."""
+    actor_id = _resolve_actor_user_id()
+    if actor_id is None:
+        return
+
+    if hasattr(target, "created_by") and getattr(target, "created_by", None) is None:
+        setattr(target, "created_by", actor_id)
+
+    if hasattr(target, "updated_by"):
+        setattr(target, "updated_by", actor_id)
+
+
+@event.listens_for(AuditMixin, "before_update", propagate=True)
+def _set_updated_by(mapper, connection, target) -> None:
+    """Actualiza updated_by de forma centralizada cuando hay usuario autenticado."""
+    actor_id = _resolve_actor_user_id()
+    if actor_id is None:
+        return
+
+    if hasattr(target, "updated_by"):
+        setattr(target, "updated_by", actor_id)

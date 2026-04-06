@@ -18,6 +18,7 @@ from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.production_order import ProductionOrder
+from app.shared.audit_logging import log_application_audit
 
 
 class CustomerOrderService:
@@ -239,16 +240,13 @@ class CustomerOrderService:
             item.order_id = order.id
             db.session.add(item)
 
-        # Auditoría
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=created_by_id,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        # Auditoria de aplicacion como fallback fuera de MySQL.
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=created_by_id,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -290,15 +288,12 @@ class CustomerOrderService:
         order.cancelled_by_id = user_id
         order.cancelled_reason = reason.strip()
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -374,15 +369,12 @@ class CustomerOrderService:
 
         db.session.flush()
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -466,15 +458,12 @@ class CustomerOrderService:
                     f"aún no están terminadas ({productos})."
                 )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -555,15 +544,12 @@ class CustomerOrderService:
                 )
             )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=employee_id,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=employee_id,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         # Commit — la Sale ya fue committed por SaleService, aquí guardamos la Order
@@ -615,15 +601,12 @@ class CustomerOrderService:
                 )
             )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=None,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=None,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()

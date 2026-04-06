@@ -1,0 +1,171 @@
+{% extends "layouts/admin.html" %}
+{% from "admin/components/table_footer.html" import table_footer %}
+{% block title %}
+  Admin - Auditoria
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Control de auditoria" %}
+    {% set admin_header_subtitle = "Consulta de eventos INSERT/UPDATE/DELETE con filtros por tabla, usuario y fecha." %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+      <form method="get"
+            action="{{ url_for('audit.index') }}"
+            class="p-3 2xl:p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2.5 2xl:gap-3 border-b border-default-medium">
+        <div class="xl:col-span-2">
+          <label for="audit-q" class="sr-only">Buscar</label>
+          <input id="audit-q"
+                 type="text"
+                 name="q"
+                 value="{{ search_term }}"
+                 placeholder="Buscar por tabla, accion, fuente o record id"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" />
+        </div>
+        <div>
+          <label for="audit-table" class="sr-only">Tabla</label>
+          <select id="audit-table"
+                  name="table"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todas las tablas</option>
+            {% for item in table_options %}
+              <option value="{{ item }}" {% if table_name == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="audit-action" class="sr-only">Accion</label>
+          <select id="audit-action"
+                  name="action"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todas las acciones</option>
+            {% for option in action_options %}
+              <option value="{{ option[0] }}"
+                      {% if action == option[0] %}selected{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="audit-source" class="sr-only">Fuente</label>
+          <select id="audit-source"
+                  name="source"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todas las fuentes</option>
+            {% for option in source_options %}
+              <option value="{{ option[0] }}"
+                      {% if source == option[0] %}selected{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="audit-user-id" class="sr-only">Usuario</label>
+          <select id="audit-user-id"
+                  name="user_id"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todos los usuarios</option>
+            {% for option in user_options %}
+              <option value="{{ option[0] }}"
+                      {% if user_id == option[0] %}selected{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="audit-date-from" class="sr-only">Fecha desde</label>
+          <input id="audit-date-from"
+                 type="date"
+                 name="date_from"
+                 value="{{ date_from }}"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
+        </div>
+        <div>
+          <label for="audit-date-to" class="sr-only">Fecha hasta</label>
+          <input id="audit-date-to"
+                 type="date"
+                 name="date_to"
+                 value="{{ date_to }}"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
+        </div>
+        <div>
+          <label for="audit-per-page" class="sr-only">Resultados por pagina</label>
+          <select id="audit-per-page"
+                  name="per_page"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            {% for size in [10, 20, 50, 100] %}
+              <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} por pagina</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="submit"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+            Aplicar filtros
+          </button>
+          <a href="{{ url_for('audit.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">Limpiar</a>
+        </div>
+      </form>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Fecha</th>
+              <th class="px-6 py-4">Tabla</th>
+              <th class="px-6 py-4">Accion</th>
+              <th class="px-6 py-4">Record ID</th>
+              <th class="px-6 py-4">Actor</th>
+              <th class="px-6 py-4">Fuente</th>
+              <th class="px-6 py-4 text-right">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in logs %}
+              <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
+                <td class="px-6 py-4">{{ entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") if entry.timestamp else '-' }}</td>
+                <td class="px-6 py-4 text-heading font-medium">{{ entry.table_name }}</td>
+                <td class="px-6 py-4">
+                  {% if entry.action_code == 'INSERT' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-100 text-green-700">{{ entry.action_label }}</span>
+                  {% elif entry.action_code == 'UPDATE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">{{ entry.action_label }}</span>
+                  {% elif entry.action_code == 'DELETE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-100 text-red-700">{{ entry.action_label }}</span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700">{{ entry.action_label }}</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">{{ entry.record_id or '-' }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="text-heading font-medium">{{ entry.actor_name }}</span>
+                    <span class="text-xs text-body">{{ entry.actor_role }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">{{ entry.source_label }}</td>
+                <td class="px-6 py-4 text-right">
+                  <a href="{{ url_for('audit.details', audit_id=entry.id) }}"
+                     class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">Ver detalle</a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-body">
+                  No se encontraron eventos de auditoria para los filtros seleccionados.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ table_footer(pagination, 'audit.index', {
+            'q': search_term,
+            'table': table_name,
+            'action': action,
+            'source': source,
+            'user_id': user_id,
+            'date_from': date_from,
+            'date_to': date_to,
+            'per_page': per_page
+            }) }}
+    </div>
+  </div>
+{% endblock content %}
