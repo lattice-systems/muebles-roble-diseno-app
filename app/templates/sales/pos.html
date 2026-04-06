@@ -510,6 +510,27 @@
               }
           }
 
+          function getApiErrorMessage(payload, fallback = "Ocurrio un error.") {
+              if (!payload) return fallback;
+              if (typeof payload === "string") return payload;
+              if (typeof payload.error === "string") return payload.error;
+              if (payload.error && typeof payload.error.message === "string") {
+                  return payload.error.message;
+              }
+              if (typeof payload.message === "string") return payload.message;
+              return fallback;
+          }
+
+          function getPosActionErrorMessage(payload, statusCode, fallback = "Ocurrio un error.") {
+              const code = Number(
+                  payload?.error?.code || payload?.code || statusCode || 0
+              );
+              if (code === 403) {
+                  return "Tu rol no tiene permiso para realizar esta accion en POS. Inicia sesion con un usuario de Ventas.";
+              }
+              return getApiErrorMessage(payload, fallback);
+          }
+
           async function loadCart() {
               try {
                   const res = await fetch(posConfig.dataset.urlCart);
@@ -543,8 +564,14 @@
                   if (res.ok) {
                       await loadCart();
                   } else {
-                      const errData = await res.json();
-                      showWarningToast(errData.error || "Error al agregar producto.");
+                      const errData = await res.json().catch(() => null);
+                      showWarningToast(
+                          getPosActionErrorMessage(
+                              errData,
+                              res.status,
+                              "Error al agregar producto.",
+                          ),
+                      );
                   }
               } catch (err) {
                   console.error(err);
@@ -567,8 +594,14 @@
                   if (res.ok) {
                       await loadCart();
                   } else {
-                      const errData = await res.json();
-                      showWarningToast(errData.error || "Error al actualizar cantidad.");
+                      const errData = await res.json().catch(() => null);
+                      showWarningToast(
+                          getPosActionErrorMessage(
+                              errData,
+                              res.status,
+                              "Error al actualizar cantidad.",
+                          ),
+                      );
                   }
               } catch (err) {
                   console.error(err);
@@ -801,7 +834,11 @@
                           customerIdInput.value = result.customer.id;
                           customerForm.submit();
                       } else {
-                          customerModalErrorMessage.textContent = result.error || "Ocurrio un error al registrar el cliente.";
+                          customerModalErrorMessage.textContent = getPosActionErrorMessage(
+                              result,
+                              res.status,
+                              "Ocurrio un error al registrar el cliente.",
+                          );
                           customerModalErrorBox.classList.remove("hidden");
                           btnRegistrarCliente.disabled = false;
                           btnRegistrarCliente.innerHTML = '<svg class="mr-1 -ml-1 w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Guardar Cliente';
@@ -1009,7 +1046,11 @@
 
                           setTimeout(() => window.location.reload(), 3000);
                       } else {
-                          checkoutErrorMessage.textContent = data.error || "Ocurrio un error en el pago.";
+                          checkoutErrorMessage.textContent = getPosActionErrorMessage(
+                              data,
+                              res.status,
+                              "Ocurrio un error en el pago.",
+                          );
                           checkoutErrorBox.classList.remove("hidden");
                           checkoutErrorBox.classList.add("flex");
                           btnProcesarPago.disabled = false;
@@ -1177,7 +1218,13 @@
                           showGlobalAlert("success", "Cliente actualizado exitosamente.");
                           setTimeout(() => window.location.reload(), 1500);
                       } else {
-                          if (editCustomerErrorMsg) editCustomerErrorMsg.textContent = result.error || "Error al actualizar.";
+                          if (editCustomerErrorMsg) {
+                              editCustomerErrorMsg.textContent = getPosActionErrorMessage(
+                                  result,
+                                  res.status,
+                                  "Error al actualizar.",
+                              );
+                          }
                           if (editCustomerErrorBox) editCustomerErrorBox.classList.remove("hidden");
                           btnGuardarEdicion.disabled = false;
                           btnGuardarEdicion.textContent = "Guardar Cambios";
