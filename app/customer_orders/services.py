@@ -17,7 +17,6 @@ from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
-from app.models.product_inventory import ProductInventory
 from app.models.production_order import ProductionOrder
 from app.shared.audit_logging import log_application_audit
 
@@ -269,7 +268,10 @@ class CustomerOrderService:
         Raises:
             ValueError: Si la orden no puede cancelarse.
         """
-        order = Order.query.get_or_404(order_id)
+        order = Order.query.options(
+            selectinload(Order.customer),
+            selectinload(Order.items).selectinload(OrderItem.product),
+        ).get_or_404(order_id)
 
         if not order.can_cancel():
             raise ValueError(
@@ -307,13 +309,14 @@ class CustomerOrderService:
         user_id: int,
     ) -> list[ProductionOrder]:
         """
-        Genera órdenes de producción (una por OrderItem) y avanza el estado.
+        Genera órdenes de producción (una por OrderItem) y avanza el estado
+        de la orden de cliente a 'en_produccion'.
 
-        - Reserva stock existente de producto terminado por item.
-        - Si hay faltante, crea ProductionOrder solo por la cantidad faltante.
+        - Crea una ProductionOrder por cada item con la cantidad completa.
         - Inicializa consumo planificado de materiales con la receta BOM.
-        - Si no hay faltantes, marca la orden como 'terminado'.
-        - Si hay faltantes, marca la orden como 'en_produccion'.
+        - Siempre marca la orden como 'en_produccion'.
+        - El módulo de producción se encarga de marcar la orden como
+          'terminado' cuando todas las órdenes de producción se completen.
 
         Returns:
             Lista de ProductionOrder creadas.
@@ -341,34 +344,28 @@ class CustomerOrderService:
         from app.production.services import ProductionService
 
         for item in order.items:
-            inv = ProductInventory.query.filter_by(product_id=item.product_id).first()
-            available = int(inv.stock) if inv and inv.stock is not None else 0
+            # Crear orden de producción por la cantidad total del item.
+            # El módulo de producción se encarga de consumir materiales
+            # y actualizar inventario al marcar la orden como terminada.
+            prod_order = ProductionOrder(
+                product_id=item.product_id,
+                quantity=int(item.quantity),
+                status="pendiente",
+                scheduled_date=order.estimated_delivery_date or date.today(),
+                customer_order_id=order.id,
+                created_by=user_id,
+                updated_by=user_id,
+            )
+            db.session.add(prod_order)
+            db.session.flush()
 
-            reserved_qty = min(available, int(item.quantity))
-            missing_qty = int(item.quantity) - reserved_qty
+            ProductionService.initialize_material_plan_for_order(prod_order)
+            production_orders.append(prod_order)
 
-            # Reservar inventario terminado disponible
-            if inv and reserved_qty > 0:
-                inv.stock = int(inv.stock) - reserved_qty
-
-            # Solo producir faltante
-            if missing_qty > 0:
-                prod_order = ProductionOrder(
-                    product_id=item.product_id,
-                    quantity=missing_qty,
-                    status="pendiente",
-                    scheduled_date=order.estimated_delivery_date or date.today(),
-                    customer_order_id=order.id,
-                    created_by=user_id,
-                    updated_by=user_id,
-                )
-                db.session.add(prod_order)
-                db.session.flush()
-
-                ProductionService.initialize_material_plan_for_order(prod_order)
-                production_orders.append(prod_order)
-
-        order.status = "en_produccion" if production_orders else "terminado"
+        # Siempre poner en producción; el módulo de producción se encargará
+        # de marcar la orden como "terminado" cuando todas las órdenes de
+        # producción se completen (vía _sync_customer_order_status).
+        order.status = "en_produccion"
 
         db.session.flush()
 
@@ -402,7 +399,11 @@ class CustomerOrderService:
         if new_status not in Order.VALID_STATUSES:
             raise ValueError(f"Estado inválido: {new_status}")
 
-        order = Order.query.get_or_404(order_id)
+        order = Order.query.options(
+            selectinload(Order.customer),
+            selectinload(Order.items).selectinload(OrderItem.product),
+            selectinload(Order.production_orders),
+        ).get_or_404(order_id)
 
         # Idempotencia: si ya tiene el estado destino, no hacer nada
         if order.status == new_status:
@@ -417,6 +418,30 @@ class CustomerOrderService:
             )
 
         prev_data = order.to_dict()
+
+        # ── Reglas de negocio para el estado 'enviado' ──
+        # Solo las órdenes con flete pueden pasar por 'enviado'.
+        customer = order.customer
+        has_freight = customer and customer.requires_freight
+
+        if new_status == "enviado" and not has_freight:
+            raise ValueError(
+                "El estado 'Enviado' solo aplica para órdenes con envío (flete). "
+                "Esta orden no tiene envío; use 'Entregado' directamente."
+            )
+
+        # Si la orden tiene flete y se intenta pasar de terminado a entregado
+        # sin pasar por enviado, bloquear.
+        if (
+            new_status == "entregado"
+            and order.status == "terminado"
+            and has_freight
+        ):
+            raise ValueError(
+                "Esta orden tiene envío. Primero debe marcarse como 'Enviado' "
+                "antes de marcarla como 'Entregado'."
+            )
+
         order.status = new_status
 
         # Al entregar, verificar que producción haya terminado todos los ítems
