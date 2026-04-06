@@ -51,6 +51,22 @@
               <span class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</span>
             {% endfor %}
           </div>
+          <!-- Stock Minimo -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs 2xl:text-sm font-medium text-heading flex items-center justify-between">
+              {{ form.minimum_stock.label.text }}
+              <div class="relative group">
+                <span class="cursor-pointer text-brand hover:text-brand-strong bg-brand-softer rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-bold">?</span>
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-neutral-primary text-body text-xs rounded border border-default-strong shadow-lg z-10">
+                  Stock mínimo ideal para operar sin interrupciones. Se usa en el dashboard para generar alertas de reabastecimiento.
+                </div>
+              </div>
+            </label>
+            {{ form.minimum_stock(class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", placeholder="10.000") }}
+            {% for error in form.minimum_stock.errors %}
+              <span class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</span>
+            {% endfor %}
+          </div>
           <!-- Estado -->
           <div class="flex flex-col gap-1">
             {{ form.status.label(class="text-xs 2xl:text-sm font-medium text-heading") }}

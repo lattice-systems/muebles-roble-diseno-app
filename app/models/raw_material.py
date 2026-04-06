@@ -18,6 +18,7 @@ class RawMaterial(AuditMixin, db.Model):
     unit_id = db.Column(db.Integer, db.ForeignKey("units.id"), nullable=False)
     waste_percentage = db.Column(db.Numeric(5, 2), nullable=False, default=0)
     stock = db.Column(db.Numeric(12, 3), nullable=False, default=0)
+    minimum_stock = db.Column(db.Numeric(12, 3), nullable=False, default=10)
     status = db.Column(db.String(20), nullable=False, default="active")
 
     created_at = db.Column(
@@ -61,6 +62,11 @@ class RawMaterial(AuditMixin, db.Model):
                 else None
             ),
             "stock": float(self.stock) if self.stock is not None else None,
+            "minimum_stock": (
+                float(self.minimum_stock)
+                if hasattr(self, "minimum_stock") and self.minimum_stock is not None
+                else 10.0
+            ),
             "status": self.status,
             "created_at": (
                 self.created_at.isoformat()

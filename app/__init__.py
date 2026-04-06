@@ -161,12 +161,14 @@ def create_app(config_class=None):
 
     app.register_blueprint(products_bp, url_prefix="/admin/products")
 
+    from .dashboard import dashboard_bp
+
+    app.register_blueprint(dashboard_bp, url_prefix="/admin/dashboard")
+
     @app.route("/admin")
     @auth_required()
     def index_admin():
-        from flask import render_template
-
-        return render_template("layouts/admin.html")
+        return redirect(url_for("dashboard.index"))
 
     @app.route("/admin/catalogs")
     @auth_required()
