@@ -8,8 +8,8 @@ Uso:
 
 import os
 import sys
-from csv import DictReader
 from collections import Counter
+from csv import DictReader
 from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -63,8 +63,8 @@ def _load_official_product_images() -> dict[int, list[dict[str, str | int]]]:
             )
 
     for product_id, images in images_by_product_id.items():
-        images.sort(key=lambda image: int(image["sort_order"]))
-        sort_orders = [int(image["sort_order"]) for image in images]
+        images.sort(key=lambda image: image["sort_order"])
+        sort_orders = [image["sort_order"] for image in images]
         if len(sort_orders) != len(set(sort_orders)):
             raise ValueError(
                 "El archivo docs/imagenes.csv define sort_order duplicado para "
@@ -72,7 +72,7 @@ def _load_official_product_images() -> dict[int, list[dict[str, str | int]]]:
             )
         if len(images) > 4:
             raise ValueError(
-                "El archivo docs/imagenes.csv define mas de 4 imagenes para "
+                "El archivo docs/imagenes.csv define más de 4 imágenes para "
                 f"product_id={product_id}."
             )
 
@@ -244,7 +244,7 @@ def seed_products():
         db.session.commit()
 
         # ── 3. Imágenes oficiales de productos ───────────────────────────
-        print("\n🖼️  Sincronizando imagenes oficiales de productos...")
+        print("\n🖼️  Sincronizando imágenes oficiales de productos...")
         images_created, images_updated, images_removed = _seed_product_images(
             seeded_products
         )
@@ -260,7 +260,7 @@ def seed_products():
         for category, qty in counts.items():
             print(f"  • {category}: {qty}")
         print(
-            "\n🖼️  Imagenes: "
+            "\n🖼️  Imágenes: "
             f"{images_created} creada(s), {images_updated} actualizada(s), "
             f"{images_removed} removida(s)."
         )
