@@ -154,7 +154,9 @@
       {% if can('products.read') %}
         {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
       {% endif %}
-      {% if can('audit.read') %}{{ sidebar_link("Control", "#", icon_control) }}{% endif %}
+      {% if can('audit.read') %}
+        {{ sidebar_link("Control", url_for('audit.index') , icon_control, request.endpoint and request.endpoint.startswith('audit.')) }}
+      {% endif %}
     </ul>
   </div>
   <div class="border-t p-2 2xl:p-2.5 border-default pt-3 2xl:pt-4">

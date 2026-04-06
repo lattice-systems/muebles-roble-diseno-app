@@ -1,0 +1,71 @@
+"""Rutas del modulo de auditoria."""
+
+from __future__ import annotations
+
+from flask import flash, redirect, render_template, request, url_for
+from flask_security import auth_required
+
+from app.audit import audit_bp
+from app.audit.services import AuditService
+from app.exceptions import NotFoundError
+
+
+@audit_bp.route("/", methods=["GET"])
+@auth_required()
+def index():
+    """Lista paginada de eventos de auditoria con filtros."""
+    search_term = request.args.get("q", "").strip()
+    table_name = request.args.get("table", "").strip()
+    action = request.args.get("action", "").strip()
+    source = request.args.get("source", "").strip()
+    user_id = request.args.get("user_id", type=int)
+    date_from_raw = request.args.get("date_from", "").strip()
+    date_to_raw = request.args.get("date_to", "").strip()
+    page = request.args.get("page", 1, type=int)
+
+    date_from = AuditService.parse_date(date_from_raw)
+    date_to = AuditService.parse_date(date_to_raw)
+
+    pagination = AuditService.get_logs(
+        search_term=search_term or None,
+        table_name=table_name or None,
+        action=action or None,
+        source=source or None,
+        user_id=user_id,
+        date_from=date_from,
+        date_to=date_to,
+        page=page,
+        per_page=20,
+    )
+
+    options = AuditService.get_filter_options()
+
+    return render_template(
+        "admin/audit/index.html",
+        logs=pagination.items,
+        pagination=pagination,
+        search_term=search_term,
+        table_name=table_name,
+        action=action,
+        source=source,
+        user_id=user_id,
+        date_from=date_from_raw,
+        date_to=date_to_raw,
+        table_options=options["table_names"],
+        action_options=options["actions"],
+        source_options=options["sources"],
+        user_options=options["users"],
+    )
+
+
+@audit_bp.route("/<int:audit_id>/details", methods=["GET"])
+@auth_required()
+def details(audit_id: int):
+    """Vista de detalle para un evento de auditoria."""
+    try:
+        entry = AuditService.get_by_id(audit_id)
+    except NotFoundError as error:
+        flash(error.message, "error")
+        return redirect(url_for("audit.index"))
+
+    return render_template("admin/audit/details.html", entry=entry)

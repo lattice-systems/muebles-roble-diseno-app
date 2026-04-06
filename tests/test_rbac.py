@@ -8,6 +8,7 @@ from app.rbac import (
     USERS_CREATE,
     SALES_CREATE,
     PRODUCTS_READ,
+    AUDIT_READ,
     can,
     normalize_role_name,
     resolve_role_key,
@@ -38,6 +39,7 @@ def test_admin_has_broad_permissions():
     user = _user("Administrador")
     assert can(USERS_READ, user=user)
     assert can(USERS_CREATE, user=user)
+    assert can(AUDIT_READ, user=user)
     assert not can(SALES_CREATE, user=user)
 
 
@@ -46,6 +48,7 @@ def test_sales_role_has_sales_but_not_users_permissions():
     assert can(SALES_CREATE, user=user)
     assert not can(USERS_CREATE, user=user)
     assert not can(USERS_READ, user=user)
+    assert not can(AUDIT_READ, user=user)
 
 
 def test_unknown_or_unauthenticated_user_is_denied_by_default():

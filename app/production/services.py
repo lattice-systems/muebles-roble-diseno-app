@@ -13,7 +13,6 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.extensions import db
 from app.models import (
-    AuditLog,
     Bom,
     BomItem,
     Order,
@@ -25,6 +24,7 @@ from app.models import (
     RawMaterial,
     RawMaterialMovement,
 )
+from app.shared.audit_logging import log_application_audit
 
 
 class ProductionService:
@@ -77,15 +77,12 @@ class ProductionService:
         previous_data: dict | None,
         new_data: dict | None,
     ) -> None:
-        db.session.add(
-            AuditLog(
-                table_name=table_name,
-                action=action,
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=previous_data,
-                new_data=new_data,
-            )
+        log_application_audit(
+            table_name=table_name,
+            action=action,
+            user_id=user_id,
+            previous_data=previous_data,
+            new_data=new_data,
         )
 
     @staticmethod
