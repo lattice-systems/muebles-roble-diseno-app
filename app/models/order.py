@@ -58,7 +58,6 @@ class Order(db.Model):
         "pendiente",
         "en_produccion",
         "terminado",
-        "enviado",
         "entregado",
         "cancelado",
     )
@@ -68,8 +67,7 @@ class Order(db.Model):
     STATUS_TRANSITIONS: dict = {
         "pendiente": ("en_produccion", "terminado", "cancelado"),
         "en_produccion": ("terminado",),
-        "terminado": ("enviado", "entregado"),
-        "enviado": ("entregado",),
+        "terminado": ("entregado",),
         "entregado": (),
         "cancelado": (),
     }
