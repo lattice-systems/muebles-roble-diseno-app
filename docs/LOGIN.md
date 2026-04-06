@@ -16,7 +16,13 @@ Definir el flujo de autenticacion, cierre de sesion y registro de eventos de seg
 - Se mantiene el usuario anonimo.
 - Se incrementa el contador de intentos en sesion (`security_login_attempts`).
 - Se registra evento `auth.login.failed` con numero de intento.
-5. En logout (`POST /login/logout`):
+5. Si se alcanzan 3 intentos fallidos:
+- Se bloquea el `POST /login` con respuesta `429`.
+- Se registra evento `auth.account.locked`.
+- No se incrementa mas el contador mientras la solicitud este bloqueada.
+ - El desbloqueo es automatico al expirar la ventana de bloqueo (default 15 minutos).
+ - Al expirar, se registra `auth.account.unlocked.auto`.
+6. En logout (`POST /login/logout`):
 - Se cierra sesion, se limpian cookies/sesion y cache headers.
 - Se registra evento `auth.logout`.
 
@@ -34,6 +40,8 @@ Definir el flujo de autenticacion, cierre de sesion y registro de eventos de seg
 - `auth.password.changed`
 - `auth.password.reset.completed`
 - `auth.unauthenticated.access`
+- `auth.account.locked`
+ - `auth.account.unlocked.auto`
 
 ## Persistencia
 
@@ -59,6 +67,8 @@ Se guarda por sesion en la clave:
 Comportamiento:
 
 - Incrementa en cada `POST /login` fallido.
+- Límite actual: `3` intentos (`SECURITY_MAX_LOGIN_ATTEMPTS`, default 3).
+ - Ventana de bloqueo: `15` minutos (`SECURITY_LOGIN_LOCK_MINUTES`, default 15).
 - Se reinicia en login exitoso.
 
 ## Seguridad de visualizacion
@@ -69,8 +79,11 @@ Comportamiento:
 
 ## Validacion recomendada
 
-1. Intentar login invalido dos veces.
-2. Verificar en `security_event_log` dos filas `auth.login.failed` con intentos 1 y 2 en `context_data.attempt`.
-3. Hacer login valido.
-4. Verificar fila `auth.login.success` y reinicio del contador de intentos.
-5. Ejecutar logout y verificar `auth.logout`.
+1. Intentar login invalido tres veces.
+2. Verificar en `security_event_log` filas `auth.login.failed` con intentos 1, 2 y 3 en `context_data.attempt`.
+3. Intentar login nuevamente y validar respuesta `429`.
+4. Verificar fila `auth.account.locked`.
+5. Esperar expiracion de ventana y reintentar login.
+6. Verificar fila `auth.account.unlocked.auto`.
+7. Hacer login valido y verificar `auth.login.success`.
+8. Ejecutar logout y verificar `auth.logout`.

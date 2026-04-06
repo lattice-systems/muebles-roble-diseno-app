@@ -6,6 +6,7 @@ from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
 from .rbac import register_rbac
 from .security_events import (
+    enforce_login_attempt_limit,
     process_login_attempt_response,
     register_security_event_handlers,
 )
@@ -68,6 +69,10 @@ def create_app(config_class=None):
             response.headers["Expires"] = "0"
 
         return response
+
+    @app.before_request
+    def enforce_security_login_attempts_limit():
+        return enforce_login_attempt_limit()
 
     # Register blueprints
     from .login import login_bp

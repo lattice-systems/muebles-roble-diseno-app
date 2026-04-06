@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import time
+
 from flask import session
 from flask_login import user_logged_out
 from flask_security.signals import password_changed, user_authenticated
 
 from app.models.security_event_log import SecurityEventLog
-from app.security_events import process_login_attempt_response
+from app.security_events import (
+    LOGIN_BLOCKED_UNTIL_SESSION_KEY,
+    LOGIN_ATTEMPTS_SESSION_KEY,
+    enforce_login_attempt_limit,
+    process_login_attempt_response,
+)
 from app.shared.security_logging import log_security_event
 
 
@@ -75,3 +82,71 @@ class TestSecurityEventLogging:
         assert events[0].email_or_identifier == "fail@test.com"
         assert events[0].context_data.get("attempt") == 1
         assert events[1].context_data.get("attempt") == 2
+
+    def test_login_is_locked_after_three_attempts(self, app, db_session):
+        with app.test_request_context(
+            "/login",
+            method="POST",
+            data={"email": "locked@test.com"},
+            headers={"Accept": "application/json"},
+        ):
+            session[LOGIN_ATTEMPTS_SESSION_KEY] = 3
+            response = enforce_login_attempt_limit()
+
+            assert response is not None
+            assert response.status_code == 429
+            assert response.json["error"]["code"] == 429
+            assert response.json["meta"]["retry_after_seconds"] > 0
+            assert int(session[LOGIN_ATTEMPTS_SESSION_KEY]) == 3
+            assert int(session[LOGIN_BLOCKED_UNTIL_SESSION_KEY]) > int(time.time())
+
+        lock_event = SecurityEventLog.query.filter_by(
+            event_type="auth.account.locked"
+        ).first()
+        assert lock_event is not None
+        assert lock_event.email_or_identifier == "locked@test.com"
+        assert lock_event.context_data.get("max_attempts") == 3
+
+    def test_blocked_login_does_not_increment_failed_attempt_counter(
+        self, app, db_session
+    ):
+        with app.test_request_context(
+            "/login",
+            method="POST",
+            data={"email": "blocked@test.com"},
+            headers={"Accept": "application/json"},
+        ):
+            session[LOGIN_ATTEMPTS_SESSION_KEY] = 3
+            session[LOGIN_BLOCKED_UNTIL_SESSION_KEY] = int(time.time()) + 300
+            enforce_login_attempt_limit()
+
+            response = app.response_class(status=429)
+            process_login_attempt_response(response)
+
+            assert int(session[LOGIN_ATTEMPTS_SESSION_KEY]) == 3
+
+        failed_events = SecurityEventLog.query.filter_by(
+            event_type="auth.login.failed"
+        ).all()
+        assert len(failed_events) == 0
+
+    def test_lock_expires_and_auto_unlock_is_logged(self, app, db_session):
+        with app.test_request_context(
+            "/login",
+            method="POST",
+            data={"email": "unlock@test.com"},
+            headers={"Accept": "application/json"},
+        ):
+            session[LOGIN_ATTEMPTS_SESSION_KEY] = 3
+            session[LOGIN_BLOCKED_UNTIL_SESSION_KEY] = int(time.time()) - 10
+
+            response = enforce_login_attempt_limit()
+            assert response is None
+            assert LOGIN_ATTEMPTS_SESSION_KEY not in session
+            assert LOGIN_BLOCKED_UNTIL_SESSION_KEY not in session
+
+        unlock_event = SecurityEventLog.query.filter_by(
+            event_type="auth.account.unlocked.auto"
+        ).first()
+        assert unlock_event is not None
+        assert unlock_event.email_or_identifier == "unlock@test.com"
