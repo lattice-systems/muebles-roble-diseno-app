@@ -1,0 +1,126 @@
+{% extends "layouts/admin.html" %}
+{% from "admin/components/table_footer.html" import table_footer %}
+{% block title %}
+  Admin - Eventos de Acceso
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Control de seguridad de acceso" %}
+    {% set admin_header_subtitle = "Monitoreo de login, bloqueos y eventos de autenticacion." %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+      <form method="get"
+            action="{{ url_for('security_audit.index') }}"
+            class="p-3 2xl:p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2.5 2xl:gap-3 border-b border-default-medium">
+        <div class="xl:col-span-2">
+          <label for="security-q" class="sr-only">Buscar</label>
+          <input id="security-q"
+                 type="text"
+                 name="q"
+                 value="{{ search_term }}"
+                 placeholder="Buscar por correo, IP o motivo"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" />
+        </div>
+        <div>
+          <label for="security-event-type" class="sr-only">Tipo de evento</label>
+          <select id="security-event-type"
+                  name="event_type"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todos los eventos</option>
+            {% for option in event_type_options %}
+              <option value="{{ option[0] }}"
+                      {% if event_type == option[0] %}selected{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="security-result" class="sr-only">Resultado</label>
+          <select id="security-result"
+                  name="result"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            <option value="">Todos los resultados</option>
+            {% for option in result_options %}
+              <option value="{{ option[0] }}"
+                      {% if result == option[0] %}selected{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="security-date-from" class="sr-only">Fecha desde</label>
+          <input id="security-date-from"
+                 type="date"
+                 name="date_from"
+                 value="{{ date_from }}"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
+        </div>
+        <div>
+          <label for="security-date-to" class="sr-only">Fecha hasta</label>
+          <input id="security-date-to"
+                 type="date"
+                 name="date_to"
+                 value="{{ date_to }}"
+                 class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs" />
+        </div>
+        <div>
+          <label for="security-per-page" class="sr-only">Resultados por pagina</label>
+          <select id="security-per-page"
+                  name="per_page"
+                  class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+            {% for size in [10, 20, 50, 100] %}
+              <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} por pagina</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="submit"
+                  class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+            Aplicar filtros
+          </button>
+          <a href="{{ url_for('security_audit.index') }}"
+             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">Limpiar</a>
+        </div>
+      </form>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Fecha</th>
+              <th class="px-6 py-4">Evento</th>
+              <th class="px-6 py-4">Resultado</th>
+              <th class="px-6 py-4">Usuario/Identificador</th>
+              <th class="px-6 py-4">IP</th>
+              <th class="px-6 py-4">Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in logs %}
+              <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
+                <td class="px-6 py-4">{{ entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") if entry.timestamp else '-' }}</td>
+                <td class="px-6 py-4 text-heading font-medium">{{ entry.event_label }}</td>
+                <td class="px-6 py-4">{{ entry.result_label }}</td>
+                <td class="px-6 py-4">{{ entry.email_or_identifier or ('Usuario #' ~ entry.user_id if entry.user_id else '-') }}</td>
+                <td class="px-6 py-4">{{ entry.ip_address or '-' }}</td>
+                <td class="px-6 py-4">{{ entry.reason or '-' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-body">
+                  No se encontraron eventos de seguridad para los filtros seleccionados.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ table_footer(pagination, 'security_audit.index', {
+            'q': search_term,
+            'event_type': event_type,
+            'result': result,
+            'date_from': date_from,
+            'date_to': date_to,
+            'per_page': per_page
+            }) }}
+    </div>
+  </div>
+{% endblock content %}

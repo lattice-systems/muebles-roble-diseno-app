@@ -67,6 +67,13 @@
 {% set icon_reports = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m8-2h3m-3 3h3m-4 3v6m4-3H8M19 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1ZM8 12v6h8v-6H8Z" />
 ' %}
+{# Iconos para Control de calidad #}
+{% set icon_operative = '
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-3 5h3m-6 0h.01M12 16h3m-6 0h.01M10 3v4h4V3h-4Z" />
+' %}
+{% set icon_accsess = '
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.5 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h4.5M7 11V7a3 3 0 0 1 6 0v1.5m2.5 5.5v1.5l1 1m3.5-1a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+' %}
 <aside id="adminSidebar"
        class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col transition-all duration-300 ease-in-out">
   <div class="sidebar-header-container justify-between border-b border-default p-2 pb-3 2xl:p-2.5 2xl:pb-4 flex items-center w-full">
@@ -82,7 +89,7 @@
     </a>
     <button id="sidebarCompactToggle"
             type="button"
-            class="sidebar-toggle-btn inline-flex items-center justify-center w-8 h-8 rounded-md text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
+            class="sidebar-toggle-btn inline-flex items-center justify-center w-8 h-8 rounded-md text-body hover:bg-neutral-tertiary hover:text-heading transition-colors cursor-pointer"
             aria-label="Compactar sidebar"
             title="Compactar sidebar">
       <svg class="w-5 h-5"
@@ -154,7 +161,12 @@
       {% if can('products.read') %}
         {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
       {% endif %}
-      {% if can('audit.read') %}{{ sidebar_link("Control", "#", icon_control) }}{% endif %}
+      {% if can('audit.read') %}
+        {% set control_items = [] %}
+        {% set _ = control_items.append({"label": "Auditoria operativa", "href": url_for('audit.index'), "icon": icon_operative, "active": request.endpoint and request.endpoint.startswith('audit.')}) %}
+        {% set _ = control_items.append({"label": "Eventos de acceso", "href": url_for('security_audit.index'), "icon": icon_accsess, "active": request.endpoint and request.endpoint.startswith('security_audit.')}) %}
+        {{ sidebar_dropdown("Control", control_items, icon_control, "dropdown-control") }}
+      {% endif %}
     </ul>
   </div>
   <div class="border-t p-2 2xl:p-2.5 border-default pt-3 2xl:pt-4">

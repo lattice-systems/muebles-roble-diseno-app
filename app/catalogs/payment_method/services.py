@@ -7,8 +7,8 @@ from sqlalchemy.exc import IntegrityError
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.extensions import db
-from app.models.audit_log import AuditLog
 from app.models.payment_method import PaymentMethod
+from app.shared.audit_logging import log_application_audit
 
 
 class PaymentMethodService:
@@ -20,14 +20,13 @@ class PaymentMethodService:
 
     @staticmethod
     def _log_audit(action: str, previous: dict | None, new: dict | None) -> None:
-        """Registra un cambio en la tabla audit_log."""
-        entry = AuditLog(
+        """Registra auditoria de aplicacion (fallback fuera de MySQL)."""
+        log_application_audit(
             table_name="payment_methods",
             action=action,
             previous_data=previous,
             new_data=new,
         )
-        db.session.add(entry)
 
     # ------------------------------------------------------------------ #
     #  READ                                                               #

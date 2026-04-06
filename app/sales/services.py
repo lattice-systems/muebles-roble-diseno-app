@@ -11,7 +11,6 @@ from sqlalchemy.orm import selectinload
 
 from app.exceptions import NotFoundError
 from app.extensions import db
-from app.models.audit_log import AuditLog
 from app.models.customer import Customer
 from app.models.payment import Payment
 from app.models.payment_method import PaymentMethod
@@ -19,6 +18,7 @@ from app.models.product import Product
 from app.models.product_inventory import ProductInventory
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
+from app.shared.audit_logging import log_application_audit
 from app.shared.inventory_service import InventoryService
 
 
@@ -34,7 +34,7 @@ class SaleService:
         Abre una nueva cabecera de venta en estado activo.
 
         Crea el registro en `sales` y registra la auditoría en `audit_log`
-        (doble capa: Python + trigger MySQL).
+        (fallback Python solo fuera de MySQL; en MySQL manda trigger).
 
         Args:
             employee_id: ID del empleado (usuario logueado) que abre la venta.
@@ -53,16 +53,14 @@ class SaleService:
         db.session.add(sale)
         db.session.flush()  # obtiene el ID antes del commit
 
-        # Auditoría desde Python (complementa el trigger MySQL)
-        audit = AuditLog(
+        # Auditoria de aplicacion como fallback fuera de MySQL.
+        log_application_audit(
             table_name="sales",
             action="INSERT",
             user_id=employee_id,
-            timestamp=datetime.now(),
             previous_data=None,
             new_data=sale.to_dict(),
         )
-        db.session.add(audit)
         db.session.commit()
 
         return sale
@@ -315,16 +313,14 @@ class SaleService:
         db.session.add(sale)
         db.session.flush()
 
-        # Auditoria para la cabecera
-        audit = AuditLog(
+        # Auditoria de aplicacion como fallback fuera de MySQL.
+        log_application_audit(
             table_name="sales",
             action="INSERT",
             user_id=employee_id,
-            timestamp=datetime.now(),
             previous_data=None,
             new_data=sale.to_dict(),
         )
-        db.session.add(audit)
 
         # Procesar items y reducir stock
         from app.models.product import Product

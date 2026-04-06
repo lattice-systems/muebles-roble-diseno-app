@@ -64,6 +64,16 @@ class TestAdminAuthProtection:
         resp = client.get("/admin/costs")
         assert resp.status_code in (302, 401, 308)
 
+    def test_audit_admin_redirects(self, client, db_session, seed_basic_data):
+        """GET /admin/audit sin login redirige."""
+        resp = client.get("/admin/audit")
+        assert resp.status_code in (302, 401, 308)
+
+    def test_security_events_admin_redirects(self, client, db_session, seed_basic_data):
+        """GET /admin/security-events sin login redirige."""
+        resp = client.get("/admin/security-events")
+        assert resp.status_code in (302, 401, 308)
+
     def test_purchases_admin_redirects(self, client, db_session, seed_basic_data):
         """GET /admin/purchases sin login redirige."""
         resp = client.get("/admin/purchases")

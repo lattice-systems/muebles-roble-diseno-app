@@ -20,12 +20,14 @@ from .raw_material_movement import RawMaterialMovement
 from .role import Role
 from .sale import Sale
 from .sale_item import SaleItem
+from .security_event_log import SecurityEventLog
 from .supplier import Supplier
 from .unit_of_measure import UnitOfMeasure
 from .user import User
 from .wood_type import WoodType
 from .material_category import MaterialCategory
 from .product_image import ProductImage
+from .navbar_notification_dismissal import NavbarNotificationDismissal
 
 __all__ = [
     "AuditLog",
@@ -50,10 +52,12 @@ __all__ = [
     "Role",
     "Sale",
     "SaleItem",
+    "SecurityEventLog",
     "Supplier",
     "UnitOfMeasure",
     "User",
     "WoodType",
     "MaterialCategory",
     "ProductImage",
+    "NavbarNotificationDismissal",
 ]

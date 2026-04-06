@@ -5,6 +5,11 @@ from config import Config
 from .exceptions import register_error_handlers
 from .extensions import csrf, db, mail, migrate, security
 from .rbac import register_rbac
+from .security_events import (
+    enforce_login_attempt_limit,
+    process_login_attempt_response,
+    register_security_event_handlers,
+)
 
 
 def create_app(config_class=None):
@@ -43,11 +48,34 @@ def create_app(config_class=None):
     # Register RBAC deny-by-default guard and Jinja helpers
     register_rbac(app)
 
+    @app.context_processor
+    def inject_navbar_notifications():
+        from flask_login import current_user
+
+        from .shared.navbar_notifications import build_navbar_notifications
+
+        if not getattr(current_user, "is_authenticated", False):
+            return {
+                "navbar_notifications": [],
+                "navbar_notification_count": 0,
+            }
+
+        notification_data = build_navbar_notifications()
+        return {
+            "navbar_notifications": notification_data["items"],
+            "navbar_notification_count": notification_data["count"],
+        }
+
+    # Register auth/security event listeners (login/logout/password/access events)
+    register_security_event_handlers(app)
+
     # Register error handlers
     register_error_handlers(app)
 
     @app.after_request
     def apply_auth_cache_control_headers(response):
+        response = process_login_attempt_response(response)
+
         path = request.path or ""
         protected_prefixes = ("/admin", "/login", "/logout", "/reset", "/verify")
 
@@ -59,6 +87,10 @@ def create_app(config_class=None):
             response.headers["Expires"] = "0"
 
         return response
+
+    @app.before_request
+    def enforce_security_login_attempts_limit():
+        return enforce_login_attempt_limit()
 
     # Register blueprints
     from .login import login_bp
@@ -86,6 +118,18 @@ def create_app(config_class=None):
     from .reports import reports_bp
 
     app.register_blueprint(reports_bp, url_prefix="/admin/reports")
+
+    from .audit import audit_bp
+
+    app.register_blueprint(audit_bp, url_prefix="/admin/audit")
+
+    from .security_audit import security_audit_bp
+
+    app.register_blueprint(security_audit_bp, url_prefix="/admin/security-events")
+
+    from .notifications import notifications_bp
+
+    app.register_blueprint(notifications_bp, url_prefix="/admin/notifications")
 
     app.register_blueprint(colors_bp, url_prefix="/admin/catalogs/colors")
 
