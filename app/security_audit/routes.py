@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from flask import render_template, request
+from flask import flash, redirect, render_template, request, url_for
 from flask_security import auth_required
 
 from app.security_audit import security_audit_bp
 from app.security_audit.services import SecurityAuditService
+from app.exceptions import NotFoundError
 
 
 @security_audit_bp.route("/", methods=["GET"])
@@ -61,3 +62,17 @@ def index():
         event_type_options=event_type_options,
         result_options=result_options,
     )
+
+
+@security_audit_bp.route("/<int:event_id>/details", methods=["GET"])
+@auth_required()
+def details(event_id: int):
+    """Vista de detalle para un evento de seguridad."""
+    try:
+        entry = SecurityAuditService.get_by_id(event_id)
+    except NotFoundError as error:
+        flash(error.message, "error")
+        return redirect(url_for("security_audit.index"))
+
+    detail = SecurityAuditService.to_detail_view(entry)
+    return render_template("admin/security_audit/details.html", detail=detail)

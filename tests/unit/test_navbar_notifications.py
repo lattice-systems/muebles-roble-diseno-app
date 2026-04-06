@@ -57,8 +57,9 @@ def test_navbar_notifications_merge_security_and_audit_events(
     assert len(data["items"]) == 2
     assert data["items"][0]["kind"] == "security"
     assert data["items"][0]["title"] == "Cuenta bloqueada por intentos"
+    assert data["items"][0]["href"].endswith("/details")
     assert data["items"][1]["kind"] == "audit"
-    assert data["items"][1]["href"].startswith("/admin/audit")
+    assert data["items"][1]["href"].endswith("/details")
 
 
 def test_navbar_notifications_returns_empty_for_anonymous_user(monkeypatch):

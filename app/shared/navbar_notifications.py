@@ -46,7 +46,7 @@ def _format_security_notification(entry: SecurityEventLog) -> dict:
         "kind": "security",
         "title": event_label,
         "message": message,
-        "href": url_for("security_audit.index", event_type=entry.event_type),
+        "href": url_for("security_audit.details", event_id=entry.id),
         "timestamp": entry.timestamp,
         "severity": (
             "danger"
@@ -73,11 +73,7 @@ def _format_audit_notification(entry: AuditLog) -> dict:
         "kind": "audit",
         "title": f"{action_label} importante",
         "message": message,
-        "href": url_for(
-            "audit.index",
-            action=entry.action,
-            table_name=entry.table_name,
-        ),
+        "href": url_for("audit.details", audit_id=entry.id),
         "timestamp": entry.timestamp,
         "severity": "danger",
         "source": entry.source,

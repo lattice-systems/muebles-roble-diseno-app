@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 
+from app.exceptions import NotFoundError
 from app.models.security_event_log import SecurityEventLog
 
 
@@ -37,6 +38,17 @@ class SecurityAuditService:
             return datetime.strptime(value.strip(), "%Y-%m-%d").date()
         except ValueError:
             return None
+
+    @staticmethod
+    def get_by_id(event_id: int) -> SecurityEventLog:
+        item = SecurityEventLog.query.filter(SecurityEventLog.id == event_id).first()
+
+        if not item:
+            raise NotFoundError(
+                f"No se encontro un evento de seguridad con ID {event_id}"
+            )
+
+        return item
 
     @staticmethod
     def get_logs(
@@ -127,4 +139,13 @@ class SecurityAuditService:
             "user_id": entry.user_id,
             "ip_address": entry.ip_address,
             "reason": entry.reason,
+        }
+
+    @staticmethod
+    def to_detail_view(entry: SecurityEventLog) -> dict:
+        return {
+            **SecurityAuditService.to_list_item(entry),
+            "context_data": entry.context_data,
+            "user_agent": entry.user_agent,
+            "source": entry.source,
         }

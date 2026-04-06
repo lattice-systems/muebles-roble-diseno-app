@@ -20,7 +20,7 @@
         <form action="{{ url_for('notifications.clear') }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit"
-                  class="inline-flex items-center justify-center text-fg-danger bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+                  class="inline-flex items-center justify-center text-fg-danger bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none cursor-pointer">
             Borrar todo
           </button>
         </form>
@@ -44,10 +44,11 @@
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-3 text-xs 2xl:text-sm">
                 <a href="{{ notification.href }}"
-                   class="text-brand hover:text-brand-strong font-medium">Abrir origen</a>
+                   class="text-brand hover:text-brand-strong font-medium">Abrir detalle</a>
                 <form action="{{ notification.dismiss_url }}" method="post">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="text-fg-danger hover:text-red-700 font-medium">Borrar</button>
+                  <button type="submit"
+                          class="text-fg-danger hover:text-red-700 font-medium cursor-pointer">Borrar</button>
                 </form>
               </div>
             </div>

@@ -11,7 +11,7 @@
                  required />
         </div>
         <button type="submit"
-                class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-9 h-9 2xl:w-10 2xl:h-10 focus:outline-none">
+                class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-9 h-9 2xl:w-10 2xl:h-10 focus:outline-none cursor-pointer">
           <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
                aria-hidden="true"
                xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +32,7 @@
                 type="button"
                 data-dropdown-toggle="navbarNotificationsDropdown"
                 data-dropdown-placement="bottom-end"
-                class="relative flex items-center justify-center w-9 h-9 2xl:w-10 2xl:h-10 rounded-full border border-default-medium bg-neutral-secondary-medium text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
+                class="cursor-pointer relative flex items-center justify-center w-9 h-9 2xl:w-10 2xl:h-10 rounded-full border border-default-medium bg-neutral-secondary-medium text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
                 aria-label="Abrir notificaciones">
           <svg class="w-5 h-5 2xl:w-6 2xl:h-6"
                aria-hidden="true"
@@ -84,14 +84,16 @@
                             class="flex-none">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit"
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-full text-body hover:bg-neutral-primary-soft hover:text-fg-danger transition-colors"
+                                class="cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-full text-body hover:bg-neutral-primary-soft hover:text-fg-danger transition-colors"
                                 aria-label="Eliminar notificacion">
                           <svg class="w-4 h-4"
                                aria-hidden="true"
                                xmlns="http://www.w3.org/2000/svg"
+                               width="24"
+                               height="24"
                                fill="none"
                                viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-10 0V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-7 0h10m-9 0 .6 12.2A1 1 0 0 0 8.6 20h6.8a1 1 0 0 0 .999-.8L17 7M10 11v5m4-5v5" />
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                           </svg>
                         </button>
                       </form>
@@ -110,11 +112,13 @@
                 <form action="{{ url_for('notifications.clear') }}" method="post">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit"
-                          class="text-fg-danger hover:text-red-700 font-medium whitespace-nowrap">Borrar todo</button>
+                          class="text-fg-danger hover:text-red-700 font-medium whitespace-nowrap cursor-pointer">
+                    Borrar todo
+                  </button>
                 </form>
               {% endif %}
               <a href="{{ url_for('security_audit.index') }}"
-                 class="text-brand hover:text-brand-strong font-medium whitespace-nowrap">Ver todo</a>
+                 class="text-brand hover:text-brand-strong font-medium whitespace-nowrap cursor-pointer">Ver todo</a>
             </div>
           </div>
         </div>

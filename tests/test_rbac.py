@@ -48,6 +48,7 @@ def test_notifications_endpoints_require_audit_read():
     assert _resolve_endpoint_permissions("notifications.index") == [AUDIT_READ]
     assert _resolve_endpoint_permissions("notifications.dismiss") == [AUDIT_READ]
     assert _resolve_endpoint_permissions("notifications.clear") == [AUDIT_READ]
+    assert _resolve_endpoint_permissions("security_audit.details") == [AUDIT_READ]
 
 
 def test_sales_role_has_sales_but_not_users_permissions():
