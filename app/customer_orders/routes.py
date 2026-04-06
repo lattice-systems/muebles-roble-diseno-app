@@ -10,6 +10,11 @@ from flask_security import auth_required, current_user
 from app.exceptions import AppException
 
 from . import customer_orders_bp
+from .email_service import (
+    send_order_cancelled_email,
+    send_order_delivered_email,
+    send_order_shipped_email,
+)
 from .services import CustomerOrderService
 
 # --------------------------------------------------------------------------- #
@@ -151,6 +156,10 @@ def cancel(order_id: int):
             user_id=current_user.id,
             reason=reason,
         )
+
+        # Enviar correo de cancelación al cliente
+        send_order_cancelled_email(order)
+
         return jsonify({"success": True, "status": order.status})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -203,6 +212,13 @@ def update_status(order_id: int):
             new_status=new_status,
             user_id=current_user.id,
         )
+
+        # Enviar correo de notificación al cliente
+        if order.status == "enviado":
+            send_order_shipped_email(order)
+        elif order.status == "entregado":
+            send_order_delivered_email(order)
+
         return jsonify({"success": True, "status": order.status})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
