@@ -89,6 +89,7 @@ class EcommerceService:
                 joinedload(Product.furniture_type),
                 joinedload(Product.colors).joinedload(ProductColor.color),
                 joinedload(Product.inventory_records),
+                joinedload(Product.images),
             )
             .filter(Product.status.is_(True))
             .order_by(Product.id.desc())
@@ -106,7 +107,34 @@ class EcommerceService:
     @staticmethod
     def _resolve_images(product: Product) -> list[str]:
         """Resuelve imágenes con la regla: mínimo 1 y máximo 4."""
-        candidates: list[str] = [EcommerceService._resolve_image(product)]
+        candidates: list[str] = []
+
+        relation_images = getattr(product, "images", None)
+        if isinstance(relation_images, (list, tuple, set)):
+            ordered_images = sorted(
+                relation_images,
+                key=lambda item: (
+                    getattr(item, "sort_order", None) is None,
+                    getattr(item, "sort_order", 0),
+                    getattr(item, "id", 0),
+                ),
+            )
+            for relation_image in ordered_images:
+                if isinstance(relation_image, str):
+                    image_url = relation_image.strip()
+                else:
+                    image_url = str(
+                        getattr(relation_image, "image_url", "")
+                        or getattr(relation_image, "url", "")
+                    ).strip()
+                if image_url:
+                    candidates.append(image_url)
+
+        resolved_primary_image = EcommerceService._resolve_image(product)
+        if resolved_primary_image and (
+            resolved_primary_image != EcommerceService.DEFAULT_PRODUCT_IMAGE
+        ):
+            candidates.append(resolved_primary_image)
 
         for attr in ("images", "image_urls", "gallery_images", "photos"):
             value = getattr(product, attr, None)
@@ -132,13 +160,6 @@ class EcommerceService:
         for img in candidates:
             if img and img not in normalized_images:
                 normalized_images.append(img)
-
-        if len(normalized_images) == 1:
-            for fallback_img in EcommerceService.DEFAULT_PRODUCT_GALLERY[1:]:
-                if fallback_img not in normalized_images:
-                    normalized_images.append(fallback_img)
-                if len(normalized_images) == 4:
-                    break
 
         return normalized_images[:4] or [EcommerceService.DEFAULT_PRODUCT_IMAGE]
 

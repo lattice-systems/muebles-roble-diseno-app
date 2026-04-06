@@ -620,6 +620,12 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "costs.index": COSTS_READ,
         "costs.details": COSTS_READ,
         "costs.export_cost_csv": COSTS_EXPORT,
+        "costs.export_list_csv": COSTS_EXPORT,
+        "costs.bulk_action_costs": lambda: resolve_action_permission(
+            {
+                "export": COSTS_EXPORT,
+            }
+        ),
         # Reports + dashboard
                 "reports.index": REPORTS_READ,
         "reports.sales_details": REPORTS_READ,
