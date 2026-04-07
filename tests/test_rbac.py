@@ -2,8 +2,10 @@ from types import SimpleNamespace
 
 from app.rbac import (
     ROLE_ADMIN,
+    ROLE_CLIENT,
     ROLE_PRODUCTION,
     ROLE_SALES,
+    DASHBOARD_READ,
     USERS_READ,
     USERS_CREATE,
     SALES_CREATE,
@@ -65,3 +67,17 @@ def test_unknown_or_unauthenticated_user_is_denied_by_default():
 
     assert not can(PRODUCTS_READ, user=unknown_role_user)
     assert not can(PRODUCTS_READ, user=anonymous_user)
+
+
+def test_dashboard_endpoint_requires_dashboard_read():
+    assert _resolve_endpoint_permissions("index_admin") == [DASHBOARD_READ]
+    assert _resolve_endpoint_permissions("dashboard.index") == [DASHBOARD_READ]
+
+
+def test_dashboard_access_matches_documented_roles():
+    assert can(DASHBOARD_READ, user=_user("Administrador"))
+    assert can(DASHBOARD_READ, user=_user("Producción"))
+    assert can(DASHBOARD_READ, user=_user("Ventas"))
+
+    # Cliente no tiene acceso a dashboard interno según matriz RBAC.
+    assert not can(DASHBOARD_READ, user=_user("Cliente"))

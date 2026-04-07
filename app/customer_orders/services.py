@@ -312,8 +312,8 @@ class CustomerOrderService:
         - Reserva stock existente de producto terminado por item.
         - Si hay faltante, crea ProductionOrder solo por la cantidad faltante.
         - Inicializa consumo planificado de materiales con la receta BOM.
-        - Si no hay faltantes, marca la orden como 'terminado'.
-        - Si hay faltantes, marca la orden como 'en_produccion'.
+        - La orden de cliente siempre pasa a 'en_produccion' al enviarse.
+        - El cierre a 'terminado' queda a cargo del módulo de Producción.
 
         Returns:
             Lista de ProductionOrder creadas.
@@ -368,7 +368,7 @@ class CustomerOrderService:
                 ProductionService.initialize_material_plan_for_order(prod_order)
                 production_orders.append(prod_order)
 
-        order.status = "en_produccion" if production_orders else "terminado"
+        order.status = "en_produccion"
 
         db.session.flush()
 

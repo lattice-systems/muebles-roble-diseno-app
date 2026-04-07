@@ -498,6 +498,7 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
     endpoint_permissions: dict[str, EndpointPermission] = {
         # Dashboard / accesos raíz admin
         "index_admin": DASHBOARD_READ,
+        "dashboard.index": DASHBOARD_READ,
         "catalogs_index": CATALOGS_READ,
         # Users
         "users.index": USERS_READ,

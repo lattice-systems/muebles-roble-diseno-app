@@ -233,6 +233,33 @@ class TestStatusTransitions:
             )
 
 
+class TestSendToProduction:
+    """Tests para CustomerOrderService.send_to_production()."""
+
+    def test_send_to_production_leaves_order_in_production_state(
+        self, app, db_session, seed_basic_data
+    ):
+        """Enviar una orden a producción no debe cerrarla directamente."""
+        customer = seed_basic_data["customer"]
+        product = seed_basic_data["product"]
+        user = seed_basic_data["user"]
+
+        order = CustomerOrderService.create_order(
+            customer_id=customer.id,
+            items=[{"product_id": product.id, "quantity": 1}],
+            estimated_delivery_date=date.today() + timedelta(days=7),
+            created_by_id=user.id,
+        )
+
+        production_orders = CustomerOrderService.send_to_production(
+            order_id=order.id,
+            user_id=user.id,
+        )
+
+        assert production_orders == []
+        assert order.status == "en_produccion"
+
+
 class TestCreateFromEcommerce:
     """Tests para CustomerOrderService.create_from_ecommerce()."""
 
