@@ -28,12 +28,18 @@ from app.rbac import (
     ROLE_CLIENT,
     ROLE_PRODUCTION,
     ROLE_SALES,
+    ROLE_SUPERADMIN,
     resolve_role_key,
 )
 
 DEFAULT_PASSWORD = "RbacSeed#2026"
 
 SEED_USERS: dict[str, dict[str, str]] = {
+    ROLE_SUPERADMIN: {
+        "role_name": "Super Administrador",
+        "full_name": "Súper Administrador",
+        "email": "superadmin@roble.com",
+    },
     ROLE_ADMIN: {
         "role_name": "Administrador",
         "full_name": "Usuario Administrador",
@@ -57,6 +63,7 @@ SEED_USERS: dict[str, dict[str, str]] = {
 }
 
 LEGACY_LOCAL_EMAILS: dict[str, str] = {
+    ROLE_SUPERADMIN: "superadmin@roble.local",
     ROLE_ADMIN: "admin@roble.local",
     ROLE_PRODUCTION: "produccion@roble.local",
     ROLE_SALES: "ventas@roble.local",
@@ -187,9 +194,15 @@ def seed_users_by_role() -> None:
         for role_key, seed_data in SEED_USERS.items():
             role = role_by_key.get(role_key)
             if role is None:
-                missing_roles.append(seed_data["role_name"])
-                user_password_map[seed_data["role_name"]] = "[rol faltante]"
-                continue
+                print(f"  + Creando rol canónico base faltante: {seed_data['role_name']}")
+                role = Role(
+                    name=seed_data["role_name"],
+                    description=f"Rol de {seed_data['role_name']} autogenerado",
+                    status=True
+                )
+                db.session.add(role)
+                db.session.flush()
+                role_by_key[role_key] = role
 
             result = _upsert_user(
                 role_key=role_key,
