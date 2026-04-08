@@ -10,8 +10,6 @@ from app.exceptions import NotFoundError
 
 
 class CostService:
-    """Servicios del módulo de costos."""
-
     LOW_MARGIN_THRESHOLD = Decimal("15.00")
 
     @staticmethod
@@ -92,7 +90,9 @@ class CostService:
         for item in items:
             raw_material = item.raw_material
             quantity_required = CostService._to_decimal(item.quantity_required)
-            waste_percentage = CostService._to_decimal(raw_material.waste_percentage)
+            waste_percentage = CostService._to_decimal(
+                getattr(raw_material, "waste_percentage", 0)
+            )
             unit_price = CostService._get_latest_unit_price(raw_material.id)
 
             waste_factor = Decimal("1") + (waste_percentage / Decimal("100"))
@@ -125,7 +125,7 @@ class CostService:
             "bom": bom,
             "detail_items": detail_items,
             "material_cost": material_cost,
-            "total_cost": material_cost,  # por ahora igual al material, como pediste
+            "total_cost": material_cost,
         }
 
     @staticmethod
@@ -133,7 +133,7 @@ class CostService:
         margin_value: Decimal, margin_percentage: Decimal | None
     ) -> dict:
         if margin_percentage is None:
-            return {"key": "no-data", "label": "Sin producción finalizada"}
+            return {"key": "no-data", "label": "Sin datos"}
 
         if margin_value < Decimal("0"):
             return {"key": "negative", "label": "Margen negativo"}
@@ -155,31 +155,17 @@ class CostService:
 
         latest_production = CostService._get_latest_finished_production(product.id)
 
-        unit_cost = None
-        margin_value = None
-        margin_percentage = None
+        unit_cost = CostService._round_money(total_cost)
+        margin_value = CostService._round_money(sale_price - total_cost)
 
-        if (
-            latest_production
-            and latest_production.quantity
-            and latest_production.quantity > 0
-        ):
-            unit_cost = CostService._round_money(
-                total_cost / CostService._to_decimal(latest_production.quantity)
+        if sale_price > 0:
+            margin_percentage = CostService._round_money(
+                (margin_value / sale_price) * Decimal("100")
             )
-            margin_value = CostService._round_money(sale_price - unit_cost)
+        else:
+            margin_percentage = None
 
-            if sale_price > 0:
-                margin_percentage = CostService._round_money(
-                    (margin_value / sale_price) * Decimal("100")
-                )
-            else:
-                margin_percentage = Decimal("0.00")
-
-        status = CostService._build_margin_status(
-            margin_value if margin_value is not None else Decimal("0"),
-            margin_percentage,
-        )
+        status = CostService._build_margin_status(margin_value, margin_percentage)
 
         return {
             "product_id": product.id,
@@ -259,3 +245,14 @@ class CostService:
             "summary": summary,
             "latest_production": latest_production,
         }
+    
+    @staticmethod
+    def get_cost_rows_by_ids(product_ids: list[int]) -> list[dict]:
+        if not product_ids:
+            return []
+
+        products = Product.query.filter(Product.id.in_(product_ids)).all()
+        product_map = {product.id: product for product in products}
+
+        ordered_products = [product_map[product_id] for product_id in product_ids if product_id in product_map]
+        return [CostService.calculate_product_cost_summary(product) for product in ordered_products]

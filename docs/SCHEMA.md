@@ -330,9 +330,17 @@ Registra operaciones críticas del sistema para trazabilidad.
 | `table_name`    | VARCHAR  | Tabla afectada                             |
 | `action`        | VARCHAR  | INSERT / UPDATE / DELETE                   |
 | `user_id`       | FK       | Usuario que realizó la acción (`users.id`) |
+| `record_id`     | VARCHAR  | ID del registro afectado (PK lógica)       |
+| `source`        | VARCHAR  | Origen del evento (`application`/`db_trigger`) |
 | `timestamp`     | DATETIME | Fecha                                      |
 | `previous_data` | JSON     | Datos anteriores                           |
 | `new_data`      | JSON     | Datos nuevos                               |
+
+**Índices recomendados para consulta operativa:**
+
+* `ix_audit_log_timestamp`
+* `ix_audit_log_table_timestamp`
+* `ix_audit_log_user_timestamp`
 
 ---
 

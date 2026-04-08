@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from typing import Optional
 
-from flask_login import current_user
-
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.extensions import db
-from app.models import AuditLog, RawMaterial, RawMaterialMovement
+from app.models import RawMaterial, RawMaterialMovement
+from app.shared.audit_logging import log_application_audit
 
 
 class RawMaterialService:
@@ -16,15 +15,13 @@ class RawMaterialService:
     def _log_audit(
         action: str, previous: dict | None = None, new: dict | None = None
     ) -> None:
-        """Helper para crear registros de auditoría."""
-        log = AuditLog(
-            user_id=current_user.id if current_user.is_authenticated else None,
+        """Helper para crear auditoria de aplicacion (fallback fuera de MySQL)."""
+        log_application_audit(
             table_name="raw_materials",
             action=action,
             previous_data=previous,
             new_data=new,
         )
-        db.session.add(log)
 
     @staticmethod
     def get_all(
@@ -71,6 +68,7 @@ class RawMaterialService:
                 category_id=data["category_id"],
                 unit_id=data["unit_id"],
                 waste_percentage=data.get("waste_percentage", 0.0),
+                minimum_stock=data.get("minimum_stock", 10.0),
                 status=data.get("status", "active"),
                 stock=0.0,  # El stock siempre inicia en 0 y se modifica via auditoría
             )
@@ -114,6 +112,9 @@ class RawMaterialService:
             raw_material.unit_id = data["unit_id"]
             raw_material.waste_percentage = data.get(
                 "waste_percentage", raw_material.waste_percentage
+            )
+            raw_material.minimum_stock = data.get(
+                "minimum_stock", raw_material.minimum_stock
             )
             raw_material.status = new_status
 

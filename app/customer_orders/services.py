@@ -19,6 +19,7 @@ from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.product_inventory import ProductInventory
 from app.models.production_order import ProductionOrder
+from app.shared.audit_logging import log_application_audit
 
 
 class CustomerOrderService:
@@ -240,16 +241,13 @@ class CustomerOrderService:
             item.order_id = order.id
             db.session.add(item)
 
-        # Auditoría
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=created_by_id,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        # Auditoria de aplicacion como fallback fuera de MySQL.
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=created_by_id,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -288,15 +286,12 @@ class CustomerOrderService:
         order.cancelled_by_id = user_id
         order.cancelled_reason = reason.strip()
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -317,8 +312,8 @@ class CustomerOrderService:
         - Reserva stock existente de producto terminado por item.
         - Si hay faltante, crea ProductionOrder solo por la cantidad faltante.
         - Inicializa consumo planificado de materiales con la receta BOM.
-        - Si no hay faltantes, marca la orden como 'terminado'.
-        - Si hay faltantes, marca la orden como 'en_produccion'.
+        - La orden de cliente siempre pasa a 'en_produccion' al enviarse.
+        - El cierre a 'terminado' queda a cargo del módulo de Producción.
 
         Returns:
             Lista de ProductionOrder creadas.
@@ -373,19 +368,16 @@ class CustomerOrderService:
                 ProductionService.initialize_material_plan_for_order(prod_order)
                 production_orders.append(prod_order)
 
-        order.status = "en_produccion" if production_orders else "terminado"
+        order.status = "en_produccion"
 
         db.session.flush()
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -441,15 +433,12 @@ class CustomerOrderService:
                     f"aún no están terminadas ({productos})."
                 )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="UPDATE",
-                user_id=user_id,
-                timestamp=datetime.now(),
-                previous_data=prev_data,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="UPDATE",
+            user_id=user_id,
+            previous_data=prev_data,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()
@@ -530,15 +519,12 @@ class CustomerOrderService:
                 )
             )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=employee_id,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=employee_id,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         # Commit — la Sale ya fue committed por SaleService, aquí guardamos la Order
@@ -590,15 +576,12 @@ class CustomerOrderService:
                 )
             )
 
-        db.session.add(
-            AuditLog(
-                table_name="orders",
-                action="INSERT",
-                user_id=None,
-                timestamp=datetime.now(),
-                previous_data=None,
-                new_data=order.to_dict(),
-            )
+        log_application_audit(
+            table_name="orders",
+            action="INSERT",
+            user_id=None,
+            previous_data=None,
+            new_data=order.to_dict(),
         )
 
         db.session.commit()

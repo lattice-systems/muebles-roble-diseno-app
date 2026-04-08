@@ -68,8 +68,8 @@ def index():
     )
 
 
-@auth_required()
 @users_bp.route("/create", methods=["GET", "POST"])
+@auth_required()
 def create_user():
     form = UserForm()
     form.role_id.choices = UserService.get_role_choices()
@@ -102,8 +102,8 @@ def create_user():
     return render_template("admin/administration/users/create.html", form=form)
 
 
-@auth_required()
 @users_bp.route("/<int:id_user>/toggle-status", methods=["POST"])
+@auth_required()
 def toggle_status(id_user: int):
     search_term = request.form.get("q", "").strip()
     status_filter = request.form.get("status", "all")
@@ -145,8 +145,8 @@ def toggle_status(id_user: int):
     )
 
 
-@auth_required()
 @users_bp.route("/<int:id_user>/edit", methods=["GET", "POST"])
+@auth_required()
 def edit_user(id_user: int):
     try:
         user = UserService.get_by_id(id_user)
@@ -188,8 +188,8 @@ def edit_user(id_user: int):
     return render_template("admin/administration/users/edit.html", form=form, user=user)
 
 
-@auth_required()
 @users_bp.route("/<int:id_user>/details", methods=["GET"])
+@auth_required()
 def detail_user(id_user: int):
     try:
         user = UserService.get_by_id(id_user)
@@ -200,8 +200,8 @@ def detail_user(id_user: int):
     return render_template("admin/administration/users/details.html", user=user)
 
 
-@auth_required()
 @users_bp.route("/bulk-action", methods=["POST"])
+@auth_required()
 def bulk_action_users():
     search_term = request.form.get("q", "").strip()
     status_filter = request.form.get("status", "all")

@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 from io import StringIO
 from flask import flash, redirect, render_template, request, url_for, make_response
+from flask_security import auth_required
 
 from . import unit_of_measures_bp
 from .forms import UnitOfMeasureForm
@@ -14,6 +15,7 @@ from app.exceptions import ConflictError, NotFoundError, ValidationError
 
 
 @unit_of_measures_bp.route("/", methods=["GET"])
+@auth_required()
 def list_unit_of_measures():
     """
     Muestra la lista de unidades de medida del catálogo filtrada y paginada.
@@ -38,6 +40,7 @@ def list_unit_of_measures():
 
 
 @unit_of_measures_bp.route("/create", methods=["POST"])
+@auth_required()
 def create_unit_of_measure():
     form = UnitOfMeasureForm()
 
@@ -75,6 +78,7 @@ def create_unit_of_measure():
 
 
 @unit_of_measures_bp.route("/<int:id_unit_of_measure>/edit", methods=["POST"])
+@auth_required()
 def edit_unit_of_measure(id_unit_of_measure):
     form = UnitOfMeasureForm()
 
@@ -114,6 +118,7 @@ def edit_unit_of_measure(id_unit_of_measure):
 
 
 @unit_of_measures_bp.route("/<int:id_unit_of_measure>/delete", methods=["POST"])
+@auth_required()
 def delete_unit_of_measure(id_unit_of_measure: int):
     try:
         # Re-using delete as a toggle to fit the toggle button logic.
@@ -126,6 +131,7 @@ def delete_unit_of_measure(id_unit_of_measure: int):
 
 
 @unit_of_measures_bp.route("/bulk-activate", methods=["POST"])
+@auth_required()
 def bulk_activate_unit_of_measures():
     ids_str = request.form.get("ids", "")
     if ids_str:
@@ -142,6 +148,7 @@ def bulk_activate_unit_of_measures():
 
 
 @unit_of_measures_bp.route("/bulk-deactivate", methods=["POST"])
+@auth_required()
 def bulk_deactivate_unit_of_measures():
     ids_str = request.form.get("ids", "")
     if ids_str:
@@ -159,6 +166,7 @@ def bulk_deactivate_unit_of_measures():
 
 
 @unit_of_measures_bp.route("/bulk-export", methods=["POST"])
+@auth_required()
 def bulk_export():
     """Exportar múltiples unidades de medida seleccionadas a CSV."""
     ids_str = request.form.get("ids", "")
@@ -176,16 +184,20 @@ def bulk_export():
     writer = csv.writer(output)
     writer.writerow(["ID", "Nombre", "Abreviatura", "Tipo", "Estado"])
     for u in units:
-        writer.writerow([
-            u.id_unit_of_measure,
-            u.name,
-            u.abbreviation,
-            u.type,
-            "Activo" if u.status else "Inactivo"
-        ])
+        writer.writerow(
+            [
+                u.id_unit_of_measure,
+                u.name,
+                u.abbreviation,
+                u.type,
+                "Activo" if u.status else "Inactivo",
+            ]
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    response = make_response('\ufeff' + output.getvalue())
+    response = make_response("\ufeff" + output.getvalue())
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-    response.headers["Content-Disposition"] = f'attachment; filename="unidades_medida_{timestamp}.csv"'
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="unidades_medida_{timestamp}.csv"'
+    )
     return response

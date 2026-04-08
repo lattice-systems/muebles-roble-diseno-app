@@ -78,6 +78,7 @@ def create_raw_material():
             "category_id": form.category_id.data,
             "unit_id": form.unit_id.data,
             "waste_percentage": form.waste_percentage.data,
+            "minimum_stock": form.minimum_stock.data,
             "status": form.status.data,
         }
 
@@ -116,6 +117,7 @@ def edit_raw_material(raw_material_id: int):
         form.category_id.data = raw_material.category_id
         form.unit_id.data = raw_material.unit_id
         form.waste_percentage.data = raw_material.waste_percentage
+        form.minimum_stock.data = getattr(raw_material, "minimum_stock", 10.0)
         form.status.data = raw_material.status
     elif form.validate_on_submit():
         data = {
@@ -124,6 +126,7 @@ def edit_raw_material(raw_material_id: int):
             "category_id": form.category_id.data,
             "unit_id": form.unit_id.data,
             "waste_percentage": form.waste_percentage.data,
+            "minimum_stock": form.minimum_stock.data,
             "status": form.status.data,
         }
 

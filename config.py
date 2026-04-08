@@ -17,7 +17,7 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
     MONGO_DBNAME = os.getenv("MONGO_DBNAME", "roble_reports")
 
@@ -41,6 +41,8 @@ class Config:
     # Flask Security
     SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
     SECURITY_POST_LOGIN_VIEW = "/admin"
+    SECURITY_RECOVERABLE = True
+    SECURITY_AUTO_LOGIN_AFTER_RESET = False
     SECURITY_TWO_FACTOR = True
     SECURITY_TWO_FACTOR_REQUIRED = False
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ["authenticator"]
@@ -88,6 +90,24 @@ class Config:
         "El metodo seleccionado no es valido para tu cuenta.",
         "error",
     )
+    SECURITY_MSG_PASSWORD_RESET_REQUEST = (
+        "Si el correo existe, enviamos instrucciones para recuperar tu contrasena.",
+        "info",
+    )
+    SECURITY_MSG_PASSWORD_RESET_EXPIRED = (
+        "El enlace de recuperacion expiro. Solicita uno nuevo.",
+        "error",
+    )
+    SECURITY_MSG_INVALID_RESET_PASSWORD_TOKEN = (
+        "El enlace de recuperacion no es valido.",
+        "error",
+    )
+    SECURITY_MSG_PASSWORD_RESET_NO_LOGIN = (
+        "Tu contrasena fue restablecida. Inicia sesion con la nueva contrasena.",
+        "success",
+    )
+    SECURITY_EMAIL_SUBJECT_PASSWORD_RESET = "Instrucciones para recuperar tu contrasena"
+    SECURITY_EMAIL_SUBJECT_PASSWORD_NOTICE = "Tu contrasena fue restablecida"
     SECURITY_EMAIL_SUBJECT_TWO_FACTOR_RESCUE = (
         "Solicitud de recuperacion de autenticacion de dos factores"
     )
@@ -112,3 +132,26 @@ class Config:
     # Have session and remember cookie be samesite (flask/flask_login)
     REMEMBER_COOKIE_SAMESITE = "strict"
     SESSION_COOKIE_SAMESITE = "strict"
+
+
+class TestingConfig(Config):
+    """Configuración para entorno de pruebas (SQLite in-memory)."""
+
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    WTF_CSRF_ENABLED = False
+    SECRET_KEY = "test-secret-key"
+    SECURITY_PASSWORD_SALT = "test-salt"
+
+    # Deshabilitar mail real en tests
+    MAIL_SUPPRESS_SEND = True
+    MAIL_SERVER = "localhost"
+    MAIL_PORT = 25
+
+    # Flask-Security simplificado para tests
+    SECURITY_TWO_FACTOR = False
+    SECURITY_TOTP_SECRETS = {"1": "test-totp-secret"}
+    SECURITY_EMAIL_SENDER = "test@test.com"
+    SECURITY_SEND_REGISTER_EMAIL = False
+    SECURITY_SEND_PASSWORD_CHANGE_EMAIL = False
+    SECURITY_SEND_PASSWORD_RESET_EMAIL = False

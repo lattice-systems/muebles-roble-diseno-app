@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 from io import StringIO
 from flask import flash, redirect, render_template, request, url_for, make_response
+from flask_security import auth_required
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 
@@ -15,6 +16,7 @@ from .services import PaymentMethodService
 
 
 @payment_method_bp.route("/", methods=["GET"])
+@auth_required()
 def list_payment_method():
     """
     Muestra la lista de métodos de pago con búsqueda, filtro y paginación.
@@ -42,6 +44,7 @@ def list_payment_method():
 
 
 @payment_method_bp.route("/create", methods=["POST"])
+@auth_required()
 def create_payment_method():
     """
     Crea un nuevo método de pago desde el modal.
@@ -86,6 +89,7 @@ def create_payment_method():
 
 
 @payment_method_bp.route("/<int:id_payment_method>/edit", methods=["POST"])
+@auth_required()
 def edit_payment_method(id_payment_method: int):
     """
     Edita un método de pago desde el modal.
@@ -131,6 +135,7 @@ def edit_payment_method(id_payment_method: int):
 
 
 @payment_method_bp.route("/<int:id_payment_method>/delete", methods=["POST"])
+@auth_required()
 def delete_payment_method(id_payment_method: int):
     """
     Toggle de estado de un método de pago (desactivar/activar).
@@ -145,6 +150,7 @@ def delete_payment_method(id_payment_method: int):
 
 
 @payment_method_bp.route("/bulk-deactivate", methods=["POST"])
+@auth_required()
 def bulk_deactivate():
     """Desactivar múltiples métodos de pago seleccionados."""
     ids_str = request.form.get("ids", "")
@@ -159,6 +165,7 @@ def bulk_deactivate():
 
 
 @payment_method_bp.route("/bulk-activate", methods=["POST"])
+@auth_required()
 def bulk_activate():
     """Activar múltiples métodos de pago seleccionados."""
     ids_str = request.form.get("ids", "")
@@ -173,6 +180,7 @@ def bulk_activate():
 
 
 @payment_method_bp.route("/bulk-export", methods=["POST"])
+@auth_required()
 def bulk_export():
     """Exportar múltiples métodos de pago seleccionados a CSV."""
     ids_str = request.form.get("ids", "")
@@ -188,24 +196,30 @@ def bulk_export():
 
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Nombre", "Tipo", "Estado", "POS", "Ecommerce", "Descripcion"])
+    writer.writerow(
+        ["ID", "Nombre", "Tipo", "Estado", "POS", "Ecommerce", "Descripcion"]
+    )
     for p in payment_methods:
-        writer.writerow([
-            p.id,
-            p.name,
-            p.type,
-            "Activo" if p.status else "Inactivo",
-            "Si" if p.available_pos else "No",
-            "Si" if p.available_ecommerce else "No",
-            p.description or ""
-        ])
+        writer.writerow(
+            [
+                p.id,
+                p.name,
+                p.type,
+                "Activo" if p.status else "Inactivo",
+                "Si" if p.available_pos else "No",
+                "Si" if p.available_ecommerce else "No",
+                p.description or "",
+            ]
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
+
     # Prepend BOM so Excel properly recognizes UTF-8 formatting
-    csv_data = '\ufeff' + output.getvalue()
+    csv_data = "\ufeff" + output.getvalue()
 
     response = make_response(csv_data)
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-    response.headers["Content-Disposition"] = f'attachment; filename="metodos_pago_{timestamp}.csv"'
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="metodos_pago_{timestamp}.csv"'
+    )
     return response

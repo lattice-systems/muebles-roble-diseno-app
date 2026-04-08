@@ -67,6 +67,13 @@
 {% set icon_reports = '
   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m8-2h3m-3 3h3m-4 3v6m4-3H8M19 4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1ZM8 12v6h8v-6H8Z" />
 ' %}
+{# Iconos para Control de calidad #}
+{% set icon_operative = '
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-3 5h3m-6 0h.01M12 16h3m-6 0h.01M10 3v4h4V3h-4Z" />
+' %}
+{% set icon_accsess = '
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.5 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h4.5M7 11V7a3 3 0 0 1 6 0v1.5m2.5 5.5v1.5l1 1m3.5-1a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+' %}
 <aside id="adminSidebar"
        class="sticky top-3 2xl:top-4 z-40 w-60 2xl:w-72 h-full p-3 2xl:p-4 bg-neutral-primary-soft border border-default rounded-base flex flex-col transition-all duration-300 ease-in-out">
   <div class="sidebar-header-container justify-between border-b border-default p-2 pb-3 2xl:p-2.5 2xl:pb-4 flex items-center w-full">
@@ -82,7 +89,7 @@
     </a>
     <button id="sidebarCompactToggle"
             type="button"
-            class="sidebar-toggle-btn inline-flex items-center justify-center w-8 h-8 rounded-md text-body hover:bg-neutral-tertiary hover:text-heading transition-colors"
+            class="sidebar-toggle-btn inline-flex items-center justify-center w-8 h-8 rounded-md text-body hover:bg-neutral-tertiary hover:text-heading transition-colors cursor-pointer"
             aria-label="Compactar sidebar"
             title="Compactar sidebar">
       <svg class="w-5 h-5"
@@ -98,46 +105,84 @@
   </div>
   <div class="py-4 2xl:py-5 overflow-y-auto flex-1">
     <ul class="space-y-1.5 2xl:space-y-2 font-medium">
-      {{ sidebar_link("Dashboard", url_for('index_admin') , icon_dashboard, request.endpoint == 'index_admin') }}
-      {{ sidebar_dropdown("Administración",
-            [
-            {"label": "Usuarios", "href": url_for('users.index') , "icon": icon_users, "active": request.endpoint and request.endpoint.startswith('users.')},
-      {"label": "Catálogos", "href": url_for('catalogs_index'), "icon": icon_catalog, "active": request.endpoint and (request.endpoint.startswith('colors.') or request.endpoint.startswith('furniture_type.') or request.endpoint.startswith('woods_types.') or request.endpoint.startswith('unit_of_measures.') or request.endpoint.startswith('payment_method.'))},
-      ],
-      icon_admin,
-      "dropdown-admin") }}
-      {{ sidebar_dropdown("Abastecimiento",
-            [
-            {"label": "Proveedores", "href": url_for('suppliers.index') , "icon": icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')},
-      {"label": "Compras", "href": url_for('purchases.index') , "icon": icon_purchases, "active": request.endpoint and request.endpoint.startswith('purchases.')},
-      {"label": "Materia prima", "href": url_for('raw_materials.index'), "icon": icon_materials, "active": request.endpoint and request.endpoint.startswith('raw_materials.')}
-      ],
-      icon_supplies,
-      "dropdown-supplies") }}
-      {{ sidebar_dropdown("Producción",
-            [
-            {"label": "Recetas (BOM)", "href": url_for('production.boms_index') , "icon": icon_recipe, "active": request.endpoint and request.endpoint.startswith('production.bom')},
-      {"label": "Producción", "href": url_for('production.orders_index'), "icon": icon_production, "active": request.endpoint and request.endpoint.startswith('production.order')},
-      ],
-      icon_production_main,
-      "dropdown-production") }}
-      {{ sidebar_dropdown("Ventas",
-            [
-            {"label": "POS", "href": url_for('sales.pos') , "icon": icon_pos, "active": request.endpoint and request.endpoint.startswith('sales.')},
-      {"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub},
-      {"label": "Órdenes de Cliente", "href": url_for('customer_orders.index'), "icon": icon_orders, "active": request.endpoint and request.endpoint.startswith('customer_orders.')},
-      ],
-      icon_sales,
-      "dropdown-sales") }}
-      {{ sidebar_dropdown("Análisis",
-            [
-            {"label": "Costos", "href": url_for('costs.index') , "icon": icon_costs, "active": request.endpoint and request.endpoint.startswith('costs.')},
-      {"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports, "active": request.endpoint and request.endpoint.startswith('reports.')},
-      ],
-      icon_analysis,
-      "dropdown-analysis") }}
-      {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and request.endpoint.startswith('products.')) }}
-      {{ sidebar_link("Control", "#", icon_control) }}
+      {% if can('dashboard.read') %}
+        {{ sidebar_link("Dashboard", url_for('index_admin') , icon_dashboard, request.endpoint == 'index_admin') }}
+      {% endif %}
+      {% set admin_items = [] %}
+      {% if can('users.read') %}
+        {% set _ = admin_items.append({"label": "Usuarios", "href": url_for('users.index'), "icon": icon_users, "active":
+                request.endpoint and request.endpoint.startswith('users.')}) %}
+      {% endif %}
+      {% if can('catalogs.read') %}
+        {% set _ = admin_items.append({"label": "Catálogos", "href": url_for('catalogs_index'), "icon": icon_catalog,
+                  "active": request.endpoint and (request.endpoint.startswith('colors.') or
+                  request.endpoint.startswith('furniture_type.') or request.endpoint.startswith('woods_types.') or
+                request.endpoint.startswith('unit_of_measures.') or request.endpoint.startswith('payment_method.'))}) %}
+      {% endif %}
+      {% if admin_items %}{{ sidebar_dropdown("Administración", admin_items, icon_admin, "dropdown-admin") }}{% endif %}
+      {% set supplies_items = [] %}
+      {% if can('suppliers.read') %}
+        {% set _ = supplies_items.append({"label": "Proveedores", "href": url_for('suppliers.index'), "icon":
+                icon_supplier, "active": request.endpoint and request.endpoint.startswith('suppliers.')}) %}
+      {% endif %}
+      {% if can('purchases.read') %}
+        {% set _ = supplies_items.append({"label": "Compras", "href": url_for('purchases.index'), "icon": icon_purchases,
+                "active": request.endpoint and request.endpoint.startswith('purchases.')}) %}
+      {% endif %}
+      {% if can('raw_materials.read') %}
+        {% set _ = supplies_items.append({"label": "Materia prima", "href": url_for('raw_materials.index'), "icon":
+                icon_materials, "active": request.endpoint and request.endpoint.startswith('raw_materials.')}) %}
+      {% endif %}
+      {% if supplies_items %}
+        {{ sidebar_dropdown("Abastecimiento", supplies_items, icon_supplies, "dropdown-supplies") }}
+      {% endif %}
+      {% set production_items = [] %}
+      {% if can('production.read') %}
+        {% set _ = production_items.append({"label": "Recetas (BOM)", "href": url_for('production.boms_index'), "icon":
+                icon_recipe, "active": request.endpoint and request.endpoint.startswith('production.bom')}) %}
+        {% set _ = production_items.append({"label": "Producción", "href": url_for('production.orders_index'), "icon":
+                icon_production, "active": request.endpoint and request.endpoint.startswith('production.order')}) %}
+      {% endif %}
+      {% if production_items %}
+        {{ sidebar_dropdown("Producción", production_items, icon_production_main, "dropdown-production") }}
+      {% endif %}
+      {% set sales_items = [] %}
+      {% if can('sales.read') %}
+        {% set _ = sales_items.append({"label": "POS", "href": url_for('sales.pos'), "icon": icon_pos, "active":
+                request.endpoint and request.endpoint.startswith('sales.')}) %}
+      {% endif %}
+      {% if can('ecommerce.manage') %}
+        {% set _ = sales_items.append({"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub}) %}
+      {% endif %}
+      {% if can('customer_orders.read') %}
+        {% set _ = sales_items.append({"label": "Órdenes de Cliente", "href": url_for('customer_orders.index'), "icon":
+                icon_orders, "active": request.endpoint and request.endpoint.startswith('customer_orders.')}) %}
+      {% endif %}
+      {% if sales_items %}{{ sidebar_dropdown("Ventas", sales_items, icon_sales, "dropdown-sales") }}{% endif %}
+      {% set analytics_items = [] %}
+      {% if can('costs.read') %}
+        {% set _ = analytics_items.append({"label": "Costos", "href": url_for('costs.index'), "icon": icon_costs,
+                "active": request.endpoint and request.endpoint.startswith('costs.')}) %}
+      {% endif %}
+      {% if can('reports.read') %}
+        {% set _ = analytics_items.append({"label": "Reportes", "href": url_for('reports.index'), "icon": icon_reports,
+                "active": request.endpoint and request.endpoint.startswith('reports.')}) %}
+      {% endif %}
+      {% if analytics_items %}
+        {{ sidebar_dropdown("Análisis", analytics_items, icon_analysis, "dropdown-analysis") }}
+      {% endif %}
+      {% if can('products.read') %}
+        {{ sidebar_link("Productos", url_for('products.index') , icon_products, request.endpoint and
+        request.endpoint.startswith('products.')) }}
+      {% endif %}
+      {% if can('audit.read') %}
+        {% set control_items = [] %}
+        {% set _ = control_items.append({"label": "Auditoria operativa", "href": url_for('audit.index'), "icon":
+                icon_operative, "active": request.endpoint and request.endpoint.startswith('audit.')}) %}
+        {% set _ = control_items.append({"label": "Eventos de acceso", "href": url_for('security_audit.index'), "icon":
+                icon_accsess, "active": request.endpoint and request.endpoint.startswith('security_audit.')}) %}
+        {{ sidebar_dropdown("Control", control_items, icon_control, "dropdown-control") }}
+      {% endif %}
     </ul>
   </div>
   <div class="border-t p-2 2xl:p-2.5 border-default pt-3 2xl:pt-4">
@@ -163,20 +208,27 @@
       </div>
       <ul class="p-1.5 2xl:p-2 text-xs 2xl:text-sm text-body font-medium"
           aria-labelledby="sidebarAvatarButton">
-        <li>
-          <a href="#"
-             class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
-        </li>
+        {% if can('dashboard.read') %}
+          <li>
+            <a href="{{ url_for('index_admin') }}"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
+          </li>
+        {% endif %}
         <li>
           <a href="{{ url_for('users.profile') }}"
              class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
         </li>
+        {% if can('ecommerce.manage') %}
+          <li>
+            <a href="#"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
+          </li>
+        {% endif %}
         <li>
-          <a href="#"
-             class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
-        </li>
-        <li>
-          <form action="{{ url_for('login.logout') }}" method="post" class="w-full">
+          <form action="{{ url_for('login.logout') }}"
+                method="post"
+                class="w-full"
+                data-logout-form="true">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     class="cursor-pointer block w-full p-1.5 2xl:p-2 text-left hover:bg-neutral-tertiary-medium text-fg-danger rounded-md">
