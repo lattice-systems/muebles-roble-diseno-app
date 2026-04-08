@@ -185,10 +185,10 @@
               <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
               </svg>
-              <span><strong>¡Listo para entregar!</strong> Producción completó el pedido.</span>
+              <span><strong>¡Producción completa!</strong> El pedido está listo.</span>
             </div>
             {% if pos_pendientes %}
-              {# Hay órdenes de producción aún sin terminar — botón bloqueado con advertencia #}
+              {# Hay órdenes de producción aún sin terminar — botón bloqueado #}
               <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
                    style="background:#fffbeb;
                           border-color:#fde68a;
@@ -204,19 +204,55 @@
                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
                 </svg>
-                Marcar como Entregado
+                {% if order.customer.requires_freight %}Enviar Pedido{% else %}Marcar como Entregado{% endif %}
+              </button>
+            {% elif order.customer.requires_freight %}
+              {# Cliente requiere envío → botón "Enviar Pedido" #}
+              <button type="button"
+                      id="btnAdvanceStatus"
+                      data-new-status="enviado"
+                      class="w-full flex items-center justify-center gap-2 text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                </svg>
+                Enviar Pedido
               </button>
             {% else %}
+              {# Sin envío → botón directo "Marcar como Entregado" #}
               <button type="button"
                       id="btnAdvanceStatus"
                       data-new-status="entregado"
                       class="w-full flex items-center justify-center gap-2 text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 13 4 4L19 7" />
                 </svg>
                 Marcar como Entregado
               </button>
             {% endif %}
+          {% elif order.status == 'enviado' %}
+            {# Pedido en tránsito — mostrar info de envío y botón de entrega #}
+            <div class="flex items-start gap-2 p-3 rounded-base border text-xs"
+                 style="background:#eff6ff;
+                        border-color:#bfdbfe;
+                        color:#1d4ed8">
+              <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+              </svg>
+              <span>
+                <strong>Pedido en camino.</strong>
+                Envío {{ 'local' if order.customer.city and order.customer.city.strip().lower() == 'león' else 'nacional' }}
+                a {{ order.customer.city or '—' }}, {{ order.customer.state or '—' }}.
+              </span>
+            </div>
+            <button type="button"
+                    id="btnAdvanceStatus"
+                    data-new-status="entregado"
+                    class="w-full flex items-center justify-center gap-2 text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 13 4 4L19 7" />
+              </svg>
+              Marcar como Entregado
+            </button>
           {% elif order.status == 'entregado' %}
             <div class="flex items-center gap-2 p-3 rounded-base border text-sm"
                  style="background:#f0fdf4;
@@ -244,8 +280,14 @@
       {# ══════════════════════════════════════════════════════════ #}
       {# ── Stepper horizontal de progreso                       ── #}
       {# ══════════════════════════════════════════════════════════ #}
-      {% set steps = ['Pendiente', 'En Producción', 'Terminado', 'Entregado'] %}
-      {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'entregado'] %}
+      {% if order.customer.requires_freight %}
+        {% set steps = ['Pendiente', 'En Producción', 'Terminado', 'Enviado', 'Entregado'] %}
+        {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'enviado', 'entregado'] %}
+      {% else %}
+        {% set steps = ['Pendiente', 'En Producción', 'Terminado', 'Entregado'] %}
+        {% set statuses_order = ['pendiente', 'en_produccion', 'terminado', 'entregado'] %}
+      {% endif %}
+      {% set last_step_idx = steps | length - 1 %}
       {% set current_idx = statuses_order.index(order.status) if order.status in statuses_order else -1 %}
       <div style="margin-top:1.5rem; padding:1.25rem 2rem;
                   border-radius:var(--radius-base, 0.5rem);
@@ -269,14 +311,14 @@
           {# ── Track + Steps ── #}
           <div style="position:relative; padding:0 1rem;">
             {# ── Línea base continua (fondo gris) ── #}
-            <div style="position:absolute; top:20px; left:calc(12.5% + 8px); right:calc(12.5% + 8px);
+            <div style="position:absolute; top:20px; left:calc({{ (50 / steps|length)|round(1) }}% + 8px); right:calc({{ (50 / steps|length)|round(1) }}% + 8px);
                         height:3px; background:#e5e7eb; border-radius:4px; z-index:0;"></div>
             {# ── Línea de progreso (azul) ── #}
             {% if current_idx > 0 %}
-              <div style="position:absolute; top:20px; left:calc(12.5% + 8px);
+              <div style="position:absolute; top:20px; left:calc({{ (50 / steps|length)|round(1) }}% + 8px);
                           height:3px; border-radius:4px; z-index:1;
                           background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-                          width: calc({{ (current_idx / 3 * 100) | round(1) }}% * 0.75);
+                          width: calc({{ (current_idx / last_step_idx * 100) | round(1) }}% * {{ (1 - 1/steps|length)|round(4) }});
                           transition: width 0.5s ease;"></div>
             {% endif %}
             {# ── Pasos ── #}
@@ -285,8 +327,7 @@
                 {% set idx = loop.index0 %}
                 {% set done = current_idx > idx %}
                 {% set active = current_idx == idx %}
-                {% set upcoming = current_idx < idx %}
-                <div style="display:flex; flex-direction:column; align-items:center; width:25%;">
+                <div style="display:flex; flex-direction:column; align-items:center; width:{{ (100 / steps|length)|round(1) }}%;">
                   {# ── Círculo ── #}
                   <div style="width:40px; height:40px; border-radius:50%;
                               display:flex; align-items:center; justify-content:center;
@@ -302,21 +343,18 @@
                                 border: 2px solid #d1d5db;
                               {% endif %}">
                     {% if done %}
-                      {# Checkmark #}
                       <svg style="width:18px; height:18px;" fill="none" viewBox="0 0 24 24">
                         <path stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 13 4 4L19 7"/>
                       </svg>
                     {% elif active %}
-                      {# Step number animated #}
                       <span style="color:white; font-size:0.8125rem; font-weight:700;
                                    animation: stepPulse 2.5s ease-in-out infinite;">{{ idx + 1 }}</span>
                     {% else %}
-                      {# Step number gray #}
                       <span style="color:#9ca3af; font-size:0.8125rem; font-weight:600;">{{ idx + 1 }}</span>
                     {% endif %}
                   </div>
                   {# ── Label ── #}
-                  <p style="margin:0.5rem 0 0; font-size:0.75rem; text-align:center; line-height:1.3;
+                  <p style="margin:0.5rem 0 0; font-size:0.6875rem; text-align:center; line-height:1.3;
                             {% if done %}
                               color:#2563eb; font-weight:600;
                             {% elif active %}
