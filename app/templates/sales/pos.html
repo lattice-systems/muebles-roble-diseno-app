@@ -86,28 +86,44 @@
                         <p class="text-xs 2xl:text-sm mt-2 {{ 'text-fg-success-strong' if stock > 0 else 'text-fg-danger' }}">
                           Stock: {{ stock }}
                         </p>
-                        {# Precio + botón — siempre clavado al fondo con mt-4 #}
+                        {# Precio + botones — siempre clavado al fondo con mt-4 #}
                         <div class="flex items-center justify-between mt-4">
                           <span class="text-lg 2xl:text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) 
                           }}</span>
-                          <button type="button"
-                                  data-product-id="{{ product.id }}"
-                                  data-product-name="{{ product.name }}"
-                                  data-product-price="{{ product.price }}"
-                                  data-product-sku="{{ product.sku }}"
-                                  class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
-                                  {% if stock <=0 %}disabled aria-disabled="true"{% endif %}>
-                            <svg class="w-4 h-4 me-1.5"
-                                 aria-hidden="true"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 width="24"
-                                 height="24"
-                                 fill="none"
-                                 viewBox="0 0 24 24">
-                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
-                            </svg>
-                            {{ 'Agregar' if stock > 0 else 'Sin stock' }}
-                          </button>
+                          <div class="flex items-center gap-1.5">
+                            <button type="button"
+                                    data-action="show-product-info"
+                                    data-info-name="{{ product.name }}"
+                                    data-info-sku="{{ product.sku }}"
+                                    data-info-price="{{ product.price }}"
+                                    data-info-description="{{ product.description or '—' }}"
+                                    data-info-specifications="{{ product.specifications or '' }}"
+                                    class="btn-product-info inline-flex items-center justify-center text-fg-brand bg-brand-softer hover:bg-brand-subtle box-border border border-brand-subtle focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-8 h-8 2xl:w-9 2xl:h-9 focus:outline-none transition-colors"
+                                    title="Ver descripción del producto">
+                              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                              </svg>
+                              <span class="sr-only">Ver descripción</span>
+                            </button>
+                            <button type="button"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-name="{{ product.name }}"
+                                    data-product-price="{{ product.price }}"
+                                    data-product-sku="{{ product.sku }}"
+                                    class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                                    {% if stock <=0 %}disabled aria-disabled="true"{% endif %}>
+                              <svg class="w-4 h-4 me-1.5"
+                                   aria-hidden="true"
+                                   xmlns="http://www.w3.org/2000/svg"
+                                   width="24"
+                                   height="24"
+                                   fill="none"
+                                   viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
+                              </svg>
+                              {{ 'Agregar' if stock > 0 else 'Sin stock' }}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -423,6 +439,40 @@
   {% include 'utils/checkout_modal.html' %}
   {% include 'utils/view_customer_modal.html' %}
   {% include 'utils/edit_customer_modal.html' %}
+  {# ── Modal de información de producto (reutilizable, se llena con JS) ── #}
+  <div id="productInfoModal"
+       tabindex="-1"
+       aria-hidden="true"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm bg-gray-900/40">
+    <div class="relative p-4 w-full max-w-lg max-h-full">
+      <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
+        {# Modal header #}
+        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-default">
+          <h3 id="productInfoModalTitle" class="text-lg font-bold text-heading dark:text-white">Producto</h3>
+          <button type="button"
+                  id="btnCloseProductInfo"
+                  class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center transition-colors">
+            <svg class="w-3 h-3 pointer-events-none"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Cerrar</span>
+          </button>
+        </div>
+        {# Modal body #}
+        <div class="p-4 md:p-5 space-y-4">
+          <div class="flex items-center gap-3 mb-2">
+            <span id="productInfoModalSku" class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-2 py-0.5 rounded-sm"></span>
+            <span id="productInfoModalPrice" class="text-lg font-extrabold text-heading"></span>
+          </div>
+          <div id="productInfoModalDescription" class="text-sm text-heading leading-relaxed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="posConfig"
        class="hidden"
        data-csrf="{{ csrf_token() if csrf_token else '' }}"
@@ -1238,6 +1288,61 @@
                   }
               });
           }
+
+          // ── Product info modal ─────────────────────────────────
+          const productInfoModal = document.getElementById("productInfoModal");
+          const productInfoTitle = document.getElementById("productInfoModalTitle");
+          const productInfoSku = document.getElementById("productInfoModalSku");
+          const productInfoPrice = document.getElementById("productInfoModalPrice");
+          const productInfoDesc = document.getElementById("productInfoModalDescription");
+          const btnCloseProductInfo = document.getElementById("btnCloseProductInfo");
+
+          function showProductInfoModal(name, sku, price, description, specifications) {
+              if (!productInfoModal) return;
+              if (productInfoTitle) productInfoTitle.textContent = name;
+              if (productInfoSku) productInfoSku.textContent = sku;
+              if (productInfoPrice) productInfoPrice.textContent = `$${Number(price).toLocaleString("es-MX", { minimumFractionDigits: 0 })}`;
+              if (productInfoDesc) {
+                  let html = `<p class="mb-3">${description}</p>`;
+                  if (specifications) {
+                      html += `
+                          <div class="flex items-start gap-2.5 bg-brand-softer border border-brand-subtle rounded-base p-3">
+                              <svg class="w-4 h-4 text-fg-brand shrink-0 mt-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/>
+                              </svg>
+                              <span class="text-sm font-semibold text-fg-brand-strong">${specifications}</span>
+                          </div>`;
+                  }
+                  productInfoDesc.innerHTML = html;
+              }
+              setModalVisible(productInfoModal, true);
+          }
+
+          function hideProductInfoModal() {
+              setModalVisible(productInfoModal, false);
+          }
+
+          if (btnCloseProductInfo) {
+              btnCloseProductInfo.addEventListener("click", hideProductInfoModal);
+          }
+
+          if (productInfoModal) {
+              productInfoModal.addEventListener("click", (e) => {
+                  if (e.target === productInfoModal) hideProductInfoModal();
+              });
+          }
+
+          document.querySelectorAll("[data-action='show-product-info']").forEach((btn) => {
+              btn.addEventListener("click", () => {
+                  showProductInfoModal(
+                      btn.dataset.infoName || "",
+                      btn.dataset.infoSku || "",
+                      btn.dataset.infoPrice || "0",
+                      btn.dataset.infoDescription || "—",
+                      btn.dataset.infoSpecifications || "",
+                  );
+              });
+          });
 
           loadPaymentMethods();
           loadCart();
