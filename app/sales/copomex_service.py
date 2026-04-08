@@ -155,4 +155,3 @@ class CopomexService:
         except Exception as exc:
             logger.error("Error parseando respuesta COPOMEX para CP %s: %s", cp, exc)
             return None
-

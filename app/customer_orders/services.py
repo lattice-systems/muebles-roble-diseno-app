@@ -467,7 +467,7 @@ class CustomerOrderService:
 
             customer = Customer.query.get(customer_id)
             freight = calculate_freight(customer, total)
-            
+
             if not customer.requires_freight:
                 estimated_delivery_date = date.today()
                 shipping_note = "No aplica envío (entrega inmediata en sucursal)."
@@ -478,8 +478,10 @@ class CustomerOrderService:
                     shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: GRATIS."
                 else:
                     shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: ${freight.get('cost', 0):,.2f}."
-            
-            final_notes = f"Generada automáticamente desde POS.\nNota de Envío: {shipping_note}"
+
+            final_notes = (
+                f"Generada automáticamente desde POS.\nNota de Envío: {shipping_note}"
+            )
         else:
             final_notes = "Generada automáticamente desde POS."
 

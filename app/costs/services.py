@@ -245,7 +245,7 @@ class CostService:
             "summary": summary,
             "latest_production": latest_production,
         }
-    
+
     @staticmethod
     def get_cost_rows_by_ids(product_ids: list[int]) -> list[dict]:
         if not product_ids:
@@ -254,5 +254,12 @@ class CostService:
         products = Product.query.filter(Product.id.in_(product_ids)).all()
         product_map = {product.id: product for product in products}
 
-        ordered_products = [product_map[product_id] for product_id in product_ids if product_id in product_map]
-        return [CostService.calculate_product_cost_summary(product) for product in ordered_products]
+        ordered_products = [
+            product_map[product_id]
+            for product_id in product_ids
+            if product_id in product_map
+        ]
+        return [
+            CostService.calculate_product_cost_summary(product)
+            for product in ordered_products
+        ]

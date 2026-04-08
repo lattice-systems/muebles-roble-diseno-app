@@ -100,7 +100,11 @@
                                     data-info-specifications="{{ product.specifications or '' }}"
                                     class="btn-product-info inline-flex items-center justify-center text-fg-brand bg-brand-softer hover:bg-brand-subtle box-border border border-brand-subtle focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-8 h-8 2xl:w-9 2xl:h-9 focus:outline-none transition-colors"
                                     title="Ver descripción del producto">
-                              <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <svg class="w-4 h-4"
+                                   aria-hidden="true"
+                                   xmlns="http://www.w3.org/2000/svg"
+                                   fill="none"
+                                   viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                               </svg>
                               <span class="sr-only">Ver descripción</span>
@@ -448,7 +452,8 @@
       <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-default-medium">
         {# Modal header #}
         <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-default">
-          <h3 id="productInfoModalTitle" class="text-lg font-bold text-heading dark:text-white">Producto</h3>
+          <h3 id="productInfoModalTitle"
+              class="text-lg font-bold text-heading dark:text-white">Producto</h3>
           <button type="button"
                   id="btnCloseProductInfo"
                   class="text-gray-400 bg-transparent hover:bg-neutral-secondary-medium hover:text-heading-strong rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center transition-colors">
@@ -465,10 +470,13 @@
         {# Modal body #}
         <div class="p-4 md:p-5 space-y-4">
           <div class="flex items-center gap-3 mb-2">
-            <span id="productInfoModalSku" class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-2 py-0.5 rounded-sm"></span>
-            <span id="productInfoModalPrice" class="text-lg font-extrabold text-heading"></span>
+            <span id="productInfoModalSku"
+                  class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-2 py-0.5 rounded-sm"></span>
+            <span id="productInfoModalPrice"
+                  class="text-lg font-extrabold text-heading"></span>
           </div>
-          <div id="productInfoModalDescription" class="text-sm text-heading leading-relaxed"></div>
+          <div id="productInfoModalDescription"
+               class="text-sm text-heading leading-relaxed"></div>
         </div>
       </div>
     </div>
@@ -1029,7 +1037,11 @@
                   const today = new Date();
                   const deliveryDate = new Date(today);
                   deliveryDate.setDate(deliveryDate.getDate() + (freightDeliveryDays || 0));
-                  const formattedDate = deliveryDate.toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' });
+                  const formattedDate = deliveryDate.toLocaleDateString("es-MX", {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                  });
 
                   if (modalFreightNoteRow) {
                       modalFreightNoteRow.classList.remove("hidden");
@@ -1324,7 +1336,7 @@
                       html += `
                           <div class="flex items-start gap-2.5 bg-brand-softer border border-brand-subtle rounded-base p-3">
                               <svg class="w-4 h-4 text-fg-brand shrink-0 mt-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/>
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18" />
                               </svg>
                               <span class="text-sm font-semibold text-fg-brand-strong">${specifications}</span>
                           </div>`;

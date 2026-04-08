@@ -33,7 +33,13 @@ ROLE_PRODUCTION = "production"
 ROLE_SALES = "sales"
 ROLE_CLIENT = "client"
 
-CANONICAL_ROLES = {ROLE_SUPERADMIN, ROLE_ADMIN, ROLE_PRODUCTION, ROLE_SALES, ROLE_CLIENT}
+CANONICAL_ROLES = {
+    ROLE_SUPERADMIN,
+    ROLE_ADMIN,
+    ROLE_PRODUCTION,
+    ROLE_SALES,
+    ROLE_CLIENT,
+}
 
 ROLE_ALIASES = {
     "superadmin": ROLE_SUPERADMIN,
@@ -635,7 +641,7 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
             }
         ),
         # Reports + dashboard
-                "reports.index": REPORTS_READ,
+        "reports.index": REPORTS_READ,
         "reports.sales_details": REPORTS_READ,
         "reports.top_products_details": REPORTS_READ,
         "reports.raw_material_consumption_details": REPORTS_READ,

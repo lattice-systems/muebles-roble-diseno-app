@@ -410,7 +410,11 @@
           const cpErrorMsg = document.getElementById("cpErrorMsg");
           const invoiceToggle = document.getElementById("invoiceToggle");
           const invoiceFields = document.getElementById("invoiceFields");
-            const cartTotal = {{ cart.total | tojson }};
+          const cartTotal = {
+              {
+                  cart.total | tojson
+              }
+          };
 
           let lastLookedUpZip = "";
 

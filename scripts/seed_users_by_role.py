@@ -194,11 +194,13 @@ def seed_users_by_role() -> None:
         for role_key, seed_data in SEED_USERS.items():
             role = role_by_key.get(role_key)
             if role is None:
-                print(f"  + Creando rol canónico base faltante: {seed_data['role_name']}")
+                print(
+                    f"  + Creando rol canónico base faltante: {seed_data['role_name']}"
+                )
                 role = Role(
                     name=seed_data["role_name"],
                     description=f"Rol de {seed_data['role_name']} autogenerado",
-                    status=True
+                    status=True,
                 )
                 db.session.add(role)
                 db.session.flush()

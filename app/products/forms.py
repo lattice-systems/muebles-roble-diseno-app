@@ -23,7 +23,9 @@ class ProductForm(FlaskForm):
 
     description = TextAreaField("Descripción", validators=[Optional(), Length(max=500)])
 
-    specifications = TextAreaField("Especificaciones", validators=[Optional(), Length(max=500)])
+    specifications = TextAreaField(
+        "Especificaciones", validators=[Optional(), Length(max=500)]
+    )
 
     price = DecimalField(
         "Precio", places=2, validators=[DataRequired(), NumberRange(min=0)]

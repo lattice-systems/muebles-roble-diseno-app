@@ -1395,4 +1395,3 @@ PRODUCTS = [
         "bom_template": "BANCO_EXTERIOR",
     },
 ]
-

@@ -39,7 +39,10 @@ class SimplePagination:
         for num in range(1, self.pages + 1):
             if (
                 num <= left_edge
-                or (num > self.page - left_current - 1 and num < self.page + right_current)
+                or (
+                    num > self.page - left_current - 1
+                    and num < self.page + right_current
+                )
                 or num > self.pages - right_edge
             ):
                 if last + 1 != num:
@@ -290,9 +293,7 @@ def bulk_action_reports():
         )
 
     selected_keys = [
-        value.strip()
-        for value in selected_ids_raw.split(",")
-        if value.strip()
+        value.strip() for value in selected_ids_raw.split(",") if value.strip()
     ]
 
     if not selected_keys:
