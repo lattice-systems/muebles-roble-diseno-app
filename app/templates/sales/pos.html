@@ -500,6 +500,7 @@
           let freightZone = null;
           let freightFree = false;
           let freightReason = "";
+          let freightDeliveryDays = 0;
           let activeToastTimer = null;
           const csrfToken = posConfig.dataset.csrf;
 
@@ -592,6 +593,7 @@
                   freightZone = data.zone || null;
                   freightFree = data.free || false;
                   freightReason = data.reason || "";
+                  freightDeliveryDays = data.delivery_days || 0;
                   renderCart();
               } catch (err) {
                   console.error("Error loading cart:", err);
@@ -1018,22 +1020,36 @@
                   if (modalTotal) modalTotal.textContent = fmt(trueTotal);
 
                   // Mostrar info de flete en el modal
-                  const modalFreightRow = document.getElementById("modalFreightRow");
-                  const modalFreightZone = document.getElementById("modalFreightZone");
+                  const modalFreightNoteRow = document.getElementById("modalFreightNoteRow");
+                  const modalFreightStatusText = document.getElementById("modalFreightStatusText");
                   const modalFreightCost = document.getElementById("modalFreightCost");
-                  if (modalFreightRow) {
+                  const modalDeliveryDateDisplay = document.getElementById("modalDeliveryDateDisplay");
+
+                  // Calcular fecha estimada
+                  const today = new Date();
+                  const deliveryDate = new Date(today);
+                  deliveryDate.setDate(deliveryDate.getDate() + (freightDeliveryDays || 0));
+                  const formattedDate = deliveryDate.toLocaleDateString("es-MX", { year: 'numeric', month: 'long', day: 'numeric' });
+
+                  if (modalFreightNoteRow) {
+                      modalFreightNoteRow.classList.remove("hidden");
+                      modalFreightNoteRow.classList.add("flex");
+                  }
+                  if (modalFreightStatusText) {
                       if (freightZone) {
-                          modalFreightRow.classList.remove("hidden");
-                          modalFreightRow.classList.add("flex");
-                          if (modalFreightZone) modalFreightZone.textContent = `(${freightZone})`;
-                          if (modalFreightCost) {
-                              modalFreightCost.innerHTML = freightFree ?
-                                  '<span class="text-fg-success-strong font-semibold">GRATIS</span>' :
-                                  fmt(freightCost);
-                          }
+                          const incluye = freightFree ? '<span class="text-fg-success-strong font-semibold">GRATIS</span>' : fmt(freightCost);
+                          modalFreightStatusText.innerHTML = `Envío incluido (${freightZone})`;
+                          if (modalFreightCost) modalFreightCost.innerHTML = incluye;
                       } else {
-                          modalFreightRow.classList.add("hidden");
-                          modalFreightRow.classList.remove("flex");
+                          modalFreightStatusText.innerHTML = "No aplica envío (entrega inmediata en tienda)";
+                          if (modalFreightCost) modalFreightCost.innerHTML = "$0.00";
+                      }
+                  }
+                  if (modalDeliveryDateDisplay) {
+                      if (!freightZone || freightDeliveryDays === 0) {
+                          modalDeliveryDateDisplay.textContent = `${formattedDate} (Hoy)`;
+                      } else {
+                          modalDeliveryDateDisplay.textContent = formattedDate;
                       }
                   }
 

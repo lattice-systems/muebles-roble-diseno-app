@@ -467,8 +467,21 @@ class CustomerOrderService:
 
             customer = Customer.query.get(customer_id)
             freight = calculate_freight(customer, total)
-            days = freight.get("delivery_days") or LOCAL_DELIVERY_DAYS
-            estimated_delivery_date = date.today() + timedelta(days=days)
+            
+            if not customer.requires_freight:
+                estimated_delivery_date = date.today()
+                shipping_note = "No aplica envío (entrega inmediata en sucursal)."
+            else:
+                days = freight.get("delivery_days") or LOCAL_DELIVERY_DAYS
+                estimated_delivery_date = date.today() + timedelta(days=days)
+                if freight.get("free"):
+                    shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: GRATIS."
+                else:
+                    shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: ${freight.get('cost', 0):,.2f}."
+            
+            final_notes = f"Generada automáticamente desde POS.\nNota de Envío: {shipping_note}"
+        else:
+            final_notes = "Generada automáticamente desde POS."
 
         order = Order(
             customer_id=customer_id,
@@ -477,7 +490,7 @@ class CustomerOrderService:
             status="pendiente",
             total=total,
             payment_method_id=payment_method_id,
-            notes="Generada automáticamente desde POS.",
+            notes=final_notes,
             source="pos",
             created_by_id=employee_id,
             sale_id=sale_id,
