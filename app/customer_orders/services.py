@@ -17,7 +17,6 @@ from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
-from app.models.product_inventory import ProductInventory
 from app.models.production_order import ProductionOrder
 from app.shared.audit_logging import log_application_audit
 
@@ -341,32 +340,20 @@ class CustomerOrderService:
         from app.production.services import ProductionService
 
         for item in order.items:
-            inv = ProductInventory.query.filter_by(product_id=item.product_id).first()
-            available = int(inv.stock) if inv and inv.stock is not None else 0
+            prod_order = ProductionOrder(
+                product_id=item.product_id,
+                quantity=int(item.quantity),
+                status="pendiente",
+                scheduled_date=order.estimated_delivery_date or date.today(),
+                customer_order_id=order.id,
+                created_by=user_id,
+                updated_by=user_id,
+            )
+            db.session.add(prod_order)
+            db.session.flush()
 
-            reserved_qty = min(available, int(item.quantity))
-            missing_qty = int(item.quantity) - reserved_qty
-
-            # Reservar inventario terminado disponible
-            if inv and reserved_qty > 0:
-                inv.stock = int(inv.stock) - reserved_qty
-
-            # Solo producir faltante
-            if missing_qty > 0:
-                prod_order = ProductionOrder(
-                    product_id=item.product_id,
-                    quantity=missing_qty,
-                    status="pendiente",
-                    scheduled_date=order.estimated_delivery_date or date.today(),
-                    customer_order_id=order.id,
-                    created_by=user_id,
-                    updated_by=user_id,
-                )
-                db.session.add(prod_order)
-                db.session.flush()
-
-                ProductionService.initialize_material_plan_for_order(prod_order)
-                production_orders.append(prod_order)
+            ProductionService.initialize_material_plan_for_order(prod_order)
+            production_orders.append(prod_order)
 
         order.status = "en_produccion"
 
@@ -480,8 +467,21 @@ class CustomerOrderService:
 
             customer = Customer.query.get(customer_id)
             freight = calculate_freight(customer, total)
-            days = freight.get("delivery_days") or LOCAL_DELIVERY_DAYS
-            estimated_delivery_date = date.today() + timedelta(days=days)
+            
+            if not customer.requires_freight:
+                estimated_delivery_date = date.today()
+                shipping_note = "No aplica envío (entrega inmediata en sucursal)."
+            else:
+                days = freight.get("delivery_days") or LOCAL_DELIVERY_DAYS
+                estimated_delivery_date = date.today() + timedelta(days=days)
+                if freight.get("free"):
+                    shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: GRATIS."
+                else:
+                    shipping_note = f"Envío incluido ({freight.get('zone', 'local')}). Costo del flete: ${freight.get('cost', 0):,.2f}."
+            
+            final_notes = f"Generada automáticamente desde POS.\nNota de Envío: {shipping_note}"
+        else:
+            final_notes = "Generada automáticamente desde POS."
 
         order = Order(
             customer_id=customer_id,
@@ -490,7 +490,7 @@ class CustomerOrderService:
             status="pendiente",
             total=total,
             payment_method_id=payment_method_id,
-            notes="Generada automáticamente desde POS.",
+            notes=final_notes,
             source="pos",
             created_by_id=employee_id,
             sale_id=sale_id,

@@ -21,15 +21,25 @@
             <span>Total a pagar:</span>
             <span id="modalTotalDisplay">$0.00</span>
           </div>
-          <div id="modalFreightRow" class="hidden sm:col-span-2 flex items-center justify-between text-xs 2xl:text-sm text-body bg-neutral-secondary-soft rounded-base px-3 py-2">
-            <span class="flex items-center gap-1">
-              <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
-              </svg>
-              Incluye envío <span id="modalFreightZone"></span>:
-            </span>
-            <span id="modalFreightCost" class="font-medium text-heading">$0.00</span>
+          <div id="modalFreightNoteRow" class="hidden sm:col-span-2 flex-col gap-1.5 text-xs 2xl:text-sm text-heading bg-neutral-secondary-soft rounded-base px-3 py-2 border border-default-medium">
+            <div class="flex items-center justify-between pb-1 border-b border-default-medium">
+              <span class="flex items-center gap-1 font-semibold text-brand">
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                </svg>
+                Información de Entregas y Envíos
+              </span>
+            </div>
+            <div class="flex flex-col gap-1 pt-1 text-body">
+              <div class="flex justify-between items-center">
+                <span id="modalFreightStatusText">No aplica envío (entrega inmediata)</span>
+                <span id="modalFreightCost" class="font-medium text-heading">$0.00</span>
+              </div>
+              <div class="flex justify-between items-center text-xs 2xl:text-sm">
+                <span>Fecha Estimada de Entrega:</span>
+                <span id="modalDeliveryDateDisplay" class="font-semibold text-heading">-</span>
+              </div>
+            </div>
           </div>
           <div class="sm:col-span-2">
             <label for="paymentMethodSelect" class="block mb-2 text-xs 2xl:text-sm font-medium text-heading">Metodo de

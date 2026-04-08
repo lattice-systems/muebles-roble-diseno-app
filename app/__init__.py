@@ -185,6 +185,10 @@ def create_app(config_class=None):
 
     app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
 
+    @app.route("/")
+    def index():
+        return redirect(url_for("ecommerce.home"))
+
     from .sales import sales_bp
 
     app.register_blueprint(sales_bp, url_prefix="/admin/sales")
