@@ -2,10 +2,9 @@
 {% block title %}Órdenes de Cliente | Furniture Store{% endblock title %}
 {% block content %}
 <div class="flex flex-col gap-2.5 2xl:gap-4">
-  <div class="flex flex-col justify-center gap-1">
-    <h1 class="text-heading text-base 2xl:text-lg font-medium">Órdenes de Cliente</h1>
-    <p class="text-body">Gestiona y da seguimiento a todas las órdenes generadas desde el POS.</p>
-  </div>
+  {% set admin_header_title = "Órdenes de Cliente" %}
+  {% set admin_header_subtitle = "Gestiona y da seguimiento a todas las órdenes generadas desde el POS." %}
+  {% include "admin/components/page_header.html" %}
 
   <div class="relative bg-neutral-primary-soft shadow-xs rounded-base border border-default">
 
