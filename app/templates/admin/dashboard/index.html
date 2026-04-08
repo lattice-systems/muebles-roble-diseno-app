@@ -170,6 +170,7 @@
             <tbody>
               {% for order in data.active_production_orders %}
                 <tr class="border-b border-default-soft hover:bg-neutral-secondary-soft transition-colors group">
+                  {% set manufactured_qty = order.manufactured_quantity if order.manufactured_quantity is defined else 0 %}
                   <td class="px-5 2xl:px-6 py-3 font-medium text-heading">#{{ order.id }}</td>
                   <td class="px-5 2xl:px-6 py-3">
                     <div class="flex items-center gap-3">
@@ -192,7 +193,7 @@
                     </div>
                   </td>
                   <td class="px-5 2xl:px-6 py-3 text-heading font-semibold">
-                    <span class="text-brand">{{ order.manufactured_quantity }}</span> / {{ order.quantity }}
+                    <span class="text-brand">{{ manufactured_qty }}</span> / {{ order.quantity }}
                   </td>
                   <td class="px-5 2xl:px-6 py-3">
                     {% if order.status in ['en_proceso', 'in_progress'] %}
@@ -208,7 +209,8 @@
                     {% endif %}
                   </td>
                   <td class="px-5 2xl:px-6 py-3 text-right">
-                    {% set progress = (order.manufactured_quantity / order.quantity) * 100 %}
+                    {% set safe_qty = order.quantity if order.quantity else 0 %}
+                    {% set progress = ((manufactured_qty / safe_qty) * 100) if safe_qty > 0 else 0 %}
                     <div class="flex items-center justify-end gap-2">
                       <div class="w-16 h-1.5 bg-neutral-secondary-strong rounded-full overflow-hidden">
                         <div class="h-full bg-brand" style="width: {{ progress }}%"></div>
