@@ -13,9 +13,11 @@ logger = logging.getLogger(__name__)
 
 LOGO_FILENAME = "logo-roble-disenio.png"
 
+
 def _get_logo_path() -> str:
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
+
 
 def _build_items_and_totals(order):
     order_total = float(order.total or 0)
@@ -54,14 +56,41 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
     payment_method = (
         order.payment_method.name if order.payment_method is not None else "Sin método"
     )
-    
+
     sale_date = order.order_date.strftime("%d/%m/%Y %H:%M") if order.order_date else "-"
-    
+
     items, subtotal, iva, products_total, freight_cost = _build_items_and_totals(order)
-    
-    cancel_reason = getattr(order, 'cancelled_reason', None)
+
+    cancel_reason = getattr(order, "cancelled_reason", None)
     order_source = order.source
     employee_name = order.created_by.full_name if order.created_by else None
+
+    # Address block
+    parts = []
+    if customer.street:
+        parts.append(customer.street)
+    if customer.exterior_number:
+        parts.append(f"#{customer.exterior_number}")
+    if customer.interior_number:
+        parts.append(f"Int. {customer.interior_number}")
+    line1 = " ".join(parts)
+
+    parts2 = []
+    if customer.neighborhood:
+        parts2.append(f"Col. {customer.neighborhood}")
+    if customer.city:
+        parts2.append(customer.city)
+    if customer.state:
+        parts2.append(customer.state)
+    if customer.zip_code:
+        parts2.append(f"C.P. {customer.zip_code}")
+    line2 = ", ".join(parts2)
+
+    customer_address = (
+        f"{line1}<br>{line2}"
+        if (line1 or line2)
+        else "Recolección en Tienda / Por confirmar"
+    )
 
     app = current_app._get_current_object()
 
@@ -86,6 +115,7 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
                     freight_cost=freight_cost,
                     total=order_total,
                     cancel_reason=cancel_reason,
+                    customer_address=customer_address,
                     logo_cid=logo_cid,
                 )
 
@@ -107,18 +137,37 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
                         )
 
                 mail.send(msg)
-                logger.info("Email '%s' enviado a %s para orden #%s", template_name, customer_email, order_id)
+                logger.info(
+                    "Email '%s' enviado a %s para orden #%s",
+                    template_name,
+                    customer_email,
+                    order_id,
+                )
             except Exception as exc:
-                logger.error("Error enviando email '%s' a la orden #%s: %s", template_name, order_id, exc, exc_info=True)
+                logger.error(
+                    "Error enviando email '%s' a la orden #%s: %s",
+                    template_name,
+                    order_id,
+                    exc,
+                    exc_info=True,
+                )
 
     thread = threading.Thread(target=_send, daemon=True)
     thread.start()
 
+
 def send_order_cancelled_email(order) -> None:
-    _send_customer_order_email(order, "utils/order_cancelled_email.html", "Orden Cancelada")
+    _send_customer_order_email(
+        order, "utils/order_cancelled_email.html", "Orden Cancelada"
+    )
+
 
 def send_order_status_email(order) -> None:
     if order.status == "enviado":
-        _send_customer_order_email(order, "utils/order_shipped_email.html", "Pedido Enviado")
+        _send_customer_order_email(
+            order, "utils/order_shipped_email.html", "Pedido Enviado"
+        )
     elif order.status == "entregado":
-        _send_customer_order_email(order, "utils/order_delivered_email.html", "Pedido Entregado")
+        _send_customer_order_email(
+            order, "utils/order_delivered_email.html", "Pedido Entregado"
+        )
