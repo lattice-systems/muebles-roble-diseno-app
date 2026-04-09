@@ -294,6 +294,14 @@ class CustomerOrderService:
         )
 
         db.session.commit()
+        
+        try:
+            from .email_service import send_order_cancelled_email
+            send_order_cancelled_email(order)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send cancelled email: {e}")
+            
         return order
 
     # ------------------------------------------------------------------ #
@@ -429,6 +437,15 @@ class CustomerOrderService:
         )
 
         db.session.commit()
+        
+        if new_status in ("enviado", "entregado"):
+            try:
+                from .email_service import send_order_status_email
+                send_order_status_email(order)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to send status email: {e}")
+                
         return order
 
     # ------------------------------------------------------------------ #
