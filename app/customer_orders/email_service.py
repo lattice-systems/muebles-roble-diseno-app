@@ -60,6 +60,8 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
     items, subtotal, iva, products_total, freight_cost = _build_items_and_totals(order)
     
     cancel_reason = getattr(order, 'cancelled_reason', None)
+    order_source = order.source
+    employee_name = order.created_by.full_name if order.created_by else None
 
     app = current_app._get_current_object()
 
@@ -69,12 +71,12 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
                 logo_cid = "company_logo"
                 html_body = render_template(
                     template_name,
-                    source=order.source,
+                    source=order_source,
                     customer_name=customer_name,
                     folio=f"{order_id:06d}",
                     sale_date=sale_date,
                     payment_method=payment_method,
-                    employee_name=order.created_by.full_name if order.created_by else None,
+                    employee_name=employee_name,
                     items=items,
                     subtotal=subtotal,
                     iva=iva,
