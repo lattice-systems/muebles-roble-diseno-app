@@ -57,15 +57,11 @@
                            color:#ffffff;
                            font-size:22px;
                            font-weight:700;
-                           letter-spacing: 0.5px">
-                  Orden Cancelada
-                </h1>
+                           letter-spacing: 0.5px">Orden Cancelada</h1>
                 <p style="margin: 8px 0 0;
                           color:#d1e3f6;
                           font-size:14px;
-                          font-weight:400">
-                  Atención a tu pedido #{{ folio }}
-                </p>
+                          font-weight:400">Atención a tu pedido #{{ folio }}</p>
               </td>
             </tr>
             <!-- Saludo -->
@@ -78,85 +74,66 @@
                           color:#6b7280;
                           font-size:14px;
                           line-height:1.6">
-                  Te informamos que tu pedido <strong>#{{ folio }}</strong> fue cancelado. 
+                  Te informamos que tu pedido <strong>#{{ folio }}</strong> fue cancelado.
                   {% if cancel_reason %}
-                  <br><br><strong style="color:#1e3a5f;">Motivo de cancelación:</strong> {{ cancel_reason }}
+                    <br>
+                    <br>
+                    <strong style="color:#1e3a5f;">Motivo de cancelación:</strong> {{ cancel_reason }}
                   {% endif %}
-                  <br><br>Si crees que esto es un error o necesitas ayuda, por favor ponte en contacto con nosotros. Abajo encontrarás el detalle de la transacción cancelada.
+                  <br>
+                  <br>
+                  Si crees que esto es un error o necesitas ayuda, por favor ponte en contacto con nosotros. Abajo encontrarás el detalle de la transacción cancelada.
                 </p>
               </td>
             </tr>
-            <!-- Info de la venta (badges) -->
+            <!-- Info de la orden cancelada -->
             <tr>
               <td style="padding: 16px 32px;">
                 <table role="presentation"
                        width="100%"
                        cellpadding="0"
                        cellspacing="0"
-                       style="background-color:#f8fafc;
-                              border: 1px solid #e5e7eb;
+                       style="background-color:#fee2e2;
+                              border: 1px solid #fca5a5;
                               border-radius:8px">
                   <tr>
                     <td style="padding: 16px 20px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                         <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
-                                         color:#1e3a5f;
+                          <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+                            <span style="display:block;
+                                         color:#991b1b;
                                          font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Folio</span>
-                            <span style="color:#374151;
-                                         font-size:14px;
-                                         font-weight:600;
-                                         margin-left:8px">#{{ folio
-                            }}</span>
+                                         font-weight:700;
+                                         text-transform:uppercase;
+                                         letter-spacing:0.5px;
+                                         margin-bottom: 4px">Información de la Orden</span>
+                            <span style="display:block;
+                                         color:#991b1b;
+                                         font-size:13px;
+                                         margin-bottom: 2px">Folio: <strong style="color:#7f1d1d;">#{{ folio }}</strong></span>
+                            <span style="display:block; color:#991b1b; font-size:13px;">Fecha Req.: <strong style="color:#7f1d1d;">{{ sale_date }}</strong></span>
                           </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
-                                         color:#1e3a5f;
+                          <td style="width: 50%;
+                                     padding-left: 10px;
+                                     vertical-align: top;
+                                     border-left: 1px solid #f87171">
+                            <span style="display:block;
+                                         color:#991b1b;
                                          font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Fecha</span>
-                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ sale_date }}</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
-                                         color:#1e3a5f;
-                                         font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Cajero</span>
-                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ employee_name }}</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
-                                         color:#1e3a5f;
-                                         font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Pago</span>
-                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ payment_method }}</span>
+                                         font-weight:700;
+                                         text-transform:uppercase;
+                                         letter-spacing:0.5px;
+                                         margin-bottom: 4px;
+                                         padding-left: 10px">Estado Actual</span>
+                            <p style="margin:0 0 0 10px;
+                                      color:#7f1d1d;
+                                      font-size:13px;
+                                      line-height:1.5">
+                              <strong>Cancelado</strong>
+                              <br>
+                              <span style="font-size: 11px;">El proceso ha sido detenido y no se realizarán entregas.</span>
+                            </p>
                           </td>
                         </tr>
                       </table>
@@ -319,43 +296,6 @@
                                        font-size:18px;
                                        font-weight:700;
                                        text-align:right">${{ "%.2f"|format(total) }}</td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-              <!-- Pago recibido / Cambio -->
-              <tr>
-                <td style="padding: 0 32px 20px;">
-                  <table role="presentation"
-                         width="100%"
-                         cellpadding="0"
-                         cellspacing="0"
-                         style="background-color:#eefbf3;
-                                border: 1px solid #bbf7d0;
-                                border-radius:8px">
-                    <tr>
-                      <td style="padding: 14px 20px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td style="color:#166534; font-size:13px; font-weight:600;">Monto recibido:</td>
-                            <td style="color:#166534;
-                                       font-size:13px;
-                                       font-weight:700;
-                                       text-align:right">${{ "%.2f"|format(amount_received) }}</td>
-                          </tr>
-                          <tr>
-                            <td style="color:#166534;
-                                       font-size:13px;
-                                       font-weight:600;
-                                       padding-top:4px">Cambio:</td>
-                            <td style="color:#166534;
-                                       font-size:13px;
-                                       font-weight:700;
-                                       text-align:right;
-                                       padding-top:4px">${{ "%.2f"|format(change) }}</td>
                           </tr>
                         </table>
                       </td>
