@@ -170,13 +170,12 @@
                   <div class="flex gap-1 flex-wrap">
                     {% if payment_method.available_pos %}
                       <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">POS</span>
-                    {% else %}
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">POS</span>
                     {% endif %}
                     {% if payment_method.available_ecommerce %}
                       <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">Web</span>
-                    {% else %}
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-300">Web</span>
+                    {% endif %}
+                    {% if not payment_method.available_pos and not payment_method.available_ecommerce %}
+                      <span class="text-gray-400">-</span>
                     {% endif %}
                   </div>
                 </td>

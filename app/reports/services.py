@@ -293,9 +293,7 @@ class ReportService:
                 "product_name": row["product_name"],
                 "quantity_sold": row["quantity_sold"],
                 "revenue": ReportService._money(row["revenue"]),
-                "estimated_unit_cost": ReportService._money(
-                    row["estimated_unit_cost"]
-                ),
+                "estimated_unit_cost": ReportService._money(row["estimated_unit_cost"]),
                 "estimated_total_cost": ReportService._money(
                     row["estimated_total_cost"]
                 ),
@@ -721,7 +719,9 @@ class ReportService:
             return ReportService.refresh_dashboard_snapshots(target_date)
 
         expected_total = daily_sales.get("totals", {}).get("grand_total", 0)
-        weekly_last_day_amount = weekly_items[-1].get("amount", 0) if weekly_items else 0
+        weekly_last_day_amount = (
+            weekly_items[-1].get("amount", 0) if weekly_items else 0
+        )
 
         if expected_total and weekly_last_day_amount == 0:
             return ReportService.refresh_dashboard_snapshots(target_date)
@@ -762,10 +762,7 @@ class ReportService:
                 )
                 rows[key]["estimated_waste"] += ReportService._to_decimal(
                     material.quantity_used
-                ) * (
-                    ReportService._to_decimal(material.waste_applied)
-                    / Decimal("100")
-                )
+                ) * (ReportService._to_decimal(material.waste_applied) / Decimal("100"))
 
                 rows[key]["products"].append(
                     {

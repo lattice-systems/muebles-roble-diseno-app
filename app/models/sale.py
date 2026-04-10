@@ -28,12 +28,8 @@ class Sale(AuditMixin, db.Model):
     )
     total = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     active = db.Column(db.Boolean, nullable=False, default=True)
-    id_customer = db.Column(
-        db.Integer, db.ForeignKey("customers.id"), nullable=True
-    )
-    id_employee = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=False
-    )
+    id_customer = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=True)
+    id_employee = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     payment_method_id = db.Column(
         db.Integer, db.ForeignKey("payment_methods.id"), nullable=True
     )

@@ -27,14 +27,26 @@ from app.shared.security_logging import log_security_event
 # Roles canónicos
 # ---------------------------------------------------------------------------
 
+ROLE_SUPERADMIN = "superadmin"
 ROLE_ADMIN = "admin"
 ROLE_PRODUCTION = "production"
 ROLE_SALES = "sales"
 ROLE_CLIENT = "client"
 
-CANONICAL_ROLES = {ROLE_ADMIN, ROLE_PRODUCTION, ROLE_SALES, ROLE_CLIENT}
+CANONICAL_ROLES = {
+    ROLE_SUPERADMIN,
+    ROLE_ADMIN,
+    ROLE_PRODUCTION,
+    ROLE_SALES,
+    ROLE_CLIENT,
+}
 
 ROLE_ALIASES = {
+    "superadmin": ROLE_SUPERADMIN,
+    "super admin": ROLE_SUPERADMIN,
+    "super-admin": ROLE_SUPERADMIN,
+    "super administrador": ROLE_SUPERADMIN,
+    "súper administrador": ROLE_SUPERADMIN,
     "admin": ROLE_ADMIN,
     "administrador": ROLE_ADMIN,
     "production": ROLE_PRODUCTION,
@@ -185,6 +197,7 @@ ADMIN_PERMISSIONS = set(ALL_PERMISSIONS) - ADMIN_RESTRICTED_PERMISSIONS
 
 # Matriz operativa objetivo
 ROLE_PERMISSIONS: dict[str, set[str]] = {
+    ROLE_SUPERADMIN: set(ALL_PERMISSIONS),
     ROLE_ADMIN: set(ADMIN_PERMISSIONS),
     ROLE_PRODUCTION: {
         INTERNAL_ACCESS,
@@ -628,7 +641,7 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
             }
         ),
         # Reports + dashboard
-                "reports.index": REPORTS_READ,
+        "reports.index": REPORTS_READ,
         "reports.sales_details": REPORTS_READ,
         "reports.top_products_details": REPORTS_READ,
         "reports.raw_material_consumption_details": REPORTS_READ,

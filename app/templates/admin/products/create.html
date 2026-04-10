@@ -48,8 +48,16 @@
         <div class="flex flex-col gap-1">
           <label for="{{ form.description.id }}"
                  class="text-xs 2xl:text-sm font-medium text-heading">{{ form.description.label.text }}</label>
-          {{ form.description(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", rows="4", placeholder="Describe el producto terminado") }}
+          {{ form.description(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", rows="3", placeholder="Describe el producto terminado") }}
           {% for error in form.description.errors %}
+            <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.specifications.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.specifications.label.text }}</label>
+          {{ form.specifications(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body", rows="3", placeholder="Ej. Medidas: 220 × 90 × 85 cm (largo × profundidad × alto). Material: Pino macizo.") }}
+          {% for error in form.specifications.errors %}
             <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
           {% endfor %}
         </div>
@@ -311,6 +319,8 @@
                   form.reportValidity();
                   return;
               }
+              confirmSubmitBtn.disabled = true;
+              confirmSubmitBtn.innerText = "Creando...";
               form.requestSubmit();
           });
       });
