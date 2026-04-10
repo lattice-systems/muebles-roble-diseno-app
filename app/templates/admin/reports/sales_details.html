@@ -3,7 +3,7 @@
   Admin - Detalle de ventas
 {% endblock title %}
 {% block content %}
-  {% set weekly_items = weekly["items"] %}
+  {% set weekly_items = weekly["items"] if weekly and weekly.get("items") else [] %}
   {% set recent_items = recent["items"] %}
   <div class="flex flex-col gap-4">
     {% set admin_header_title = "Detalle de ventas" %}
@@ -37,11 +37,11 @@
           <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1" />
           <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1" />
           {% set points = [] %}
-          {% set max_amount = weekly.max_amount if weekly.max_amount > 0 else 1 %}
+          {% set max_amount = weekly["max_amount"] if weekly and weekly.get("max_amount", 0) > 0 else 1 %}
           {% for item in weekly_items %}
             {% set x = 60 + (loop.index0 * 60) %}
-            {% set y = 180 - ((item.amount / max_amount) * 140) %}
-            {% set _ = points.append(x|string ~ "," ~ y|string) %}
+            {% set y = item.get('y', 180 - ((item.amount / max_amount) * 140)) %}
+            {% set points = points + [x|string ~ "," ~ y|string] %}
             <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
             <text x="{{ x - 14 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">${{ "%.0f"|format(item.amount|float) }}</text>
             <text x="{{ x - 18 }}" y="200" font-size="10" fill="#6b7280">{{ item.label }}</text>

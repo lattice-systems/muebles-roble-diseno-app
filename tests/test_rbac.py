@@ -2,7 +2,6 @@ from types import SimpleNamespace
 
 from app.rbac import (
     ROLE_ADMIN,
-    ROLE_CLIENT,
     ROLE_PRODUCTION,
     ROLE_SALES,
     DASHBOARD_READ,

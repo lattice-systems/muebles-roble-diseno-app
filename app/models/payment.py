@@ -27,8 +27,8 @@ class Payment(AuditMixin, db.Model):
             "payment_type": self.payment_type,
             "id_sale": self.id_sale,
             "amount": float(self.amount) if self.amount is not None else None,
-            "payment_date": self.payment_date.isoformat()
-            if self.payment_date
-            else None,
+            "payment_date": (
+                self.payment_date.isoformat() if self.payment_date else None
+            ),
             **self._audit_dict(),
         }

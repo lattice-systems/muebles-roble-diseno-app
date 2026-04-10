@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmación de Compra — Roble y Diseño</title>
+    <title>Tu pedido ha sido enviado — Roble y Diseño</title>
     <!--[if mso]>
   <noscript>
     <xml>
@@ -53,33 +53,15 @@
                               max-width:160px;
                               height:auto">
                 {% endif %}
-                {% if source == 'ecommerce' %}
-                  <h1 style="margin:0;
-                             color:#ffffff;
-                             font-size:22px;
-                             font-weight:700;
-                             letter-spacing: 0.5px">Pedido confirmado</h1>
-                  <p style="margin: 8px 0 0;
-                            color:#d1e3f6;
-                            font-size:14px;
-                            font-weight:400">Gracias por comprar en Roble y Diseño.</p>
-                {% else %}
-                  <h1 style="margin:0;
-                             color:#ffffff;
-                             font-size:22px;
-                             font-weight:700;
-                             letter-spacing: 0.5px">
-                    ¡Gracias por
-                    tu compra!
-                  </h1>
-                  <p style="margin: 8px 0 0;
-                            color:#d1e3f6;
-                            font-size:14px;
-                            font-weight:400">
-                    Tu pedido ha sido procesado
-                    exitosamente
-                  </p>
-                {% endif %}
+                <h1 style="margin:0;
+                           color:#ffffff;
+                           font-size:22px;
+                           font-weight:700;
+                           letter-spacing: 0.5px">¡Tu pedido va en camino!</h1>
+                <p style="margin: 8px 0 0;
+                          color:#d1e3f6;
+                          font-size:14px;
+                          font-weight:400">Hemos entregado tu pedido a la paquetería correspondiente.</p>
               </td>
             </tr>
             <!-- Saludo -->
@@ -92,16 +74,11 @@
                           color:#6b7280;
                           font-size:14px;
                           line-height:1.6">
-                  {% if source == 'ecommerce' %}
-                    Recibimos tu pedido correctamente. Te compartimos el resumen de tu compra.
-                  {% else %}
-                    Es un placer confirmar tu compra en <strong>Roble y Diseño</strong>. A continuación encontrarás el
-                    detalle de tu transacción.
-                  {% endif %}
+                  Nos da gusto informarte que tu pedido <strong>#{{ folio }}</strong> ya ha sido validado y enviado. A continuación encontrarás el detalle de lo que está en camino.
                 </p>
               </td>
             </tr>
-            <!-- Info de la venta (badges) -->
+            <!-- Info del envío -->
             <tr>
               <td style="padding: 16px 32px;">
                 <table role="presentation"
@@ -115,82 +92,38 @@
                     <td style="padding: 16px 20px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                         <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
+                          <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+                            <span style="display:block;
                                          color:#1e3a5f;
                                          font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Folio</span>
-                            <span style="color:#374151;
-                                         font-size:14px;
-                                         font-weight:600;
-                                         margin-left:8px">#{{ folio }}</span>
+                                         font-weight:700;
+                                         text-transform:uppercase;
+                                         letter-spacing:0.5px;
+                                         margin-bottom: 4px">Información de la Orden</span>
+                            <span style="display:block;
+                                         color:#6b7280;
+                                         font-size:13px;
+                                         margin-bottom: 2px">Folio: <strong style="color:#374151;">#{{ folio }}</strong></span>
+                            <span style="display:block; color:#6b7280; font-size:13px;">Fecha: <strong style="color:#374151;">{{ sale_date }}</strong></span>
                           </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
+                          <td style="width: 50%;
+                                     padding-left: 10px;
+                                     vertical-align: top;
+                                     border-left: 1px solid #e2e8f0">
+                            <span style="display:block;
                                          color:#1e3a5f;
                                          font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Fecha</span>
-                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ order_date }}</span>
+                                         font-weight:700;
+                                         text-transform:uppercase;
+                                         letter-spacing:0.5px;
+                                         margin-bottom: 4px;
+                                         padding-left: 10px">Dirección de Entrega</span>
+                            <p style="margin:0 0 0 10px;
+                                      color:#374151;
+                                      font-size:13px;
+                                      line-height:1.5">{{ customer_address|safe }}</p>
                           </td>
                         </tr>
-                        {% if employee_name %}
-                          <tr>
-                            <td style="padding: 4px 0;">
-                              <span style="display:inline-block;
-                                           background-color:#e0ecf8;
-                                           color:#1e3a5f;
-                                           font-size:11px;
-                                           font-weight:600;
-                                           padding:3px 10px;
-                                           border-radius:20px;
-                                           letter-spacing:0.3px;
-                                           text-transform:uppercase">Cajero</span>
-                              <span style="color:#374151; font-size:14px; margin-left:8px;">{{ employee_name }}</span>
-                            </td>
-                          </tr>
-                        {% endif %}
-                        <tr>
-                          <td style="padding: 4px 0;">
-                            <span style="display:inline-block;
-                                         background-color:#e0ecf8;
-                                         color:#1e3a5f;
-                                         font-size:11px;
-                                         font-weight:600;
-                                         padding:3px 10px;
-                                         border-radius:20px;
-                                         letter-spacing:0.3px;
-                                         text-transform:uppercase">Pago</span>
-                            <span style="color:#374151; font-size:14px; margin-left:8px;">{{ payment_method }}</span>
-                          </td>
-                        </tr>
-                        {% if estimated_delivery %}
-                          <tr>
-                            <td style="padding: 4px 0;">
-                              <span style="display:inline-block;
-                                           background-color:#e0ecf8;
-                                           color:#1e3a5f;
-                                           font-size:11px;
-                                           font-weight:600;
-                                           padding:3px 10px;
-                                           border-radius:20px;
-                                           letter-spacing:0.3px;
-                                           text-transform:uppercase">Entrega estimada</span>
-                              <span style="color:#374151; font-size:14px; margin-left:8px;">{{ estimated_delivery }}</span>
-                            </td>
-                          </tr>
-                        {% endif %}
                       </table>
                     </td>
                   </tr>
@@ -358,45 +291,6 @@
                   </table>
                 </td>
               </tr>
-              <!-- Pago recibido / Cambio (solo POS) -->
-              {% if amount_received is defined and amount_received %}
-                <tr>
-                  <td style="padding: 0 32px 20px;">
-                    <table role="presentation"
-                           width="100%"
-                           cellpadding="0"
-                           cellspacing="0"
-                           style="background-color:#eefbf3;
-                                  border: 1px solid #bbf7d0;
-                                  border-radius:8px">
-                      <tr>
-                        <td style="padding: 14px 20px;">
-                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="color:#166534; font-size:13px; font-weight:600;">Monto recibido:</td>
-                              <td style="color:#166534;
-                                         font-size:13px;
-                                         font-weight:700;
-                                         text-align:right">${{ "%.2f"|format(amount_received) }}</td>
-                            </tr>
-                            <tr>
-                              <td style="color:#166534;
-                                         font-size:13px;
-                                         font-weight:600;
-                                         padding-top:4px">Cambio:</td>
-                              <td style="color:#166534;
-                                         font-size:13px;
-                                         font-weight:700;
-                                         text-align:right;
-                                         padding-top:4px">${{ "%.2f"|format(change) }}</td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              {% endif %}
               <!-- Separador -->
               <tr>
                 <td style="padding: 0 32px;">
@@ -416,11 +310,7 @@
                   <p style="margin:0; color:#9ca3af; font-size:12px; line-height:1.5;">
                     Si tienes alguna duda sobre tu compra, no dudes en contactarnos.
                     <br>
-                    {% if source == 'ecommerce' %}
-                      Recibirás actualizaciones sobre el estado de tu pedido.
-                    {% else %}
-                      Cualquier cambio requiere este comprobante. Vigencia de 30 días.
-                    {% endif %}
+                    Cualquier cambio requiere este comprobante. Vigencia de 30 días.
                   </p>
                 </td>
               </tr>

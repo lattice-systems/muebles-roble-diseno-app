@@ -199,6 +199,7 @@ class EcommerceService:
             "image": image,
             "images": images,
             "description": product.description,
+            "specifications": product.specifications,
             "sizes": ["S", "M", "L"],
             "colors": color_names,
             "color_palette": color_palette,

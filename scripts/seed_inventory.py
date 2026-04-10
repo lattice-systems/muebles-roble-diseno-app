@@ -8,6 +8,7 @@ from app.extensions import db
 from app.models.product import Product
 from app.models.product_inventory import ProductInventory
 
+
 def seed_inventory():
     app = create_app()
     with app.app_context():
@@ -25,9 +26,12 @@ def seed_inventory():
                 if inv.stock == 0:
                     inv.stock = 50
                     seeded += 1
-        
+
         db.session.commit()
-        print(f"\n📦 Inventario inicializado con exito: {seeded} productos actualizados a existencia = 50.")
+        print(
+            f"\n📦 Inventario inicializado con exito: {seeded} productos actualizados a existencia = 50."
+        )
+
 
 if __name__ == "__main__":
     seed_inventory()
