@@ -18,6 +18,7 @@ BASE_SEED_ORDER = [
     "seed_raw_materials.py",
     "seed_wood_types.py",
     "seed_products.py",
+    "seed_product_images.py",
     "seed_product_colors.py",
     "seed_payment_methods.py",
     "seed_purchase.py",
