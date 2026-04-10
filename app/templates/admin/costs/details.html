@@ -1,33 +1,22 @@
 {% extends "layouts/admin.html" %}
-
 {% block title %}
   Admin - Detalle de costos
 {% endblock title %}
-
 {% block content %}
   <div class="max-w-6xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalle de costos" %}
     {% set admin_header_subtitle = "Detalle de costos de producción de un producto" %}
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
-
     <div class="flex flex-col gap-1">
-      <h2 class="text-heading text-lg 2xl:text-xl font-semibold">
-        {{ detail.product.name or 'Producto sin nombre' }}
-      </h2>
-      <span class="text-body text-sm">
-        SKU: {{ detail.product.sku or '—' }}
-      </span>
-      <span class="text-body text-sm">
-        Versión de receta: {{ detail.summary.recipe_version or 'Sin receta' }}
-      </span>
+      <h2 class="text-heading text-lg 2xl:text-xl font-semibold">{{ detail.product.name or 'Producto sin nombre' }}</h2>
+      <span class="text-body text-sm">SKU: {{ detail.product.sku or '—' }}</span>
+      <span class="text-body text-sm">Versión de receta: {{ detail.summary.recipe_version or 'Sin receta' }}</span>
     </div>
-
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default overflow-hidden">
       <div class="p-4 2xl:p-6 border-b border-default-medium">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading">Materiales</h3>
       </div>
-
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-body">
           <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
@@ -41,19 +30,13 @@
           <tbody>
             {% for item in detail.detail_items %}
               <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
-                <td class="px-6 py-4 text-heading font-medium">
-                  {{ item.material_name }}
-                </td>
+                <td class="px-6 py-4 text-heading font-medium">{{ item.material_name }}</td>
                 <td class="px-6 py-4">
                   {{ "%.3f"|format(item.quantity_required|float) }}
                   {{ item.unit_abbreviation or item.unit_name }}
                 </td>
-                <td class="px-6 py-4">
-                  ${{ "%.2f"|format(item.unit_price|float) }}
-                </td>
-                <td class="px-6 py-4 text-heading font-medium">
-                  ${{ "%.2f"|format(item.line_total|float) }}
-                </td>
+                <td class="px-6 py-4">${{ "%.2f"|format(item.unit_price|float) }}</td>
+                <td class="px-6 py-4 text-heading font-medium">${{ "%.2f"|format(item.line_total|float) }}</td>
               </tr>
             {% else %}
               <tr>
@@ -66,22 +49,15 @@
         </table>
       </div>
     </div>
-
     <div class="flex flex-col gap-1 text-sm">
       <p class="text-body">
         Costo total:
-        <span class="text-heading">
-          ${{ "%.2f"|format(detail.summary.total_cost|float) }}
-        </span>
+        <span class="text-heading">${{ "%.2f"|format(detail.summary.total_cost|float) }}</span>
       </p>
-
       <p class="text-body">
         Precio venta:
-        <span class="text-heading">
-          ${{ "%.2f"|format(detail.summary.sale_price|float) }}
-        </span>
+        <span class="text-heading">${{ "%.2f"|format(detail.summary.sale_price|float) }}</span>
       </p>
-
       <p class="text-body">
         Margen:
         <span class="text-heading">
@@ -93,13 +69,11 @@
         </span>
       </p>
     </div>
-
     <div class="flex items-center justify-end gap-2.5">
       <a href="{{ url_for('costs.index') }}"
-        class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
         Volver
       </a>
-
       <form method="post"
             action="{{ url_for('costs.export_cost_csv', product_id=detail.product.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

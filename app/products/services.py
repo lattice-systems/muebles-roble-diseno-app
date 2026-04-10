@@ -28,6 +28,7 @@ def create_product(form):
         name=(form.name.data or "").strip(),
         furniture_type_id=form.furniture_type_id.data,
         description=(form.description.data or "").strip(),
+        specifications=(form.specifications.data or "").strip(),
         price=form.price.data,
         status=form.status.data,
     )
@@ -41,7 +42,7 @@ def create_product(form):
     stock_value = form.stock.data if form.stock.data is not None else 0
     db.session.add(ProductInventory(product_id=product.id, stock=stock_value))
 
-    db.session.commit()
+    db.session.flush()
     return product
 
 
@@ -53,6 +54,7 @@ def update_product(product, form):
     product.name = form.name.data.strip()
     product.furniture_type_id = form.furniture_type_id.data
     product.description = (form.description.data or "").strip()
+    product.specifications = (form.specifications.data or "").strip()
     product.price = form.price.data
     product.status = form.status.data
 
@@ -75,7 +77,7 @@ def update_product(product, form):
             )
         )
 
-    db.session.commit()
+    db.session.flush()
     return product
 
 

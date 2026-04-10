@@ -3,11 +3,9 @@
 {% from "admin/components/table_footer.html" import table_footer %}
 {% from "admin/components/table_status_badge.html" import status_badge %}
 {% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
-
 {% block title %}
   Admin - Reportes
 {% endblock title %}
-
 {% block content %}
   {% set sales = general_report.sales %}
   {% set profit = general_report.profit %}
@@ -22,7 +20,6 @@
   {% set profit_direction = comparison_metrics.profit_direction %}
   {% set max_amount = weekly["max_amount"] if weekly and weekly.get("max_amount", 0) > 0 else 1 %}
   {% set axis_step = (max_amount / 3) if max_amount > 0 else 1 %}
-
   <div class="flex flex-col gap-4">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
@@ -36,20 +33,12 @@
                    height="24"
                    fill="none"
                    viewBox="0 0 24 24">
-                <path stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 18.5A1.5 1.5 0 0 1 6.5 17V9A1.5 1.5 0 0 1 8 7.5h8A1.5 1.5 0 0 1 17.5 9v8A1.5 1.5 0 0 1 16 18.5H8ZM9 7.5V6a3 3 0 1 1 6 0v1.5" />
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 18.5A1.5 1.5 0 0 1 6.5 17V9A1.5 1.5 0 0 1 8 7.5h8A1.5 1.5 0 0 1 17.5 9v8A1.5 1.5 0 0 1 16 18.5H8ZM9 7.5V6a3 3 0 1 1 6 0v1.5" />
               </svg>
               <span class="text-heading text-sm font-medium">Ventas del periodo</span>
             </div>
-
-            <span class="text-heading text-4xl font-semibold block">
-              ${{ "{:,.0f}".format(sales.totals.grand_total|float) }}
-            </span>
+            <span class="text-heading text-4xl font-semibold block">${{ "{:,.0f}".format(sales.totals.grand_total|float) }}</span>
           </div>
-
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
 
             <span class="text-body text-xs whitespace-nowrap">
@@ -58,32 +47,25 @@
           </div>
         </div>
       </div>
-
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <div class="flex items-start justify-between gap-6">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <svg class="w-6 h-6 text-brand"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24">
-                    <path stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 17.345a4.76 4.76 0 0 0 2.558 1.618c2.274.589 4.512-.446 4.999-2.31.487-1.866-1.273-3.9-3.546-4.49-2.273-.59-4.034-2.623-3.547-4.488.486-1.865 2.724-2.899 4.998-2.31.982.236 1.87.793 2.538 1.592m-3.879 12.171V21m0-18v2.2" />
-                      </svg>
+                   aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg"
+                   width="24"
+                   height="24"
+                   fill="none"
+                   viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17.345a4.76 4.76 0 0 0 2.558 1.618c2.274.589 4.512-.446 4.999-2.31.487-1.866-1.273-3.9-3.546-4.49-2.273-.59-4.034-2.623-3.547-4.488.486-1.865 2.724-2.899 4.998-2.31.982.236 1.87.793 2.538 1.592m-3.879 12.171V21m0-18v2.2" />
+              </svg>
               <span class="text-heading text-sm font-medium">Utilidad del periodo</span>
             </div>
-
             <span class="text-heading text-4xl font-semibold block">
               ${{ "{:,.0f}".format(profit.estimated_profit_total|float) }}
             </span>
           </div>
-
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
             <span class="text-body text-xs whitespace-nowrap">
               {{ date_from }} a {{ date_to }}
@@ -92,7 +74,6 @@
         </div>
       </div>
     </div>
-
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <div class="flex items-center justify-between mb-4">
@@ -104,46 +85,31 @@
                  height="24"
                  fill="none"
                  viewBox="0 0 24 24">
-              <path stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 3v18h18M7 14l3-3 3 2 5-6" />
-              <path stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-width="2"
-                    d="M17 7h.01M13 13h.01M10 11h.01M7 14h.01" />
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 14l3-3 3 2 5-6" />
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M17 7h.01M13 13h.01M10 11h.01M7 14h.01" />
             </svg>
             <h2 class="text-heading text-sm font-medium">Ventas semanales</h2>
           </div>
-
           <a href="{{ url_for('reports.sales_details', date_from=date_from, date_to=date_to) }}"
-             class="text-brand text-xs font-medium">
-            Más detalles
-          </a>
+             class="text-brand text-xs font-medium">Más detalles</a>
         </div>
-
         <div class="mb-3">
           <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
             Últimos 7 días
           </span>
         </div>
-
         <div class="h-64 relative">
           <svg viewBox="0 0 500 220" class="w-full h-full">
-            <line x1="40" y1="20" x2="40" y2="180" stroke="#d1d5db" stroke-width="1"/>
-            <line x1="40" y1="180" x2="470" y2="180" stroke="#111827" stroke-width="1.5"/>
-
-            <line x1="40" y1="140" x2="470" y2="140" stroke="#e5e7eb" stroke-width="1"/>
-            <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1"/>
-            <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1"/>
-
+            <line x1="40" y1="20" x2="40" y2="180" stroke="#d1d5db" stroke-width="1" />
+            <line x1="40" y1="180" x2="470" y2="180" stroke="#111827" stroke-width="1.5" />
+            <line x1="40" y1="140" x2="470" y2="140" stroke="#e5e7eb" stroke-width="1" />
+            <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1" />
+            <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1" />
             <text x="5" y="184" font-size="10" fill="#6b7280">$0</text>
             <text x="0" y="144" font-size="10" fill="#6b7280">${{ "%.0f"|format(axis_step|float) }}</text>
             <text x="0" y="104" font-size="10" fill="#6b7280">${{ "%.0f"|format((axis_step * 2)|float) }}</text>
 
             {% set points = [] %}
-
             {% for item in weekly_items %}
               {% set x = 60 + (loop.index0 * 60) %}
               {% set y = item.get('y', 180 - ((item.amount / max_amount) * 140)) %}
@@ -151,23 +117,16 @@
 
               <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
               <text x="{{ x - 12 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">
-                ${{ "%.0f"|format(item.amount|float) }}
+              ${{ "%.0f"|format(item.amount|float) }}
               </text>
               <text x="{{ x - 18 }}" y="200" font-size="10" fill="#6b7280">
-                {{ item.label }}
+              {{ item.label }}
               </text>
             {% endfor %}
-
-            <polyline
-              fill="none"
-              stroke="#1d4ed8"
-              stroke-width="2.5"
-              points="{{ points|join(' ') }}"
-            />
+            <polyline fill="none" stroke="#1d4ed8" stroke-width="2.5" points="{{ points|join(' ') }}" />
           </svg>
         </div>
       </div>
-
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
@@ -178,27 +137,17 @@
                  height="24"
                  fill="none"
                  viewBox="0 0 24 24">
-              <path stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 18.5A1.5 1.5 0 0 1 6.5 17V9A1.5 1.5 0 0 1 8 7.5h8A1.5 1.5 0 0 1 17.5 9v8A1.5 1.5 0 0 1 16 18.5H8ZM9 7.5V6a3 3 0 1 1 6 0v1.5" />
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 18.5A1.5 1.5 0 0 1 6.5 17V9A1.5 1.5 0 0 1 8 7.5h8A1.5 1.5 0 0 1 17.5 9v8A1.5 1.5 0 0 1 16 18.5H8ZM9 7.5V6a3 3 0 1 1 6 0v1.5" />
             </svg>
             <h2 class="text-heading text-sm font-medium">Productos más vendidos</h2>
           </div>
-
           <a href="{{ url_for('reports.top_products_details', date_from=date_from, date_to=date_to) }}"
-             class="text-brand text-xs font-medium">
-            Más detalles
-          </a>
+             class="text-brand text-xs font-medium">Más detalles</a>
         </div>
-
         <div class="mb-4 flex items-center gap-2 flex-wrap">
         </div>
-
         <div class="space-y-5">
           {% set max_qty = (top_items[0].quantity_sold if top_items else 1) %}
-
           {% for item in top_items %}
             {% set width = ((item.quantity_sold / max_qty) * 100) if max_qty > 0 else 0 %}
             <div class="grid grid-cols-[80px_1fr_40px] items-center gap-3">
@@ -214,7 +163,6 @@
         </div>
       </div>
     </div>
-
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       {% call table_header(
         url_for('reports.index'),
@@ -225,23 +173,20 @@
         search_label='Buscar',
         hidden_fields=[('source', source_filter), ('date_from', date_from), ('date_to', date_to)],
         clear_condition=search_term or source_filter != 'all'
-      ) %}
+        ) %}
         <form method="get"
               action="{{ url_for('reports.index') }}"
               class="flex flex-wrap items-center gap-2">
           <input type="hidden" name="q" value="{{ search_term }}">
           <input type="hidden" name="source" value="{{ source_filter }}">
-
           <input type="date"
                  name="date_from"
                  value="{{ date_from }}"
                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2">
-
           <input type="date"
                  name="date_to"
                  value="{{ date_to }}"
                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2">
-
           <button type="submit"
                   class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
             Aplicar fechas
@@ -258,7 +203,8 @@
                height="24"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"></path>
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z">
+            </path>
           </svg>
           Filtrar
           <svg class="w-4 h-4 ms-1.5 -me-0.5"
@@ -271,7 +217,6 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
           </svg>
         </button>
-
         <div id="filterDropdown"
              class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
           <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
@@ -296,7 +241,6 @@
             </li>
           </ul>
         </div>
-
         <button id="actionsDropdownButton"
                 data-dropdown-toggle="actionsDropdown"
                 class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
@@ -312,7 +256,6 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
           </svg>
         </button>
-
         <div id="actionsDropdown"
              class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
           <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
@@ -345,7 +288,6 @@
           </ul>
         </div>
       {% endcall %}
-
       <div class="relative w-full overflow-x-auto bg-neutral-primary-soft shadow-xs">
         <table class="w-full min-w-4xl table-auto text-xs 2xl:text-sm text-left rtl:text-right text-body">
           <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
@@ -364,7 +306,8 @@
               <th scope="col" class="px-6 py-3 font-medium">IVA</th>
               <th scope="col" class="px-6 py-3 font-medium">Total</th>
               <th scope="col" class="px-6 py-3 font-medium">Origen</th>
-              <th scope="col" class="px-6 py-3 font-medium w-52 min-w-52 whitespace-nowrap">Acciones</th>
+              <th scope="col"
+                  class="px-6 py-3 font-medium w-52 min-w-52 whitespace-nowrap">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -379,22 +322,18 @@
                     <label for="table-checkbox-{{ item.row_id }}" class="sr-only">Seleccionar fila</label>
                   </div>
                 </td>
-
                 <th scope="row" class="px-6 py-4 font-medium text-heading">
                   <div class="flex flex-col">
                     <span class="block truncate" title="{{ item.label }}">{{ item.label }}</span>
                     <span class="text-body text-xs">{{ item.date }}</span>
                   </div>
                 </th>
-
                 <td class="px-6 py-4">
                   <span class="block truncate" title="{{ item.payment_method }}">{{ item.payment_method }}</span>
                 </td>
-
                 <td class="px-6 py-4">${{ "%.2f"|format(item.subtotal|float) }}</td>
                 <td class="px-6 py-4">${{ "%.2f"|format(item.iva|float) }}</td>
                 <td class="px-6 py-4 font-medium text-heading">${{ "%.2f"|format(item.total|float) }}</td>
-
                 <td class="px-6 py-4">
                   {% if item.source == 'POS' %}
                     {{ status_badge('POS', 'success') }}
@@ -402,7 +341,6 @@
                     {{ status_badge('E-commerce', 'info') }}
                   {% endif %}
                 </td>
-
                 {{ row_actions_cell_start() }}
                 {{ row_actions_group_start() }}
                 {% call row_actions_dropdown('actionsReportDropdownButton-' ~ loop.index, 'actionsReportDropdown-' ~ loop.index, 'Opciones') %}
@@ -418,35 +356,35 @@
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
-                <td colspan="8" class="px-6 py-8 text-center text-body">
-                  No hay ventas registradas en el rango seleccionado.
-                </td>
+                <td colspan="8" class="px-6 py-8 text-center text-body">No hay ventas registradas en el rango seleccionado.</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-
         {{ table_footer(pagination, 'reports.index', {'q': search_term, 'source': source_filter, 'date_from': date_from, 'date_to': date_to}) }}
       </div>
     </div>
   </div>
 {% endblock content %}
-
 {% block modals %}
   <form id="bulkReportsActionForm"
         method="post"
         action="{{ url_for('reports.bulk_action_reports') }}"
         class="hidden">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
     <input type="hidden" name="q" value="{{ search_term }}">
     <input type="hidden" name="source" value="{{ source_filter }}">
     <input type="hidden" name="date_from" value="{{ date_from }}">
     <input type="hidden" name="date_to" value="{{ date_to }}">
     <input type="hidden" name="page" value="{{ pagination.page }}">
     <input type="hidden" name="action" id="bulk-action-input" value="">
-    <input type="hidden" name="selected_ids" id="bulk-selected-ids-input" value="">
+    <input type="hidden"
+           name="selected_ids"
+           id="bulk-selected-ids-input"
+           value="">
   </form>
-
   <div id="bulk-no-selection-modal"
        tabindex="-1"
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -459,17 +397,16 @@
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
           <span class="sr-only">Cerrar modal</span>
         </button>
-
         <div class="p-3 2xl:p-4 md:p-5 text-center">
           <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <h3 class="mb-6 text-body">Selecciona al menos una venta para ejecutar esta acción.</h3>
           <button data-modal-hide="bulk-no-selection-modal"
@@ -481,7 +418,6 @@
       </div>
     </div>
   </div>
-
   <div id="bulk-confirm-action-modal"
        tabindex="-1"
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -494,17 +430,16 @@
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
           <span class="sr-only">Cerrar modal</span>
         </button>
-
         <div class="p-3 2xl:p-4 md:p-5 text-center">
           <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <h3 id="bulk-confirm-action-message" class="mb-6 text-body">¿Deseas continuar con esta acción?</h3>
           <div class="flex items-center space-x-4 justify-center">
@@ -523,88 +458,87 @@
       </div>
     </div>
   </div>
-
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      document.querySelectorAll('.bar-width').forEach(el => {
-        const width = Number(el.dataset.width || 0);
-        el.style.width = `${width}%`;
-      });
-
-      const checkAll = document.getElementById("table-checkbox-all");
-      const rowCheckboxes = Array.from(document.querySelectorAll(".report-row-checkbox"));
-      const bulkForm = document.getElementById("bulkReportsActionForm");
-      const bulkActionInput = document.getElementById("bulk-action-input");
-      const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
-      const bulkExportBtn = document.getElementById("bulkExportBtn");
-      const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
-      const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
-      const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
-      const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
-      let pendingAction = "";
-
-      const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
-      const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
-
-      if (checkAll) {
-        const syncMasterCheckbox = () => {
-          const total = rowCheckboxes.length;
-          const selected = rowCheckboxes.filter((checkbox) => checkbox.checked).length;
-          checkAll.checked = total > 0 && selected === total;
-          checkAll.indeterminate = selected > 0 && selected < total;
-        };
-
-        checkAll.addEventListener("change", function() {
-          rowCheckboxes.forEach((checkbox) => {
-            checkbox.checked = checkAll.checked;
+      document.addEventListener("DOMContentLoaded", function() {
+          document.querySelectorAll('.bar-width').forEach(el => {
+              const width = Number(el.dataset.width || 0);
+              el.style.width = `${width}%`;
           });
-          syncMasterCheckbox();
-        });
 
-        rowCheckboxes.forEach((checkbox) => {
-          checkbox.addEventListener("change", syncMasterCheckbox);
-        });
+          const checkAll = document.getElementById("table-checkbox-all");
+          const rowCheckboxes = Array.from(document.querySelectorAll(".report-row-checkbox"));
+          const bulkForm = document.getElementById("bulkReportsActionForm");
+          const bulkActionInput = document.getElementById("bulk-action-input");
+          const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
+          const bulkExportBtn = document.getElementById("bulkExportBtn");
+          const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
+          const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
+          const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
+          const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
+          let pendingAction = "";
 
-        syncMasterCheckbox();
-      }
+          const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
+          const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
 
-      const submitBulkAction = (action) => {
-        const selectedIds = rowCheckboxes
-          .filter((checkbox) => checkbox.checked)
-          .map((checkbox) => checkbox.value);
+          if (checkAll) {
+              const syncMasterCheckbox = () => {
+                  const total = rowCheckboxes.length;
+                  const selected = rowCheckboxes.filter((checkbox) => checkbox.checked).length;
+                  checkAll.checked = total > 0 && selected === total;
+                  checkAll.indeterminate = selected > 0 && selected < total;
+              };
 
-        if (selectedIds.length === 0) {
-          if (noSelectionModal) noSelectionModal.show();
-          return;
-        }
+              checkAll.addEventListener("change", function() {
+                  rowCheckboxes.forEach((checkbox) => {
+                      checkbox.checked = checkAll.checked;
+                  });
+                  syncMasterCheckbox();
+              });
 
-        pendingAction = action;
-        bulkSelectedIdsInput.value = selectedIds.join(",");
+              rowCheckboxes.forEach((checkbox) => {
+                  checkbox.addEventListener("change", syncMasterCheckbox);
+              });
 
-        if (confirmMessageElement) {
-          confirmMessageElement.textContent = "¿Deseas exportar las ventas seleccionadas?";
-        }
-        if (confirmSubmitBtn) {
-          confirmSubmitBtn.textContent = "Sí, exportar";
-        }
+              syncMasterCheckbox();
+          }
 
-        if (confirmModal) confirmModal.show();
-      };
+          const submitBulkAction = (action) => {
+              const selectedIds = rowCheckboxes
+                  .filter((checkbox) => checkbox.checked)
+                  .map((checkbox) => checkbox.value);
 
-      if (bulkExportBtn) {
-        bulkExportBtn.addEventListener("click", function() {
-          submitBulkAction("export");
-        });
-      }
+              if (selectedIds.length === 0) {
+                  if (noSelectionModal) noSelectionModal.show();
+                  return;
+              }
 
-      if (confirmSubmitBtn) {
-        confirmSubmitBtn.addEventListener("click", function() {
-          if (!pendingAction) return;
-          bulkActionInput.value = pendingAction;
-          if (confirmModal) confirmModal.hide();
-          bulkForm.submit();
-        });
-      }
-    });
+              pendingAction = action;
+              bulkSelectedIdsInput.value = selectedIds.join(",");
+
+              if (confirmMessageElement) {
+                  confirmMessageElement.textContent = "¿Deseas exportar las ventas seleccionadas?";
+              }
+              if (confirmSubmitBtn) {
+                  confirmSubmitBtn.textContent = "Sí, exportar";
+              }
+
+              if (confirmModal) confirmModal.show();
+          };
+
+          if (bulkExportBtn) {
+              bulkExportBtn.addEventListener("click", function() {
+                  submitBulkAction("export");
+              });
+          }
+
+          if (confirmSubmitBtn) {
+              confirmSubmitBtn.addEventListener("click", function() {
+                  if (!pendingAction) return;
+                  bulkActionInput.value = pendingAction;
+                  if (confirmModal) confirmModal.hide();
+                  bulkForm.submit();
+              });
+          }
+      });
   </script>
 {% endblock modals %}

@@ -83,6 +83,7 @@ def seed_products():
                 existing.name = p_data["name"]
                 existing.furniture_type_id = furniture_type_id
                 existing.description = p_data["description"]
+                existing.specifications = p_data.get("specifications", "")
                 existing.price = p_data["price"]
                 existing.status = True
                 updated += 1
@@ -94,6 +95,7 @@ def seed_products():
                 name=p_data["name"],
                 furniture_type_id=furniture_type_id,
                 description=p_data["description"],
+                specifications=p_data.get("specifications", ""),
                 price=p_data["price"],
                 status=True,
             )
