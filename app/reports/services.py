@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal, ROUND_HALF_UP
+import math
 
 from app.costs.services import CostService
 from app.models import (
@@ -333,7 +334,7 @@ class ReportService:
         if previous_value == 0:
             if current_value == 0:
                 return 0.0
-            return 100.0
+            return 100.0 if current_value > 0 else -100.0
 
         change = ((current_value - previous_value) / previous_value) * Decimal("100")
         return ReportService._money(change)
@@ -444,11 +445,20 @@ class ReportService:
             if total > max_value:
                 max_value = total
 
+            # Calculate Y coordinate with logarithmic scale for better visibility
+            amount_float = float(total)
+            max_float = float(max_value) if max_value > 0 else 1
+            if max_float > 1:
+                y = 180 - (math.log(amount_float + 1) / math.log(max_float + 1)) * 140
+            else:
+                y = 180 - (amount_float / max_float) * 140 if max_float > 0 else 180
+
             items.append(
                 {
                     "date": current_day.isoformat(),
                     "label": ReportService._weekday_name(current_day),
                     "amount": ReportService._money(total),
+                    "y": y,
                     "pos_sales": ReportService._money(summary["pos_total"]),
                     "ecommerce_sales": ReportService._money(summary["ecommerce_total"]),
                     "transactions_count": summary["transactions_count"],

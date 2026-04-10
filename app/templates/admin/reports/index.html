@@ -12,13 +12,13 @@
   {% set weekly = dashboard.weekly_sales %}
   {% set top_products = general_report.top_products %}
   {% set recent_items = pagination.items %}
-  {% set weekly_items = weekly["items"] %}
+  {% set weekly_items = weekly["items"] if weekly and weekly.get("items") else [] %}
   {% set top_items = top_products["items"] %}
   {% set sales_change_pct = comparison_metrics.sales_change_pct %}
   {% set sales_direction = comparison_metrics.sales_direction %}
   {% set profit_change_pct = comparison_metrics.profit_change_pct %}
   {% set profit_direction = comparison_metrics.profit_direction %}
-  {% set max_amount = weekly.max_amount if weekly.max_amount > 0 else 1 %}
+  {% set max_amount = weekly["max_amount"] if weekly and weekly.get("max_amount", 0) > 0 else 1 %}
   {% set axis_step = (max_amount / 3) if max_amount > 0 else 1 %}
   <div class="flex flex-col gap-4">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -40,16 +40,10 @@
             <span class="text-heading text-4xl font-semibold block">${{ "{:,.0f}".format(sales.totals.grand_total|float) }}</span>
           </div>
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
-            {% if sales_direction == 'up' %}
-              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                ↑ {{ "%.2f"|format(sales_change_pct|float) }}% vs día anterior
-              </span>
-            {% else %}
-              <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-medium text-red-700">
-                ↓ {{ "%.2f"|format((sales_change_pct * -1) |float) }}% vs día anterior
-              </span>
-            {% endif %}
-            <span class="text-body text-xs whitespace-nowrap">{{ date_from }} a {{ date_to }}</span>
+
+            <span class="text-body text-xs whitespace-nowrap">
+              {{ date_from }} a {{ date_to }}
+            </span>
           </div>
         </div>
       </div>
@@ -73,21 +67,9 @@
             </span>
           </div>
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                Margen {{ "%.2f"|format(profit.margin_percentage|float) }}%
-              </span>
-              {% if profit_direction == 'up' %}
-                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                  ↑ {{ "%.2f"|format(profit_change_pct|float) }}%
-                </span>
-              {% else %}
-                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-medium text-red-700">
-                  ↓ {{ "%.2f"|format((profit_change_pct * -1) |float) }}%
-                </span>
-              {% endif %}
-            </div>
-            <span class="text-body text-xs whitespace-nowrap">{{ date_from }} a {{ date_to }}</span>
+            <span class="text-body text-xs whitespace-nowrap">
+              {{ date_from }} a {{ date_to }}
+            </span>
           </div>
         </div>
       </div>
@@ -125,13 +107,14 @@
             <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1" />
             <text x="5" y="184" font-size="10" fill="#6b7280">$0</text>
             <text x="0" y="144" font-size="10" fill="#6b7280">${{ "%.0f"|format(axis_step|float) }}</text>
-            <text x="0" y="104" font-size="10" fill="#6b7280">${{ "%.0f"|format((axis_step * 2) |float) }}</text>
-            <text x="0" y="64" font-size="10" fill="#6b7280">${{ "%.0f"|format(max_amount|float) }}</text>
+            <text x="0" y="104" font-size="10" fill="#6b7280">${{ "%.0f"|format((axis_step * 2)|float) }}</text>
+
             {% set points = [] %}
             {% for item in weekly_items %}
               {% set x = 60 + (loop.index0 * 60) %}
-              {% set y = 180 - ((item.amount / max_amount) * 140) %}
-              {% set _ = points.append(x|string ~ "," ~ y|string) %}
+              {% set y = item.get('y', 180 - ((item.amount / max_amount) * 140)) %}
+              {% set points = points + [x|string ~ "," ~ y|string] %}
+
               <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
               <text x="{{ x - 12 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">
               ${{ "%.0f"|format(item.amount|float) }}
@@ -162,13 +145,6 @@
              class="text-brand text-xs font-medium">Más detalles</a>
         </div>
         <div class="mb-4 flex items-center gap-2 flex-wrap">
-          {% set total_top_qty = top_items|sum(attribute='quantity_sold') %}
-          {% for item in top_items[:2] %}
-            {% set participation = ((item.quantity_sold / total_top_qty) * 100) if total_top_qty > 0 else 0 %}
-            <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-              {{ item.product_name }} {{ "%.1f"|format(participation|float) }}%
-            </span>
-          {% endfor %}
         </div>
         <div class="space-y-5">
           {% set max_qty = (top_items[0].quantity_sold if top_items else 1) %}
