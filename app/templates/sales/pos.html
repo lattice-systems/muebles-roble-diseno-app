@@ -48,13 +48,52 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {% for product in products %}
                     {% set stock = product.inventory_records[0].stock if product.inventory_records else 0 %}
+                    {% set ordered_images = product.pos_images if product.pos_images is defined else product.images %}
+                    {% set product_images = ordered_images | selectattr('image_url') | map(attribute='image_url') | list %}
+                    {% if not product_images %}
+                      {% set product_images = [url_for('static', filename='src/images/sofa.png')] %}
+                    {% endif %}
                     {# Flowbite product card exacto — altura uniforme con flex-col #}
                     <div class="w-full bg-neutral-primary-soft p-3 2xl:p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
                       {# Imagen — siempre misma altura #}
-                      <div class="rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0 h-28 md:h-30">
-                        <img class="h-full w-full object-contain p-2"
-                             src="{{ url_for('static', filename='src/images/sofa.png') }}"
-                             alt="{{ product.name }}" />
+                      <div class="group relative rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0 h-28 md:h-30"
+                           data-carousel-card>
+                        <img class="h-full w-full object-contain p-2 transition-transform duration-200 group-hover:scale-[1.02]"
+                             src="{{ product_images[0] }}"
+                             alt="{{ product.name }}"
+                             loading="lazy"
+                             data-carousel-image
+                             data-index="0"
+                             data-images='{{ product_images | tojson | forceescape }}' />
+                        {% if product_images|length > 1 %}
+                          <button type="button"
+                                  class="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-neutral-primary-soft/90 text-heading border border-default-medium shadow-xs opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-neutral-primary-soft focus:outline-none focus:ring-2 focus:ring-brand"
+                                  data-carousel-prev
+                                  aria-label="Imagen anterior de {{ product.name }}">
+                            <svg class="w-3.5 h-3.5"
+                                 aria-hidden="true"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" />
+                            </svg>
+                          </button>
+                          <button type="button"
+                                  class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-neutral-primary-soft/90 text-heading border border-default-medium shadow-xs opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-neutral-primary-soft focus:outline-none focus:ring-2 focus:ring-brand"
+                                  data-carousel-next
+                                  aria-label="Imagen siguiente de {{ product.name }}">
+                            <svg class="w-3.5 h-3.5"
+                                 aria-hidden="true"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
+                            </svg>
+                          </button>
+                          <div class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-sm bg-neutral-primary-soft/90 border border-default-medium text-[11px] font-medium text-heading">
+                            <span data-carousel-counter>1/{{ product_images|length }}</span>
+                          </div>
+                        {% endif %}
                       </div>
                       {# Contenido — flex-col flex-1 para que el botón quede siempre abajo #}
                       <div class="flex flex-col flex-1">
@@ -590,6 +629,58 @@
               return getApiErrorMessage(payload, fallback);
           }
 
+          function parseCardImages(imageEl) {
+              if (!imageEl) return [];
+
+              let images = [];
+              try {
+                  const parsed = JSON.parse(imageEl.dataset.images || "[]");
+                  if (Array.isArray(parsed)) {
+                      images = parsed
+                          .map((url) => (typeof url === "string" ? url.trim() : ""))
+                          .filter(Boolean);
+                  }
+              } catch (err) {
+                  console.warn("No se pudo parsear el carrusel de imagenes del producto.", err);
+              }
+
+              if (images.length === 0) {
+                  const fallbackImage = (imageEl.getAttribute("src") || "").trim();
+                  if (fallbackImage) images = [fallbackImage];
+              }
+
+              return images;
+          }
+
+          function setCardImage(cardEl, nextIndex) {
+              if (!cardEl) return;
+              const imageEl = cardEl.querySelector("[data-carousel-image]");
+              if (!imageEl) return;
+
+              const images = parseCardImages(imageEl);
+              if (images.length === 0) return;
+
+              const totalImages = images.length;
+              const safeIndex = ((nextIndex % totalImages) + totalImages) % totalImages;
+              imageEl.src = images[safeIndex];
+              imageEl.dataset.index = String(safeIndex);
+
+              const counterEl = cardEl.querySelector("[data-carousel-counter]");
+              if (counterEl) {
+                  counterEl.textContent = `${safeIndex + 1}/${totalImages}`;
+              }
+          }
+
+          function initProductImageCarousels() {
+              document.querySelectorAll("[data-carousel-card]").forEach((cardEl) => {
+                  const imageEl = cardEl.querySelector("[data-carousel-image]");
+                  if (!imageEl) return;
+                  const currentIndex = Number.parseInt(imageEl.dataset.index || "0", 10);
+                  const initialIndex = Number.isNaN(currentIndex) ? 0 : currentIndex;
+                  setCardImage(cardEl, initialIndex);
+              });
+          }
+
           async function loadCart() {
               try {
                   const res = await fetch(posConfig.dataset.urlCart);
@@ -684,12 +775,13 @@
 
           function buildCartRow(item) {
               const card = document.createElement("div");
+              const cartImage = item.image_url || posConfig.dataset.urlSofaImg;
               card.className = "cart-row bg-neutral-primary-soft border border-default rounded-base p-3 2xl:p-4";
               card.dataset.itemId = item.id;
               card.innerHTML = `
         <div class="flex items-center gap-3">
           <div class="h-14 w-14 md:h-16 md:w-16 rounded-base bg-neutral-secondary-medium p-1 shrink-0 flex items-center justify-center">
-            <img src="${posConfig.dataset.urlSofaImg}" class="h-full w-full object-contain" alt="${item.name}" />
+            <img src="${cartImage}" class="h-full w-full object-contain" alt="${item.name}" />
           </div>
           <div class="min-w-0 flex-1">
             <p class="text-heading text-xs 2xl:text-sm font-semibold truncate" title="${item.name}">${item.name}</p>
@@ -775,6 +867,23 @@
                   const productId = btn.dataset.productId;
                   if (productId) addToCart(productId, 1);
               });
+          });
+
+          document.addEventListener("click", (event) => {
+              const prevButton = event.target.closest("[data-carousel-prev]");
+              const nextButton = event.target.closest("[data-carousel-next]");
+              const navButton = prevButton || nextButton;
+              if (!navButton) return;
+
+              event.preventDefault();
+              const cardEl = navButton.closest("[data-carousel-card]");
+              const imageEl = cardEl?.querySelector("[data-carousel-image]");
+              if (!cardEl || !imageEl) return;
+
+              const currentIndex = Number.parseInt(imageEl.dataset.index || "0", 10);
+              const baseIndex = Number.isNaN(currentIndex) ? 0 : currentIndex;
+              const step = prevButton ? -1 : 1;
+              setCardImage(cardEl, baseIndex + step);
           });
 
           const cartBody = document.getElementById("cartBody");
@@ -1372,6 +1481,7 @@
               });
           });
 
+          initProductImageCarousels();
           loadPaymentMethods();
           loadCart();
       })();

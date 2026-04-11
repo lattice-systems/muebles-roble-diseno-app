@@ -26,6 +26,18 @@ class SaleService:
     """Servicio para operaciones de negocio relacionadas con ventas POS."""
 
     @staticmethod
+    def _sort_product_images(images):
+        """Ordena imágenes por sort_order y mantiene consistencia para POS."""
+        return sorted(
+            images,
+            key=lambda image: (
+                getattr(image, "sort_order", None) is None,
+                getattr(image, "sort_order", 0),
+                getattr(image, "id", 0),
+            ),
+        )
+
+    @staticmethod
     def open_sale(
         employee_id: int,
         customer_id: Optional[int] = None,
@@ -209,7 +221,8 @@ class SaleService:
             Pagination: Objeto de paginación de SQLAlchemy.
         """
         query = Product.query.options(
-            selectinload(Product.inventory_records)
+            selectinload(Product.inventory_records),
+            selectinload(Product.images),
         ).filter_by(status=True)
 
         if search_term:
@@ -221,9 +234,16 @@ class SaleService:
                 )
             )
 
-        return query.order_by(Product.name.asc()).paginate(
-            page=page, per_page=per_page, error_out=False
+        pagination = query.order_by(Product.name.asc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False,
         )
+
+        for product in pagination.items:
+            product.pos_images = SaleService._sort_product_images(product.images or [])
+
+        return pagination
 
     @staticmethod
     def get_payment_methods():
