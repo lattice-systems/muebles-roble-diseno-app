@@ -1,0 +1,81 @@
+{% extends "layouts/login.html" %}
+{% block title %}
+  Roble y Diseno - Registro Cliente
+{% endblock title %}
+{% block login_heading %}
+  Crear cuenta
+{% endblock login_heading %}
+{% block step_description %}
+  Registrate para gestionar tu perfil, pedidos y reseñas.
+{% endblock step_description %}
+{% block login_image_src %}
+  {{ url_for('static', filename='src/images/login-customer-image.jpg') }}
+{% endblock login_image_src %}
+{% block login_image_alt %}
+  Sofa decorativo
+{% endblock login_image_alt %}
+{% block content %}
+  <form method="post"
+        action="{{ url_for('customer_auth.register') }}"
+        class="flex flex-col gap-4 w-full max-w-md">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block mb-2 text-sm font-medium text-heading" for="first_name">Nombre</label>
+        <input id="first_name"
+               name="first_name"
+               type="text"
+               required
+               class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+               value="{{ request.form.get('first_name', '') }}">
+      </div>
+      <div>
+        <label class="block mb-2 text-sm font-medium text-heading" for="last_name">Apellido</label>
+        <input id="last_name"
+               name="last_name"
+               type="text"
+               required
+               class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+               value="{{ request.form.get('last_name', '') }}">
+      </div>
+    </div>
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="email">Correo electronico</label>
+      <input id="email"
+             name="email"
+             type="email"
+             required
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             value="{{ request.form.get('email', '') }}">
+    </div>
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="phone">Telefono</label>
+      <input id="phone"
+             name="phone"
+             type="text"
+             required
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             value="{{ request.form.get('phone', '') }}">
+    </div>
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="password">Contrasena</label>
+      <input id="password"
+             name="password"
+             type="password"
+             required
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             placeholder="Minimo 8 caracteres, mayuscula, numero y simbolo">
+    </div>
+    <button type="submit"
+            class="rounded-base bg-brand text-white py-2.5 px-4 text-sm font-medium hover:bg-brand-strong">
+      Crear cuenta
+    </button>
+    <p class="text-sm text-body-subtle text-center">
+      Ya tienes cuenta?
+      <a href="{{ url_for('customer_auth.login') }}"
+         class="text-brand hover:underline">Inicia sesion</a>
+    </p>
+  </form>
+{% endblock content %}

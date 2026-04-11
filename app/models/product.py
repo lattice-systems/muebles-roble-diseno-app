@@ -29,6 +29,12 @@ class Product(AuditMixin, db.Model):
     )
     sale_items = db.relationship("SaleItem", back_populates="product", lazy=True)
     order_items = db.relationship("OrderItem", back_populates="product", lazy=True)
+    reviews = db.relationship(
+        "ProductReview",
+        back_populates="product",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
 
     images = db.relationship(
         "ProductImage",

@@ -66,6 +66,22 @@ def create_app(config_class=None):
             "navbar_notification_count": notification_data["count"],
         }
 
+    @app.context_processor
+    def inject_ecommerce_customer_user():
+        from .customer_auth.decorators import get_current_customer_user
+
+        return {
+            "ecommerce_customer_user": get_current_customer_user(),
+        }
+
+    @app.context_processor
+    def inject_ecommerce_cart():
+        from .ecommerce.services import EcommerceService
+
+        return {
+            "cart": EcommerceService.get_cart(),
+        }
+
     # Register auth/security event listeners (login/logout/password/access events)
     register_security_event_handlers(app)
 
@@ -184,6 +200,10 @@ def create_app(config_class=None):
     from .ecommerce import ecommerce_bp
 
     app.register_blueprint(ecommerce_bp, url_prefix="/ecommerce")
+
+    from .customer_auth import customer_auth_bp
+
+    app.register_blueprint(customer_auth_bp, url_prefix="/ecommerce/account")
 
     @app.route("/")
     def index():

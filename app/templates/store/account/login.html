@@ -1,0 +1,54 @@
+{% extends "layouts/login.html" %}
+{% block title %}
+  Roble y Diseno - Acceso Cliente
+{% endblock title %}
+{% block login_heading %}
+  Iniciar sesion
+{% endblock login_heading %}
+{% block step_description %}
+  Accede para gestionar tu perfil, pedidos y reseñas.
+{% endblock step_description %}
+{% block login_image_src %}
+  {{ url_for('static', filename='src/images/login-customer-image.jpg') }}
+{% endblock login_image_src %}
+{% block login_image_alt %}
+  Sofa decorativo
+{% endblock login_image_alt %}
+{% block content %}
+  <form method="post"
+        action="{{ url_for('customer_auth.login') }}"
+        class="flex flex-col gap-4 w-full max-w-md">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="email">Correo electronico</label>
+      <input id="email"
+             name="email"
+             type="email"
+             required
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             placeholder="cliente@correo.com"
+             value="{{ request.form.get('email', '') }}">
+    </div>
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="password">Contrasena</label>
+      <input id="password"
+             name="password"
+             type="password"
+             required
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             placeholder="Ingresa tu contrasena">
+    </div>
+    <button type="submit"
+            class="rounded-base bg-brand text-white py-2.5 px-4 text-sm font-medium hover:bg-brand-strong">
+      Iniciar sesion
+    </button>
+    <p class="text-sm text-body-subtle text-center">
+      No tienes cuenta?
+      <a href="{{ url_for('customer_auth.register') }}"
+         class="text-brand hover:underline">Registrate aqui</a>
+    </p>
+  </form>
+{% endblock content %}

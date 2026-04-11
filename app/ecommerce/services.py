@@ -11,14 +11,16 @@ from types import SimpleNamespace
 from flask import session, url_for
 from markupsafe import escape
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.extensions import db
 from app.models.customer import Customer
+from app.models.customer_user import CustomerUser
 from app.models.furniture_type import FurnitureType
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_color import ProductColor
+from app.models.product_review import ProductReview
 from app.shared.inventory_service import InventoryService
 
 
@@ -446,6 +448,54 @@ class EcommerceService:
         return EcommerceService._serialize_product(product)
 
     @staticmethod
+    def get_product_rating_summary(product_id: int) -> dict[str, object]:
+        average, count = (
+            db.session.query(
+                func.avg(ProductReview.rating),
+                func.count(ProductReview.id),
+            )
+            .filter(ProductReview.product_id == product_id)
+            .first()
+        )
+
+        count_int = int(count or 0)
+        average_float = float(average) if average is not None else 0.0
+        return {
+            "average": round(average_float, 1) if count_int else 0.0,
+            "count": count_int,
+        }
+
+    @staticmethod
+    def get_product_reviews(
+        product_id: int, limit: int = 20
+    ) -> list[dict[str, object]]:
+        safe_limit = max(1, min(limit, 50))
+        reviews = (
+            ProductReview.query.options(selectinload(ProductReview.customer_user))
+            .filter(ProductReview.product_id == product_id)
+            .order_by(ProductReview.updated_at.desc(), ProductReview.id.desc())
+            .limit(safe_limit)
+            .all()
+        )
+
+        return [
+            {
+                "id": review.id,
+                "rating": review.rating,
+                "review_text": review.review_text,
+                "created_at": review.created_at,
+                "updated_at": review.updated_at,
+                "author_name": (
+                    review.customer_user.full_name
+                    if review.customer_user
+                    else "Cliente"
+                ),
+                "customer_user_id": review.customer_user_id,
+            }
+            for review in reviews
+        ]
+
+    @staticmethod
     def _normalize_quantity(quantity: object, *, minimum: int = 1) -> int:
         try:
             parsed_quantity = int(quantity)
@@ -670,10 +720,14 @@ class EcommerceService:
         phone: str,
         delivery_mode: str,
         shipping_data: dict[str, str],
+        existing_customer: Customer | None = None,
+        customer_user_id: int | None = None,
     ) -> Customer:
-        customer = Customer.query.filter(
-            func.lower(Customer.email) == email.lower()
-        ).first()
+        customer = existing_customer
+        if customer is None:
+            customer = Customer.query.filter(
+                func.lower(Customer.email) == email.lower()
+            ).first()
 
         if not customer:
             customer = Customer(
@@ -690,6 +744,13 @@ class EcommerceService:
         customer.last_name = last_name
         customer.phone = phone
 
+        if customer_user_id:
+            if customer.user_id and customer.user_id != customer_user_id:
+                raise ValueError(
+                    "Este cliente ya esta vinculado a otra cuenta de usuario."
+                )
+            customer.user_id = customer_user_id
+
         if delivery_mode == "shipping":
             customer.requires_freight = True
             customer.zip_code = shipping_data.get("zip_code")
@@ -699,14 +760,18 @@ class EcommerceService:
             customer.neighborhood = shipping_data.get("neighborhood")
             customer.exterior_number = shipping_data.get("exterior_number")
             customer.interior_number = shipping_data.get("interior_number")
-        elif customer.id is None:
+        else:
             customer.requires_freight = False
 
         db.session.flush()
         return customer
 
     @staticmethod
-    def checkout_from_form(form_data: dict) -> dict[str, object]:
+    def checkout_from_form(
+        form_data: dict,
+        *,
+        customer_user_id: int | None = None,
+    ) -> dict[str, object]:
         cart_data = EcommerceService.get_cart()
         if not cart_data["total_items"]:
             raise ValueError("Tu carrito esta vacio. Agrega productos para continuar.")
@@ -717,6 +782,27 @@ class EcommerceService:
         phone = (form_data.get("phone") or "").strip()
         notes = (form_data.get("notes") or "").strip()
         delivery_mode = (form_data.get("delivery_mode") or "shipping").strip().lower()
+
+        customer_user = None
+        linked_customer = None
+        if customer_user_id:
+            customer_user = CustomerUser.query.filter_by(
+                id=customer_user_id,
+                status=True,
+            ).first()
+            if not customer_user:
+                raise ValueError(
+                    "La sesion de cliente no es valida. Inicia sesion de nuevo."
+                )
+
+            linked_customer = customer_user.customer
+            if linked_customer:
+                first_name = first_name or (linked_customer.first_name or "")
+                last_name = last_name or (linked_customer.last_name or "")
+                phone = phone or (linked_customer.phone or "")
+
+            if not email:
+                email = customer_user.email.lower()
 
         if not first_name or not last_name or not email or not phone:
             raise ValueError("Nombre, apellido, correo y telefono son obligatorios.")
@@ -751,6 +837,29 @@ class EcommerceService:
             "interior_number": (form_data.get("interior_number") or "").strip() or None,
         }
 
+        if linked_customer:
+            shipping_data["zip_code"] = shipping_data["zip_code"] or (
+                linked_customer.zip_code or ""
+            )
+            shipping_data["state"] = shipping_data["state"] or (
+                linked_customer.state or ""
+            )
+            shipping_data["city"] = shipping_data["city"] or (
+                linked_customer.city or ""
+            )
+            shipping_data["street"] = shipping_data["street"] or (
+                linked_customer.street or ""
+            )
+            shipping_data["neighborhood"] = shipping_data["neighborhood"] or (
+                linked_customer.neighborhood or ""
+            )
+            shipping_data["exterior_number"] = shipping_data["exterior_number"] or (
+                linked_customer.exterior_number or ""
+            )
+            shipping_data["interior_number"] = shipping_data["interior_number"] or (
+                linked_customer.interior_number or None
+            )
+
         if delivery_mode == "shipping":
             missing_labels = {
                 "zip_code": "Codigo postal",
@@ -779,6 +888,8 @@ class EcommerceService:
             phone=phone,
             delivery_mode=delivery_mode,
             shipping_data=shipping_data,
+            existing_customer=linked_customer,
+            customer_user_id=customer_user.id if customer_user else None,
         )
 
         cart_items = cart_data["cart_items"]
@@ -874,6 +985,7 @@ class EcommerceService:
                 cart_items=normalized_items,
                 payment_method_id=payment_method.id,
                 total=order_total,
+                customer_user_id=customer_user.id if customer_user else None,
                 notes=final_notes,
                 estimated_delivery_date=estimated_delivery_date,
             )

@@ -177,6 +177,7 @@ venv/bin/python scripts/seed_payment_methods.py
 venv/bin/python scripts/seed_purchase.py
 venv/bin/python scripts/seed_bom.py
 venv/bin/python scripts/seed_inventory.py
+venv/bin/python scripts/seed_ecommerce_orders_reviews.py
 venv/bin/python scripts/seed_users_by_role.py
 ```
 

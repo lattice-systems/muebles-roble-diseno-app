@@ -26,13 +26,28 @@
         </div>
         <main class="flex flex-col gap-6 items-center">
           <div>
-            <h1 class="w-full text-center text-2xl font-semibold text-heading">Inicio de Sesión</h1>
+            <h1 class="w-full text-center text-2xl font-semibold text-heading">
+              {% block login_heading %}
+                Inicio de Sesión
+              {% endblock login_heading %}
+            </h1>
             <p class="w-full text-center text-body-subtle text-base font-normal">
               {% block step_description %}
                 Ingresa tus credenciales para acceder a tu cuenta
               {% endblock step_description %}
             </p>
           </div>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="w-full max-w-md flex flex-col gap-2">
+                {% for category, message in messages %}
+                  <div class="rounded-base border px-3 py-2 text-sm {% if category in ['error', 'danger'] %}border-red-200 text-red-700 bg-red-50{% elif category == 'success' %}border-emerald-200 text-emerald-700 bg-emerald-50{% else %}border-sky-200 text-sky-700 bg-sky-50{% endif %}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
           {% block content %}
           {% endblock content %}
         </main>
@@ -42,8 +57,8 @@
         </footer>
       </div>
       <div class="w-full h-full">
-        <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
-             alt="Persona sentada trabajando"
+        <img src="{% block login_image_src %}{{ url_for('static', filename='src/images/representative-img-login.png') }}{% endblock login_image_src %}"
+             alt="{% block login_image_alt %}Persona sentada trabajando{% endblock login_image_alt %}"
              width="750"
              height="600"
              class="w-full h-full object-cover rounded-base">

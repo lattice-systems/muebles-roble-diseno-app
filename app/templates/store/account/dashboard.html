@@ -1,0 +1,68 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Mi cuenta | Roble y Diseno
+{% endblock title %}
+{% block content %}
+  <section class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-heading">Hola, {{ customer_user.full_name }}</h1>
+        <p class="text-body mt-2">Desde aqui puedes administrar tu perfil, pedidos y resenas.</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="{{ url_for('customer_auth.profile') }}"
+           class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-heading hover:bg-slate-100">Editar perfil</a>
+        <a href="{{ url_for('customer_auth.orders') }}"
+           class="rounded-lg bg-sky-900 px-4 py-2 text-sm font-medium text-white hover:bg-sky-800">Ver mis pedidos</a>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <article class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="text-xs uppercase tracking-wide text-body-subtle">Pedidos totales</p>
+        <p class="text-3xl font-bold text-heading mt-2">{{ total_orders }}</p>
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="text-xs uppercase tracking-wide text-body-subtle">Resenas enviadas</p>
+        <p class="text-3xl font-bold text-heading mt-2">{{ total_reviews }}</p>
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="text-xs uppercase tracking-wide text-body-subtle">Correo de cuenta</p>
+        <p class="text-base font-semibold text-heading mt-2 break-all">{{ customer_user.email }}</p>
+      </article>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4">
+      <h2 class="text-xl font-semibold text-heading mb-4">Pedidos recientes</h2>
+      {% if recent_orders %}
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 text-left text-body-subtle">
+                <th class="py-2 pr-3">Folio</th>
+                <th class="py-2 pr-3">Fecha</th>
+                <th class="py-2 pr-3">Estado</th>
+                <th class="py-2 pr-3">Total</th>
+                <th class="py-2">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in recent_orders %}
+                <tr class="border-b border-slate-100">
+                  <td class="py-3 pr-3">#{{ order.id }}</td>
+                  <td class="py-3 pr-3">{{ order.order_date.strftime("%Y-%m-%d") if order.order_date else '-' }}</td>
+                  <td class="py-3 pr-3">{{ order.status }}</td>
+                  <td class="py-3 pr-3">MX {{ '{:,.2f}'.format(order.total or 0) }}</td>
+                  <td class="py-3">
+                    <a href="{{ url_for('customer_auth.order_detail', order_id=order.id) }}"
+                       class="text-sky-900 font-medium hover:underline">Ver detalle</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-body">Aun no tienes pedidos registrados.</p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock content %}

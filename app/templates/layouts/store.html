@@ -15,6 +15,19 @@
   </head>
   <body class="bg-white text-black antialiased font-sans">
     {% include "components/ecommerce/navbar.html" %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="max-w-7xl mx-auto px-6 pt-6">
+          <div class="flex flex-col gap-2">
+            {% for category, message in messages %}
+              <div class="rounded-lg border px-3 py-2 text-sm {% if category in ['error', 'danger'] %}border-red-200 text-red-700 bg-red-50{% elif category == 'success' %}border-emerald-200 text-emerald-700 bg-emerald-50{% else %}border-sky-200 text-sky-700 bg-sky-50{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    {% endwith %}
     <main class="min-h-screen">
       {% block content %}
       {% endblock content %}

@@ -61,7 +61,7 @@
         </p>
         {# ── Especificaciones técnicas ── #}
         {% if product.specifications %}
-          <div class="mt-6 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-4 md:p-5">
+          <div class="mt-6 rounded-xl border border-sky-200 bg-linear-to-br from-sky-50 to-white p-4 md:p-5">
             <h3 class="text-sm font-bold text-sky-900 uppercase tracking-wide mb-3 flex items-center gap-2">
               <svg class="w-4 h-4"
                    aria-hidden="true"
@@ -192,6 +192,101 @@
           </button>
         </div>
       </div>
+    </div>
+  </section>
+  <section class="max-w-7xl mx-auto px-6 pb-14">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <article class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="text-2xl font-semibold text-heading mb-2">Calificaciones</h2>
+        <div class="flex items-center gap-3 mb-2">
+          <p class="text-4xl font-bold text-heading">{{ rating_summary.average }}</p>
+          <div class="flex items-center gap-1">
+            {% set average_round = rating_summary.average | round(0, 'common') | int %}
+            {% for star in range(1, 6) %}
+              <span class="text-xl {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+            {% endfor %}
+          </div>
+        </div>
+        <p class="text-sm text-body">{{ rating_summary.count }} reseñas verificadas.</p>
+        {% if ecommerce_customer_user %}
+          {% if can_review %}
+            <form method="post"
+                  action="{{ url_for('customer_auth.review_product', product_id=product.id) }}"
+                  class="mt-5 space-y-3">
+              <input type="hidden"
+                     name="csrf_token"
+                     value="{{ csrf_token() if csrf_token else '' }}">
+              <div>
+                <label class="block mb-2 text-sm font-medium text-heading" for="rating">Tu calificacion</label>
+                <select id="rating"
+                        name="rating"
+                        required
+                        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                  <option value="">Selecciona una opcion</option>
+                  {% for value in range(5, 0, -1) %}
+                    <option value="{{ value }}"
+                            {% if user_review and user_review.rating == value %}selected{% endif %}>
+                      {{ value }} estrella
+                      {% if value != 1 %}s{% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium text-heading" for="review_text">Comentario (opcional)</label>
+                <textarea id="review_text"
+                          name="review_text"
+                          rows="4"
+                          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          placeholder="Comparte tu experiencia con este producto">{{ user_review.review_text if user_review else '' }}</textarea>
+              </div>
+              <button type="submit"
+                      class="rounded-lg bg-sky-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800">
+                {% if user_review %}
+                  Actualizar reseña
+                {% else %}
+                  Enviar reseña
+                {% endif %}
+              </button>
+            </form>
+          {% else %}
+            <p class="mt-4 text-sm text-body">Solo puedes reseñar este producto cuando tengas una compra registrada del mismo.</p>
+          {% endif %}
+        {% else %}
+          <p class="mt-4 text-sm text-body">
+            <a href="{{ url_for('customer_auth.login', next=request.path) }}"
+               class="text-sky-900 hover:underline font-medium">Inicia sesion</a>
+            para dejar tu reseña y calificacion.
+          </p>
+        {% endif %}
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="text-2xl font-semibold text-heading mb-4">Reseñas recientes</h2>
+        {% if reviews %}
+          <div class="space-y-4 max-h-112 overflow-y-auto pr-1">
+            {% for review in reviews %}
+              <div class="border-b border-slate-100 pb-3">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-sm font-semibold text-heading">{{ review.author_name }}</p>
+                  <p class="text-xs text-body-subtle">{{ review.updated_at.strftime("%Y-%m-%d") if review.updated_at else '' }}</p>
+                </div>
+                <div class="flex items-center gap-1 mt-1 mb-2">
+                  {% for star in range(1, 6) %}
+                    <span class="text-base {% if star <= review.rating %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+                  {% endfor %}
+                </div>
+                {% if review.review_text %}
+                  <p class="text-sm text-body">{{ review.review_text }}</p>
+                {% else %}
+                  <p class="text-sm text-body-subtle italic">Sin comentario adicional.</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-sm text-body">Aun no hay reseñas para este producto.</p>
+        {% endif %}
+      </article>
     </div>
   </section>
   <div class="bg-white border-t border-gray-100 py-16">

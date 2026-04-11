@@ -23,6 +23,28 @@
     </nav>
     <!-- Icons & Mobile Menu Toggle -->
     <div class="flex items-center gap-4 md:gap-6">
+      {% if ecommerce_customer_user %}
+        <a href="{{ url_for('customer_auth.dashboard') }}"
+           class="hidden md:inline-flex text-heading hover:text-body transition-colors text-sm font-medium">
+          Mi cuenta
+        </a>
+        <form method="post"
+              action="{{ url_for('customer_auth.logout') }}"
+              class="hidden md:block">
+          <input type="hidden"
+                 name="csrf_token"
+                 value="{{ csrf_token() if csrf_token else '' }}">
+          <button type="submit"
+                  class="text-heading hover:text-body transition-colors text-sm font-medium cursor-pointer">
+            Cerrar sesion
+          </button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('customer_auth.login') }}"
+           class="hidden md:inline-flex text-heading hover:text-body transition-colors text-sm font-medium">
+          Iniciar sesion
+        </a>
+      {% endif %}
       <button type="button"
               id="search-button"
               class="text-heading hover:text-body transition-colors">
@@ -80,6 +102,22 @@
          class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'about' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Nosotros</a>
       <a href="{{ url_for('ecommerce.contact') }}"
          class="text-2xl text-heading hover:text-body transition-colors {% if active_section == 'contact' %}font-bold text-sky-900{% else %}font-medium{% endif %}">Contacto</a>
+      {% if ecommerce_customer_user %}
+        <a href="{{ url_for('customer_auth.dashboard') }}"
+           class="text-2xl text-heading hover:text-body transition-colors font-medium">Mi cuenta</a>
+        <form method="post" action="{{ url_for('customer_auth.logout') }}">
+          <input type="hidden"
+                 name="csrf_token"
+                 value="{{ csrf_token() if csrf_token else '' }}">
+          <button type="submit"
+                  class="text-2xl text-heading hover:text-body transition-colors font-medium cursor-pointer">
+            Cerrar sesion
+          </button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('customer_auth.login') }}"
+           class="text-2xl text-heading hover:text-body transition-colors font-medium">Iniciar sesion</a>
+      {% endif %}
     </nav>
   </div>
   <!-- Integrated Search Bar -->
