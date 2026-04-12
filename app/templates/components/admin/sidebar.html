@@ -220,7 +220,7 @@
         </li>
         {% if can('ecommerce.manage') %}
           <li>
-            <a href="#"
+            <a href="{{ url_for('ecommerce.home') }}"
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
           </li>
         {% endif %}
