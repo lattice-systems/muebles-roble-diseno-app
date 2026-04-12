@@ -246,7 +246,7 @@ class CustomerAuthService:
             db.session.query(OrderItem.id)
             .join(Order, Order.id == OrderItem.order_id)
             .filter(OrderItem.product_id == product_id)
-            .filter(Order.status != "cancelado")
+            .filter(func.lower(Order.status) == "entregado")
             .filter(or_(*owner_filters))
             .first()
         )
@@ -297,9 +297,7 @@ class CustomerAuthService:
             raise ValueError("La calificación debe estar entre 1 y 5 estrellas.")
 
         if not CustomerAuthService.has_purchased_product(customer_user, product_id):
-            raise ValueError(
-                "Solo puedes reseñar productos que hayas comprado previamente."
-            )
+            raise ValueError("Solo puedes reseñar productos con pedido entregado.")
 
         clean_review_text = (review_text or "").strip() or None
         review = ProductReview.query.filter_by(

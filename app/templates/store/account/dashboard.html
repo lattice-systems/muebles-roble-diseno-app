@@ -45,9 +45,29 @@
           <a href="{{ url_for('customer_auth.orders') }}"
              class="text-sm font-medium text-sky-900 hover:underline">Ver historial</a>
         </div>
+        {% set status_labels = {
+          "pendiente": "Pendiente",
+          "en_proceso": "En proceso",
+          "en_produccion": "En produccion",
+          "enviado": "Enviado",
+          "entregado": "Entregado",
+          "cancelado": "Cancelado"
+        } %}
         {% if recent_orders %}
           <div class="space-y-3">
             {% for order in recent_orders %}
+              {% set status_key = (order.status or '')|lower|replace('-', '_') %}
+              {% set status_label = status_labels.get(status_key, (status_key|replace('_', ' ')|replace('-', ' ')|capitalize) if status_key else 'Sin estado') %}
+              {% set status_classes = "bg-amber-100 text-amber-700" %}
+              {% if status_key == 'entregado' %}
+                {% set status_classes = "bg-emerald-100 text-emerald-700" %}
+              {% elif status_key == 'cancelado' %}
+                {% set status_classes = "bg-rose-100 text-rose-700" %}
+              {% elif status_key in ['en_proceso', 'en_produccion'] %}
+                {% set status_classes = "bg-sky-100 text-sky-700" %}
+              {% elif status_key == 'enviado' %}
+                {% set status_classes = "bg-indigo-100 text-indigo-700" %}
+              {% endif %}
               <a href="{{ url_for('customer_auth.order_detail', order_id=order.id) }}"
                  class="block rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-sky-300 hover:bg-sky-50 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -56,9 +76,7 @@
                     <p class="text-xs text-body-subtle">{{ order.order_date.strftime("%Y-%m-%d %H:%M") if order.order_date else '-' }}</p>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {% if order.status == 'entregado' %}bg-emerald-100 text-emerald-700{% elif order.status == 'cancelado' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-700{% endif %}">
-                      {{ order.status }}
-                    </span>
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ status_classes }}">{{ status_label }}</span>
                     <span class="text-sm font-semibold text-heading">MX {{ '{:,.2f}'.format(order.total or 0) }}</span>
                   </div>
                 </div>
