@@ -27,7 +27,7 @@ def _number(value) -> str:
 def index():
     # Generar snapshot de costos si ha habido cambios
     CostService.generate_snapshot_if_changed()
-    
+
     search_term = request.args.get("q", "").strip()
     page = request.args.get("page", 1, type=int)
 
