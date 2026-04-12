@@ -272,7 +272,18 @@ def product(product_id: int):
 
     customer_user = get_current_customer_user()
     rating_summary = EcommerceService.get_product_rating_summary(product_id)
-    reviews = EcommerceService.get_product_reviews(product_id)
+    selected_rating_filter = request.args.get("rating", type=int)
+    if selected_rating_filter not in {1, 2, 3, 4, 5}:
+        selected_rating_filter = None
+
+    reviews_page = request.args.get("reviews_page", 1, type=int) or 1
+    reviews_payload = EcommerceService.get_product_reviews_paginated(
+        product_id,
+        page=reviews_page,
+        per_page=6,
+        rating_filter=selected_rating_filter,
+    )
+    review_breakdown = EcommerceService.get_product_review_breakdown(product_id)
     user_review = None
     can_review = False
     if customer_user:
@@ -289,7 +300,10 @@ def product(product_id: int):
         product=product_data,
         related_products=related_products,
         rating_summary=rating_summary,
-        reviews=reviews,
+        reviews=reviews_payload["reviews"],
+        reviews_pagination=reviews_payload,
+        review_breakdown=review_breakdown,
+        selected_rating_filter=selected_rating_filter,
         user_review=user_review,
         can_review=can_review,
         customer_user=customer_user,

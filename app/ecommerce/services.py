@@ -567,6 +567,96 @@ class EcommerceService:
         ]
 
     @staticmethod
+    def get_product_review_breakdown(product_id: int) -> dict[str, object]:
+        rows = (
+            db.session.query(
+                ProductReview.rating,
+                func.count(ProductReview.id),
+            )
+            .filter(ProductReview.product_id == product_id)
+            .group_by(ProductReview.rating)
+            .all()
+        )
+
+        by_rating = {rating: 0 for rating in range(1, 6)}
+        total = 0
+        for rating, count in rows:
+            safe_rating = int(rating or 0)
+            safe_count = int(count or 0)
+            if safe_rating in by_rating:
+                by_rating[safe_rating] = safe_count
+                total += safe_count
+
+        return {
+            "total": total,
+            "by_rating": by_rating,
+        }
+
+    @staticmethod
+    def get_product_reviews_paginated(
+        product_id: int,
+        *,
+        page: int = 1,
+        per_page: int = 6,
+        rating_filter: int | None = None,
+    ) -> dict[str, object]:
+        safe_per_page = max(1, min(per_page, 20))
+        safe_page = max(1, page if isinstance(page, int) else 1)
+        normalized_rating_filter = (
+            rating_filter
+            if isinstance(rating_filter, int) and 1 <= rating_filter <= 5
+            else None
+        )
+
+        query = ProductReview.query.options(
+            selectinload(ProductReview.customer_user)
+        ).filter(ProductReview.product_id == product_id)
+        if normalized_rating_filter is not None:
+            query = query.filter(ProductReview.rating == normalized_rating_filter)
+
+        total_reviews = query.count()
+        total_pages = max(1, ceil(total_reviews / safe_per_page))
+        current_page = min(safe_page, total_pages)
+        offset = (current_page - 1) * safe_per_page
+
+        reviews = (
+            query.order_by(ProductReview.updated_at.desc(), ProductReview.id.desc())
+            .offset(offset)
+            .limit(safe_per_page)
+            .all()
+        )
+
+        serialized_reviews = [
+            {
+                "id": review.id,
+                "rating": review.rating,
+                "review_text": review.review_text,
+                "created_at": review.created_at,
+                "updated_at": review.updated_at,
+                "author_name": (
+                    review.customer_user.full_name
+                    if review.customer_user
+                    else "Cliente"
+                ),
+                "customer_user_id": review.customer_user_id,
+            }
+            for review in reviews
+        ]
+
+        return {
+            "reviews": serialized_reviews,
+            "total_reviews": total_reviews,
+            "page": current_page,
+            "per_page": safe_per_page,
+            "total_pages": total_pages,
+            "has_prev": current_page > 1,
+            "has_next": current_page < total_pages,
+            "prev_page": current_page - 1,
+            "next_page": current_page + 1,
+            "rating_filter": normalized_rating_filter,
+        }
+
+    @staticmethod
     def _normalize_quantity(quantity: object, *, minimum: int = 1) -> int:
         try:
             parsed_quantity = int(quantity)
