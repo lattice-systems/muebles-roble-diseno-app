@@ -10,7 +10,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import create_app
 from app.models import Bom, Product, RawMaterial
 from app.production.services import ProductionService
-from seed_dataset import BOM_TEMPLATES, PRODUCTS
+from seed_dataset import BOM_TEMPLATES, PRODUCTS, RAW_MATERIALS
+from seed_pricing_rules import (
+    PriceQuote,
+    build_material_catalog,
+    build_price_quote,
+    load_images_by_sku,
+)
 
 BOM_VERSION = "v1"
 
@@ -35,11 +41,49 @@ def _build_material_index() -> dict[str, RawMaterial]:
     return {material.name: material for material in materials}
 
 
+def _build_price_quotes_for_bom() -> dict[str, PriceQuote]:
+    images_by_sku = load_images_by_sku()
+    material_catalog = build_material_catalog(RAW_MATERIALS)
+
+    quotes_by_sku: dict[str, PriceQuote] = {}
+    errors: list[str] = []
+
+    for product_data in PRODUCTS:
+        template_name = product_data.get("bom_template")
+        template = BOM_TEMPLATES.get(template_name)
+        if not template:
+            errors.append(
+                f"{product_data['sku']}: no se encontro bom_template '{template_name}'"
+            )
+            continue
+
+        try:
+            quote = build_price_quote(
+                product_data=product_data,
+                base_template=template,
+                image_urls=images_by_sku.get(product_data["sku"], []),
+                material_catalog=material_catalog,
+            )
+            quotes_by_sku[product_data["sku"]] = quote
+        except Exception as exc:
+            errors.append(f"{product_data['sku']}: {exc}")
+
+    if errors:
+        joined_errors = "\n- ".join(errors)
+        raise RuntimeError(
+            "No se puede sembrar BOM por inconsistencias visual-material:\n"
+            f"- {joined_errors}"
+        )
+
+    return quotes_by_sku
+
+
 def seed_bom() -> None:
     app = create_app()
     with app.app_context():
         product_index = _build_product_index()
         material_index = _build_material_index()
+        price_quotes = _build_price_quotes_for_bom()
 
         created = 0
         updated = 0
@@ -54,15 +98,15 @@ def seed_bom() -> None:
                 continue
 
             template_name = product_data.get("bom_template")
-            template = BOM_TEMPLATES.get(template_name)
-            if not template:
-                print(f"  ⚠️ BOM template no encontrado para {sku}: {template_name}")
+            quote = price_quotes.get(sku)
+            if quote is None:
+                print(f"  ⚠️ Sin cotizacion visual para {sku}")
                 skipped += 1
                 continue
 
             items_data = []
             missing_materials = []
-            for item in template:
+            for item in quote.adjusted_template:
                 material = material_index.get(item["raw_material"])
                 if not material:
                     missing_materials.append(item["raw_material"])
@@ -84,8 +128,8 @@ def seed_bom() -> None:
                 continue
 
             description = (
-                f"BOM inicial ({template_name}) | referencia madera: "
-                f"{product_data.get('wood_type', 'N/A')}"
+                f"BOM semilla {template_name} | "
+                f"referencia de madera: {product_data.get('wood_type', 'N/A')}"
             )
 
             existing = Bom.query.filter_by(
@@ -113,7 +157,10 @@ def seed_bom() -> None:
                         user_id=None,
                     )
                     created += 1
-                    print(f"  ✅ BOM creado: {sku} ({template_name})")
+                    print(
+                        f"  ✅ BOM creado: {sku} ({template_name}) "
+                        f"precio_objetivo=${quote.sale_price:,.2f}"
+                    )
             except Exception as exc:
                 print(f"  ❌ Error BOM {sku}: {exc}")
                 skipped += 1
