@@ -94,6 +94,52 @@ class TestCustomerAccountAuth:
 
         assert customer_user_id > 0
 
+    def test_logout_clears_customer_cart_and_keeps_guest_cart(
+        self, client, app, db_session, seed_basic_data
+    ):
+        with app.app_context():
+            customer = seed_basic_data["customer"]
+            product = seed_basic_data["product"]
+            customer_user = CustomerUser(
+                full_name=f"{customer.first_name} {customer.last_name}",
+                email=customer.email,
+                password_hash=hash_password("TestPass#123"),
+                status=True,
+            )
+            db_session.add(customer_user)
+            db_session.flush()
+            customer.user_id = customer_user.id
+            db_session.commit()
+            customer_user_id = customer_user.id
+
+        with client.session_transaction() as session:
+            session["ecommerce_cart_guest"] = {str(product.id): 2}
+
+        login_response = client.post(
+            "/ecommerce/account/login",
+            data={
+                "email": "juan@test.com",
+                "password": "TestPass#123",
+            },
+            follow_redirects=False,
+        )
+        assert login_response.status_code in (302, 303)
+
+        customer_cart_key = f"ecommerce_cart_user_{customer_user_id}"
+        with client.session_transaction() as session:
+            assert session.get(customer_cart_key) == {str(product.id): 2}
+            assert session.get("ecommerce_cart_guest") == {str(product.id): 2}
+
+        logout_response = client.post(
+            "/ecommerce/account/logout",
+            follow_redirects=False,
+        )
+        assert logout_response.status_code in (302, 303)
+
+        with client.session_transaction() as session:
+            assert session.get(customer_cart_key) is None
+            assert session.get("ecommerce_cart_guest") == {str(product.id): 2}
+
 
 class TestCustomerCheckoutAndReviews:
     def test_authenticated_checkout_sets_customer_user_id(

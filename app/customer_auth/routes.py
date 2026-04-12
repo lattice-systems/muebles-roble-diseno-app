@@ -207,12 +207,17 @@ def dashboard():
         page=1,
         per_page=5,
     )
+    recent_reviews = CustomerAuthService.get_recent_reviews_for_user(
+        customer_user,
+        limit=4,
+    )
 
     return render_template(
         "store/account/dashboard.html",
         customer_user=customer_user,
         customer=CustomerAuthService.get_linked_customer(customer_user),
         recent_orders=pagination.items,
+        recent_reviews=recent_reviews,
         total_orders=pagination.total,
         total_reviews=len(customer_user.reviews),
     )

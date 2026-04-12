@@ -263,6 +263,20 @@ class CustomerAuthService:
         ).first()
 
     @staticmethod
+    def get_recent_reviews_for_user(
+        customer_user: CustomerUser,
+        limit: int = 4,
+    ) -> list[ProductReview]:
+        safe_limit = max(1, min(limit, 12))
+        return (
+            ProductReview.query.options(selectinload(ProductReview.product))
+            .filter(ProductReview.customer_user_id == customer_user.id)
+            .order_by(ProductReview.updated_at.desc(), ProductReview.id.desc())
+            .limit(safe_limit)
+            .all()
+        )
+
+    @staticmethod
     def upsert_review(
         *,
         customer_user: CustomerUser,

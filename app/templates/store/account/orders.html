@@ -3,46 +3,41 @@
   Mis pedidos | Roble y Diseno
 {% endblock title %}
 {% block content %}
-  <section class="max-w-7xl mx-auto px-6 py-10">
-    <div class="flex items-center justify-between gap-4 mb-6">
+  <section class="max-w-7xl mx-auto px-6 py-10 space-y-6">
+    <div class="flex items-center justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-heading">Mis pedidos</h1>
-        <p class="text-body mt-2">Consulta el historial y estado de tus compras.</p>
+        <p class="text-body mt-2">Consulta el historial, monto y estado de tus compras.</p>
       </div>
       <a href="{{ url_for('customer_auth.dashboard') }}"
          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-heading hover:bg-slate-100">Volver</a>
     </div>
-    <div class="rounded-xl border border-slate-200 bg-white p-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5">
       {% if orders %}
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-slate-200 text-left text-body-subtle">
-                <th class="py-2 pr-3">Pedido</th>
-                <th class="py-2 pr-3">Fecha</th>
-                <th class="py-2 pr-3">Estado</th>
-                <th class="py-2 pr-3">Total</th>
-                <th class="py-2">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for order in orders %}
-                <tr class="border-b border-slate-100">
-                  <td class="py-3 pr-3">#{{ order.id }}</td>
-                  <td class="py-3 pr-3">{{ order.order_date.strftime("%Y-%m-%d %H:%M") if order.order_date else '-' }}</td>
-                  <td class="py-3 pr-3">{{ order.status }}</td>
-                  <td class="py-3 pr-3">MX {{ '{:,.2f}'.format(order.total or 0) }}</td>
-                  <td class="py-3">
-                    <a href="{{ url_for('customer_auth.order_detail', order_id=order.id) }}"
-                       class="text-sky-900 font-medium hover:underline">Ver detalle</a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="space-y-3">
+          {% for order in orders %}
+            <a href="{{ url_for('customer_auth.order_detail', order_id=order.id) }}"
+               class="block rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-sky-300 hover:bg-sky-50 transition-colors">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-heading">Pedido #{{ order.id }}</p>
+                  <p class="text-xs text-body-subtle mt-1">
+                    {{ order.order_date.strftime("%Y-%m-%d %H:%M") if order.order_date else '-' }}
+                  </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full px-2.5 py-1 text-xs font-semibold {% if order.status == 'entregado' %}bg-emerald-100 text-emerald-700{% elif order.status == 'cancelado' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {{ order.status }}
+                  </span>
+                  <span class="text-sm font-semibold text-heading">MX {{ '{:,.2f}'.format(order.total or 0) }}</span>
+                  <span class="text-xs font-medium text-sky-900">Ver detalle</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
         </div>
         {% if pagination and pagination.pages > 1 %}
-          <div class="flex items-center justify-between mt-4 text-sm">
+          <div class="flex items-center justify-between mt-5 text-sm">
             <p class="text-body">Pagina {{ pagination.page }} de {{ pagination.pages }}</p>
             <div class="flex gap-2">
               {% if pagination.has_prev %}

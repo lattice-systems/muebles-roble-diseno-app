@@ -27,6 +27,10 @@ from app.shared.inventory_service import InventoryService
 class EcommerceService:
     """Servicios para la vitrina de e-commerce."""
 
+    LEGACY_CART_SESSION_KEY = "ecommerce_cart"
+    GUEST_CART_SESSION_KEY = "ecommerce_cart_guest"
+    CUSTOMER_CART_SESSION_PREFIX = "ecommerce_cart_user_"
+
     DEFAULT_PRODUCT_IMAGE = (
         "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e"
         "?auto=format&fit=crop&q=80&w=800"
@@ -213,18 +217,27 @@ class EcommerceService:
             "furniture_type_id": product.furniture_type_id,
             "category": category,
             "type_slug": type_slug,
+            "rating_average": 0.0,
+            "rating_count": 0,
+            "rating_total_points": 0,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
     @staticmethod
     def get_featured_products() -> list[dict[str, object]]:
         products = EcommerceService._query_products().limit(8).all()
-        return [EcommerceService._serialize_product(product) for product in products]
+        serialized_products = [
+            EcommerceService._serialize_product(product) for product in products
+        ]
+        return EcommerceService._attach_rating_summaries(serialized_products)
 
     @staticmethod
     def get_all_products() -> list[dict[str, object]]:
         products = EcommerceService._query_products().all()
-        return [EcommerceService._serialize_product(product) for product in products]
+        serialized_products = [
+            EcommerceService._serialize_product(product) for product in products
+        ]
+        return EcommerceService._attach_rating_summaries(serialized_products)
 
     @staticmethod
     def get_filtered_products(
@@ -449,10 +462,11 @@ class EcommerceService:
 
     @staticmethod
     def get_product_rating_summary(product_id: int) -> dict[str, object]:
-        average, count = (
+        average, count, total_points = (
             db.session.query(
                 func.avg(ProductReview.rating),
                 func.count(ProductReview.id),
+                func.coalesce(func.sum(ProductReview.rating), 0),
             )
             .filter(ProductReview.product_id == product_id)
             .first()
@@ -463,7 +477,64 @@ class EcommerceService:
         return {
             "average": round(average_float, 1) if count_int else 0.0,
             "count": count_int,
+            "total_points": int(total_points or 0),
         }
+
+    @staticmethod
+    def _get_rating_summary_map(product_ids: list[int]) -> dict[int, dict[str, object]]:
+        if not product_ids:
+            return {}
+
+        rows = (
+            db.session.query(
+                ProductReview.product_id,
+                func.avg(ProductReview.rating),
+                func.count(ProductReview.id),
+                func.coalesce(func.sum(ProductReview.rating), 0),
+            )
+            .filter(ProductReview.product_id.in_(product_ids))
+            .group_by(ProductReview.product_id)
+            .all()
+        )
+
+        summary_map: dict[int, dict[str, object]] = {}
+        for product_id, average, count, total_points in rows:
+            count_int = int(count or 0)
+            average_float = float(average) if average is not None else 0.0
+            summary_map[int(product_id)] = {
+                "average": round(average_float, 1) if count_int else 0.0,
+                "count": count_int,
+                "total_points": int(total_points or 0),
+            }
+
+        return summary_map
+
+    @staticmethod
+    def _attach_rating_summaries(
+        serialized_products: list[dict[str, object]],
+    ) -> list[dict[str, object]]:
+        product_ids = [
+            int(product_data.get("id"))
+            for product_data in serialized_products
+            if product_data.get("id")
+        ]
+        summary_map = EcommerceService._get_rating_summary_map(product_ids)
+
+        for product_data in serialized_products:
+            product_id = int(product_data.get("id") or 0)
+            summary = summary_map.get(
+                product_id,
+                {
+                    "average": 0.0,
+                    "count": 0,
+                    "total_points": 0,
+                },
+            )
+            product_data["rating_average"] = summary["average"]
+            product_data["rating_count"] = summary["count"]
+            product_data["rating_total_points"] = summary["total_points"]
+
+        return serialized_products
 
     @staticmethod
     def get_product_reviews(
@@ -504,8 +575,7 @@ class EcommerceService:
         return max(minimum, parsed_quantity)
 
     @staticmethod
-    def _get_cart_store() -> dict[int, int]:
-        raw_cart = session.get("ecommerce_cart", {})
+    def _normalize_cart_store(raw_cart: object) -> dict[int, int]:
         if not isinstance(raw_cart, dict):
             return {}
 
@@ -523,11 +593,96 @@ class EcommerceService:
         return normalized_cart
 
     @staticmethod
-    def _save_cart_store(cart_store: dict[int, int]) -> None:
-        session["ecommerce_cart"] = {
+    def _resolve_active_cart_key(customer_user_id: int | None = None) -> str:
+        resolved_user_id = customer_user_id
+        if resolved_user_id is None:
+            from app.customer_auth.decorators import get_current_customer_user
+
+            customer_user = get_current_customer_user()
+            if customer_user:
+                resolved_user_id = customer_user.id
+
+        if resolved_user_id:
+            return f"{EcommerceService.CUSTOMER_CART_SESSION_PREFIX}{int(resolved_user_id)}"
+
+        return EcommerceService.GUEST_CART_SESSION_KEY
+
+    @staticmethod
+    def _migrate_legacy_guest_cart() -> None:
+        if EcommerceService.LEGACY_CART_SESSION_KEY not in session:
+            return
+
+        if EcommerceService.GUEST_CART_SESSION_KEY not in session:
+            session[EcommerceService.GUEST_CART_SESSION_KEY] = session.get(
+                EcommerceService.LEGACY_CART_SESSION_KEY,
+                {},
+            )
+
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
+        session.modified = True
+
+    @staticmethod
+    def _get_cart_store_for_key(cart_key: str) -> dict[int, int]:
+        return EcommerceService._normalize_cart_store(session.get(cart_key, {}))
+
+    @staticmethod
+    def _save_cart_store_for_key(cart_key: str, cart_store: dict[int, int]) -> None:
+        session[cart_key] = {
             str(product_id): quantity for product_id, quantity in cart_store.items()
         }
         session.modified = True
+
+    @staticmethod
+    def _get_cart_store(*, customer_user_id: int | None = None) -> dict[int, int]:
+        EcommerceService._migrate_legacy_guest_cart()
+        cart_key = EcommerceService._resolve_active_cart_key(customer_user_id)
+        return EcommerceService._get_cart_store_for_key(cart_key)
+
+    @staticmethod
+    def _save_cart_store(
+        cart_store: dict[int, int], *, customer_user_id: int | None = None
+    ) -> None:
+        EcommerceService._migrate_legacy_guest_cart()
+        cart_key = EcommerceService._resolve_active_cart_key(customer_user_id)
+        EcommerceService._save_cart_store_for_key(cart_key, cart_store)
+
+    @staticmethod
+    def sync_guest_cart_to_customer(customer_user_id: int) -> None:
+        """Copia carrito guest a la cuenta si la cuenta aún no tiene carrito."""
+        if not customer_user_id:
+            return
+
+        EcommerceService._migrate_legacy_guest_cart()
+
+        guest_store = EcommerceService._get_cart_store_for_key(
+            EcommerceService.GUEST_CART_SESSION_KEY
+        )
+        if not guest_store:
+            return
+
+        customer_cart_key = EcommerceService._resolve_active_cart_key(
+            customer_user_id=customer_user_id
+        )
+        customer_store = EcommerceService._get_cart_store_for_key(customer_cart_key)
+        if customer_store:
+            return
+
+        normalized_customer_store: dict[int, int] = {}
+        for product_id, quantity in guest_store.items():
+            product = EcommerceService.get_product_by_id(product_id)
+            if not product:
+                continue
+
+            max_stock = EcommerceService._get_stock_for_product(product)
+            if max_stock <= 0:
+                continue
+
+            normalized_customer_store[product_id] = min(quantity, max_stock)
+
+        EcommerceService._save_cart_store_for_key(
+            customer_cart_key,
+            normalized_customer_store,
+        )
 
     @staticmethod
     def _get_stock_for_product(product_data: dict[str, object]) -> int:
@@ -595,9 +750,25 @@ class EcommerceService:
 
     @staticmethod
     def clear_cart() -> dict[str, object]:
-        session.pop("ecommerce_cart", None)
+        EcommerceService._migrate_legacy_guest_cart()
+        active_cart_key = EcommerceService._resolve_active_cart_key()
+        session.pop(active_cart_key, None)
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
         session.modified = True
         return EcommerceService.get_cart()
+
+    @staticmethod
+    def clear_customer_cart(customer_user_id: int) -> None:
+        if not customer_user_id:
+            return
+
+        EcommerceService._migrate_legacy_guest_cart()
+        customer_cart_key = EcommerceService._resolve_active_cart_key(
+            customer_user_id=customer_user_id
+        )
+        session.pop(customer_cart_key, None)
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
+        session.modified = True
 
     @staticmethod
     def get_cart() -> dict:

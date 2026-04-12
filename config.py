@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -129,9 +130,12 @@ class Config:
                 + ", ".join(missing)
             )
 
-    # Have session and remember cookie be samesite (flask/flask_login)
-    REMEMBER_COOKIE_SAMESITE = "strict"
-    SESSION_COOKIE_SAMESITE = "strict"
+    # Use Lax to keep sessions across top-level redirects (e.g. payment/marketing links).
+    REMEMBER_COOKIE_SAMESITE = os.getenv("REMEMBER_COOKIE_SAMESITE", "Lax")
+    SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+    PERMANENT_SESSION_LIFETIME = timedelta(
+        days=int(os.getenv("PERMANENT_SESSION_LIFETIME_DAYS", "14"))
+    )
 
 
 class TestingConfig(Config):

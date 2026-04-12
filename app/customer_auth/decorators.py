@@ -37,16 +37,35 @@ def get_current_customer_user() -> CustomerUser | None:
 
 def login_customer_user(user_id: int) -> None:
     """Establece sesión de cliente autenticado."""
-    session[SESSION_KEY] = int(user_id)
+    safe_user_id = int(user_id)
+    session[SESSION_KEY] = safe_user_id
+    session.permanent = True
     clear_pending_2fa()
+
+    from app.ecommerce.services import EcommerceService
+
+    EcommerceService.sync_guest_cart_to_customer(safe_user_id)
     session.modified = True
 
 
 def logout_customer_user() -> None:
     """Elimina únicamente estado de sesión del cliente ecommerce."""
+    raw_user_id = session.get(SESSION_KEY)
+    customer_user_id: int | None = None
+    try:
+        customer_user_id = int(raw_user_id) if raw_user_id else None
+    except (TypeError, ValueError):
+        customer_user_id = None
+
     session.pop(SESSION_KEY, None)
     clear_pending_2fa()
     session.pop(PENDING_2FA_SETUP_SECRET_KEY, None)
+
+    if customer_user_id:
+        from app.ecommerce.services import EcommerceService
+
+        EcommerceService.clear_customer_cart(customer_user_id)
+
     session.modified = True
 
 

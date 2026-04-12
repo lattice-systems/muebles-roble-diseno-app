@@ -29,11 +29,13 @@
             </button>
           {% endfor %}
         </div>
-        <div class="flex-1 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
-          <img id="product-main-image"
-               src="{{ product.images[0] }}"
-               alt="{{ product.title }}"
-               class="w-full h-115 object-cover">
+        <div class="flex-1 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
+          <div class="relative aspect-4/5 w-full overflow-hidden bg-white">
+            <img id="product-main-image"
+                 src="{{ product.images[0] }}"
+                 alt="{{ product.title }}"
+                 class="h-full w-full object-contain p-3 md:p-5">
+          </div>
         </div>
       </div>
       <div class="flex flex-col">
@@ -41,6 +43,21 @@
           <div>
             <h1 class="text-3xl md:text-4xl font-bold text-heading leading-tight">{{ product.title }}</h1>
             <p class="text-body mt-2">{{ product.subtitle }}</p>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <div class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5">
+                {% set average_round = rating_summary.average | round(0, 'common') | int %}
+                <div class="flex items-center gap-0.5">
+                  {% for star in range(1, 6) %}
+                    <span class="text-sm {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <p class="text-sm text-heading font-medium">{{ rating_summary.average }} de 5</p>
+              <p class="text-sm text-body">({{ rating_summary.count }} calificaciones)</p>
+              {% if rating_summary.count %}
+                <span class="text-xs text-body-subtle">{{ rating_summary.total_points }} estrellas acumuladas</span>
+              {% endif %}
+            </div>
           </div>
           <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {% if product.in_stock %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
             {% if product.in_stock %}
@@ -51,7 +68,7 @@
           </span>
         </div>
         <div class="mt-6 flex items-end gap-4">
-          <p class="text-3xl font-bold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
+          <p class="text-2xl md:text-3xl font-semibold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
           {% if product.original_price %}
             <p class="text-base text-body line-through pb-1">MX {{ "{:,.2f}".format(product.original_price) }}</p>
           {% endif %}
@@ -196,41 +213,51 @@
   </section>
   <section class="max-w-7xl mx-auto px-6 pb-14">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <article class="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 class="text-2xl font-semibold text-heading mb-2">Calificaciones</h2>
-        <div class="flex items-center gap-3 mb-2">
-          <p class="text-4xl font-bold text-heading">{{ rating_summary.average }}</p>
-          <div class="flex items-center gap-1">
-            {% set average_round = rating_summary.average | round(0, 'common') | int %}
-            {% for star in range(1, 6) %}
-              <span class="text-xl {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
-            {% endfor %}
+      <article class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-2xl font-semibold text-heading mb-4">Calificaciones</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Promedio</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.average }}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Reseñas</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.count }}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Estrellas acumuladas</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.total_points }}</p>
           </div>
         </div>
-        <p class="text-sm text-body">{{ rating_summary.count }} reseñas verificadas.</p>
+        <div class="flex items-center gap-1 mb-3">
+          {% set average_round = rating_summary.average | round(0, 'common') | int %}
+          {% for star in range(1, 6) %}
+            <span class="text-xl {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+          {% endfor %}
+        </div>
+        <p class="text-sm text-body">Calificación global calculada con compras verificadas.</p>
         {% if ecommerce_customer_user %}
           {% if can_review %}
             <form method="post"
                   action="{{ url_for('customer_auth.review_product', product_id=product.id) }}"
-                  class="mt-5 space-y-3">
+                  class="mt-6 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
               <input type="hidden"
                      name="csrf_token"
                      value="{{ csrf_token() if csrf_token else '' }}">
               <div>
-                <label class="block mb-2 text-sm font-medium text-heading" for="rating">Tu calificacion</label>
-                <select id="rating"
-                        name="rating"
-                        required
-                        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                  <option value="">Selecciona una opcion</option>
+                <p class="text-sm font-medium text-heading">Tu calificación</p>
+                <div class="rating-input mt-2" aria-label="Selecciona de 1 a 5 estrellas">
                   {% for value in range(5, 0, -1) %}
-                    <option value="{{ value }}"
-                            {% if user_review and user_review.rating == value %}selected{% endif %}>
-                      {{ value }} estrella
-                      {% if value != 1 %}s{% endif %}
-                    </option>
+                    <input type="radio"
+                           id="rating-{{ value }}"
+                           name="rating"
+                           value="{{ value }}"
+                           {% if user_review and user_review.rating == value %}checked{% endif %}
+                           required>
+                    <label for="rating-{{ value }}" title="{{ value }} estrellas">&#9733;</label>
                   {% endfor %}
-                </select>
+                </div>
+                <p class="mt-1 text-xs text-body-subtle">Selecciona las estrellas tocando o haciendo clic.</p>
               </div>
               <div>
                 <label class="block mb-2 text-sm font-medium text-heading" for="review_text">Comentario (opcional)</label>
@@ -256,27 +283,27 @@
           <p class="mt-4 text-sm text-body">
             <a href="{{ url_for('customer_auth.login', next=request.path) }}"
                class="text-sky-900 hover:underline font-medium">Inicia sesion</a>
-            para dejar tu reseña y calificacion.
+            para dejar tu reseña y calificación.
           </p>
         {% endif %}
       </article>
-      <article class="rounded-xl border border-slate-200 bg-white p-5">
+      <article class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-2xl font-semibold text-heading mb-4">Reseñas recientes</h2>
         {% if reviews %}
-          <div class="space-y-4 max-h-112 overflow-y-auto pr-1">
+          <div class="space-y-3 max-h-120 overflow-y-auto pr-1">
             {% for review in reviews %}
-              <div class="border-b border-slate-100 pb-3">
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div class="flex items-center justify-between gap-2">
                   <p class="text-sm font-semibold text-heading">{{ review.author_name }}</p>
                   <p class="text-xs text-body-subtle">{{ review.updated_at.strftime("%Y-%m-%d") if review.updated_at else '' }}</p>
                 </div>
-                <div class="flex items-center gap-1 mt-1 mb-2">
+                <div class="flex items-center gap-1 mt-2 mb-2">
                   {% for star in range(1, 6) %}
                     <span class="text-base {% if star <= review.rating %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
                   {% endfor %}
                 </div>
                 {% if review.review_text %}
-                  <p class="text-sm text-body">{{ review.review_text }}</p>
+                  <p class="text-sm text-body leading-relaxed">{{ review.review_text }}</p>
                 {% else %}
                   <p class="text-sm text-body-subtle italic">Sin comentario adicional.</p>
                 {% endif %}
@@ -284,7 +311,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <p class="text-sm text-body">Aun no hay reseñas para este producto.</p>
+          <p class="text-sm text-body">Aún no hay reseñas para este producto.</p>
         {% endif %}
       </article>
     </div>
@@ -298,6 +325,34 @@
       <div class="text-center">{{ outline_button("Mostrar Más") }}</div>
     </div>
   </div>
+  <style>
+      .rating-input {
+          display: inline-flex;
+          flex-direction: row-reverse;
+          gap: 0.25rem;
+      }
+
+      .rating-input input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+      }
+
+      .rating-input label {
+          color: #cbd5e1;
+          cursor: pointer;
+          font-size: 1.8rem;
+          line-height: 1;
+          transition: color 0.15s ease, transform 0.15s ease;
+      }
+
+      .rating-input label:hover,
+      .rating-input label:hover~label,
+      .rating-input input:checked~label {
+          color: #f59e0b;
+          transform: translateY(-1px);
+      }
+  </style>
   <script>
       (() => {
           const thumbs = document.querySelectorAll(".product-thumb");
