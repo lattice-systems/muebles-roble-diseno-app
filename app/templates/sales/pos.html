@@ -45,7 +45,7 @@
             {# Grid de productos (2 columnas fijas, scroll independiente) #}
             <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-1 max-h-104 md:max-h-136 xl:max-h-none">
               {% if products %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {% for product in products %}
                     {% set stock = product.inventory_records[0].stock if product.inventory_records else 0 %}
                     {% set ordered_images = product.pos_images if product.pos_images is defined else product.images %}
@@ -54,9 +54,9 @@
                       {% set product_images = [url_for('static', filename='src/images/sofa.png')] %}
                     {% endif %}
                     {# Flowbite product card exacto — altura uniforme con flex-col #}
-                    <div class="w-full bg-neutral-primary-soft p-3 2xl:p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col">
+                    <div class="w-full bg-neutral-primary-soft p-3 2xl:p-4 border border-default rounded-base shadow-xs min-w-0 flex flex-col h-full">
                       {# Imagen — siempre misma altura #}
-                      <div class="group relative rounded-base mb-4 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0 h-28 md:h-30"
+                      <div class="group relative rounded-base mb-3 bg-neutral-secondary-medium overflow-hidden flex items-center justify-center shrink-0 h-28 md:h-30"
                            data-carousel-card>
                         <img class="h-full w-full object-contain p-2 transition-transform duration-200 group-hover:scale-[1.02]"
                              src="{{ product_images[0] }}"
@@ -96,76 +96,91 @@
                         {% endif %}
                       </div>
                       {# Contenido — flex-col flex-1 para que el botón quede siempre abajo #}
-                      <div class="flex flex-col flex-1">
+                      <div class="flex flex-col flex-1 min-h-0">
                         {# Estrellas + SKU badge #}
-                        <div class="flex items-center space-x-3 mb-3">
-                          <div class="flex items-center space-x-1 rtl:space-x-reverse">
-                            {% for _ in range(5) %}
-                              <svg class="w-4 h-4 text-fg-yellow"
-                                   aria-hidden="true"
-                                   xmlns="http://www.w3.org/2000/svg"
-                                   width="24"
-                                   height="24"
-                                   fill="currentColor"
-                                   viewBox="0 0 24 24">
-                                <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
-                              </svg>
-                            {% endfor %}
+                        {% set rating_average = product.pos_rating_average if product.pos_rating_average is defined else 0 %}
+                        {% set rating_count = product.pos_rating_count if product.pos_rating_count is defined else 0 %}
+                        <div class="flex flex-col gap-1 mb-1">
+                          <div class="flex items-center gap-1.5 min-w-0">
+                            <div class="flex items-center space-x-0.5 rtl:space-x-reverse shrink-0">
+                              {% for star in range(1, 6) %}
+                                <svg class="w-3.5 h-3.5 {{ 'text-fg-yellow' if rating_average >= star else 'text-body opacity-40' }}"
+                                     aria-hidden="true"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     width="24"
+                                     height="24"
+                                     fill="currentColor"
+                                     viewBox="0 0 24 24">
+                                  <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
+                                </svg>
+                              {% endfor %}
+                            </div>
+                            <span class="text-2xs text-body truncate">
+                              {% if rating_count > 0 %}
+                                {{ "%.1f"|format(rating_average) }} ({{ rating_count }})
+                              {% else %}
+                                Sin reseñas
+                              {% endif %}
+                            </span>
                           </div>
-                          <span class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-xs font-medium px-1.5 py-0.5 rounded-sm">{{
-                          product.sku }}</span>
+                          <div>
+                            <span class="bg-brand-softer border border-brand-subtle text-fg-brand-strong text-[11px] font-medium px-1.5 py-0.5 rounded-sm">{{
+                            product.sku }}</span>
+                          </div>
                         </div>
                         {# Nombre — 1 línea fija #}
-                        <h5 class="text-xs 2xl:text-sm text-heading font-semibold tracking-tight line-clamp-1 mb-1">
+                        <h5 class="mt-1 text-xs 2xl:text-sm text-heading font-semibold tracking-tight line-clamp-1 leading-snug">
                           {{ product.name
                           }}
                         </h5>
                         {# Descripción — 2 líneas fijas, ocupa espacio con flex-1 #}
-                        <p class="text-xs 2xl:text-sm text-body line-clamp-2 flex-1">{{ product.description or '—' }}</p>
-                        <p class="text-xs 2xl:text-sm mt-2 {{ 'text-fg-success-strong' if stock > 0 else 'text-fg-danger' }}">
+                        <p class="mt-1 text-xs 2xl:text-sm text-body line-clamp-2 flex-1 leading-relaxed">{{ product.description or '—' }}</p>
+                        <p class="mt-1 text-xs 2xl:text-sm font-medium {{ 'text-fg-success-strong' if stock > 0 else 'text-fg-danger' }}">
                           Stock: {{ stock }}
                         </p>
                         {# Precio + botones — siempre clavado al fondo con mt-4 #}
-                        <div class="flex items-center justify-between mt-4">
-                          <span class="text-lg 2xl:text-xl font-extrabold text-heading">${{ "%.0f"|format(product.price) 
-                          }}</span>
-                          <div class="flex items-center gap-1.5">
-                            <button type="button"
-                                    data-action="show-product-info"
-                                    data-info-name="{{ product.name }}"
-                                    data-info-sku="{{ product.sku }}"
-                                    data-info-price="{{ product.price }}"
-                                    data-info-description="{{ product.description or '—' }}"
-                                    data-info-specifications="{{ product.specifications or '' }}"
-                                    class="btn-product-info inline-flex items-center justify-center text-fg-brand bg-brand-softer hover:bg-brand-subtle box-border border border-brand-subtle focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-8 h-8 2xl:w-9 2xl:h-9 focus:outline-none transition-colors"
-                                    title="Ver descripción del producto">
-                              <svg class="w-4 h-4"
-                                   aria-hidden="true"
-                                   xmlns="http://www.w3.org/2000/svg"
-                                   fill="none"
-                                   viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                              </svg>
-                              <span class="sr-only">Ver descripción</span>
-                            </button>
-                            <button type="button"
-                                    data-product-id="{{ product.id }}"
-                                    data-product-name="{{ product.name }}"
-                                    data-product-price="{{ product.price }}"
-                                    data-product-sku="{{ product.sku }}"
-                                    class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
-                                    {% if stock <=0 %}disabled aria-disabled="true"{% endif %}>
-                              <svg class="w-4 h-4 me-1.5"
-                                   aria-hidden="true"
-                                   xmlns="http://www.w3.org/2000/svg"
-                                   width="24"
-                                   height="24"
-                                   fill="none"
-                                   viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
-                              </svg>
-                              {{ 'Agregar' if stock > 0 else 'Sin stock' }}
-                            </button>
+                        <div class="mt-auto pt-2">
+                          <div class="flex items-center justify-between gap-2">
+                            <span class="text-sm 2xl:text-base font-semibold text-heading">${{ "%.0f"|format(product.price) 
+                            }}</span>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                              <button type="button"
+                                      data-action="show-product-info"
+                                      data-info-name="{{ product.name }}"
+                                      data-info-sku="{{ product.sku }}"
+                                      data-info-price="{{ product.price }}"
+                                      data-info-description="{{ product.description or '—' }}"
+                                      data-info-specifications="{{ product.specifications or '' }}"
+                                      class="btn-product-info inline-flex items-center justify-center text-fg-brand bg-brand-softer hover:bg-brand-subtle box-border border border-brand-subtle focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-8 h-8 2xl:w-9 2xl:h-9 focus:outline-none transition-colors"
+                                      title="Ver descripción del producto">
+                                <svg class="w-4 h-4"
+                                     aria-hidden="true"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none"
+                                     viewBox="0 0 24 24">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                                <span class="sr-only">Ver descripción</span>
+                              </button>
+                              <button type="button"
+                                      data-product-id="{{ product.id }}"
+                                      data-product-name="{{ product.name }}"
+                                      data-product-price="{{ product.price }}"
+                                      data-product-sku="{{ product.sku }}"
+                                      class="btn-add-product inline-flex items-center text-white {{ 'bg-brand hover:bg-brand-strong focus:ring-brand-medium' if stock > 0 else 'bg-neutral-tertiary-medium cursor-not-allowed' }} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                                      {% if stock <=0 %}disabled aria-disabled="true"{% endif %}>
+                                <svg class="w-4 h-4 me-1.5"
+                                     aria-hidden="true"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     width="24"
+                                     height="24"
+                                     fill="none"
+                                     viewBox="0 0 24 24">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312" />
+                                </svg>
+                                {{ 'Agregar' if stock > 0 else 'Sin stock' }}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -441,7 +456,7 @@
                 <span id="ivaDisplay" class="font-medium text-heading">$0.00</span>
               </div>
               <div id="freightRow"
-                   class="hidden flex items-center justify-between text-xs 2xl:text-sm text-body">
+                   class="hidden items-center justify-between text-xs 2xl:text-sm text-body">
                 <span class="flex items-center gap-1">
                   <svg class="w-3.5 h-3.5"
                        aria-hidden="true"

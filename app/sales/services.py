@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import selectinload
 
 from app.exceptions import NotFoundError
@@ -16,6 +16,7 @@ from app.models.payment import Payment
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_inventory import ProductInventory
+from app.models.product_review import ProductReview
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
 from app.shared.audit_logging import log_application_audit
@@ -240,8 +241,36 @@ class SaleService:
             error_out=False,
         )
 
+        rating_summary_by_product_id: dict[int, dict[str, float | int]] = {}
+        product_ids = [
+            product.id for product in pagination.items if product.id is not None
+        ]
+        if product_ids:
+            rows = (
+                db.session.query(
+                    ProductReview.product_id,
+                    func.avg(ProductReview.rating),
+                    func.count(ProductReview.id),
+                )
+                .filter(ProductReview.product_id.in_(product_ids))
+                .group_by(ProductReview.product_id)
+                .all()
+            )
+
+            for product_id, average_rating, rating_count in rows:
+                safe_product_id = int(product_id)
+                safe_average = float(average_rating or 0)
+                safe_count = int(rating_count or 0)
+                rating_summary_by_product_id[safe_product_id] = {
+                    "average": round(safe_average, 1),
+                    "count": safe_count,
+                }
+
         for product in pagination.items:
             product.pos_images = SaleService._sort_product_images(product.images or [])
+            summary = rating_summary_by_product_id.get(product.id, {})
+            product.pos_rating_average = float(summary.get("average", 0.0))
+            product.pos_rating_count = int(summary.get("count", 0))
 
         return pagination
 
