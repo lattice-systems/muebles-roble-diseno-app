@@ -18,7 +18,7 @@
   <body>
     {% set is_ecommerce_auth = request.path.startswith('/ecommerce/account') %}
     <div class="flex w-full h-screen flex-row {% if is_ecommerce_auth %}gap-4 p-4 lg:gap-6 lg:p-6{% else %}gap-8 p-8{% endif %}">
-      <div class="flex w-full items-center p-2 {% if is_ecommerce_auth %}flex-col justify-center gap-4{% else %}flex-col justify-between{% endif %}">
+      <div class="flex w-full items-center p-2 flex-col justify-between {% if is_ecommerce_auth %}gap-3{% endif %}">
         <div class="w-full">
           <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
                alt="Logo Roble Diseño"
@@ -90,7 +90,7 @@
           {% block content %}
           {% endblock content %}
         </main>
-        <footer class="text-body-subtle flex flex-row justify-between w-full {% if is_ecommerce_auth %}text-xs mt-1{% endif %}">
+        <footer class="text-body-subtle text-xs flex flex-row justify-between w-full {% if is_ecommerce_auth %}mt-1{% endif %}">
           <p>Lattice Systems - 2026</p>
           <a href="#" class="hover:underline">Política de privacidad</a>
         </footer>
