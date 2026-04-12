@@ -1,9 +1,44 @@
-{% extends "base.html" %}
-{% block title %}
-  Error {{ code }} - Furniture Store
-{% endblock title %}
-{% block content %}
-  <h1>Error {{ code }}</h1>
-  <p>{{ message }}</p>
-  <a href="{{ url_for('colors.create_color') }}">Volver al inicio</a>
-{% endblock content %}
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error {{ code }} | Roble y Diseno</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='dist/output.css') }}" />
+  </head>
+  <body class="min-h-screen bg-white text-slate-900 antialiased">
+    <section class="flex min-h-screen items-center justify-center bg-white">
+      <div class="relative z-10 mx-auto w-full max-w-3xl px-6 py-12 text-center sm:px-10">
+        <p class="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Ups, algo no salio como esperabamos</p>
+        <h1 class="mb-3 text-7xl font-extrabold tracking-tight text-sky-700 sm:text-8xl lg:text-9xl">{{ code }}</h1>
+        {% if code == 404 %}
+          <p class="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">No encontramos esta pagina</p>
+          <p class="mb-8 text-base text-slate-600 sm:text-lg">Es posible que el enlace haya cambiado o ya no este disponible.</p>
+        {% elif code == 403 %}
+          <p class="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">No tienes acceso a este contenido</p>
+          <p class="mb-8 text-base text-slate-600 sm:text-lg">{{ message }}</p>
+        {% elif code == 500 %}
+          <p class="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Tuvimos un problema interno</p>
+          <p class="mb-8 text-base text-slate-600 sm:text-lg">
+            Nuestro equipo ya fue notificado. Intenta de nuevo en unos minutos.
+          </p>
+        {% else %}
+          <p class="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Se interrumpio esta accion</p>
+          <p class="mb-8 text-base text-slate-600 sm:text-lg">{{ message }}</p>
+        {% endif %}
+        <div class="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <button type="button"
+                  onclick="window.history.back()"
+                  class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-300/70">
+            Volver a la pagina anterior
+          </button>
+          <a href="{{ url_for('ecommerce.home') }}"
+             class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100">
+            Ir al inicio
+          </a>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

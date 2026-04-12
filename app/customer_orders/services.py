@@ -561,6 +561,7 @@ class CustomerOrderService:
         cart_items: list[dict],
         payment_method_id: Optional[int],
         total: Decimal,
+        customer_user_id: Optional[int] = None,
         notes: str = "",
         estimated_delivery_date: Optional[date] = None,
     ) -> Order:
@@ -584,6 +585,7 @@ class CustomerOrderService:
             payment_method_id=payment_method_id,
             notes=notes or "Generada automáticamente desde e-commerce.",
             source="ecommerce",
+            customer_user_id=customer_user_id,
             created_by_id=None,
         )
         db.session.add(order)

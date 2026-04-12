@@ -1,0 +1,91 @@
+{% extends "layouts/login.html" %}
+{% block title %}
+  Roble y Diseno - Registro Cliente
+{% endblock title %}
+{% block login_heading %}
+  Crear cuenta
+{% endblock login_heading %}
+{% block step_description %}
+  Registrate para gestionar tu perfil, pedidos y reseñas.
+{% endblock step_description %}
+{% block login_image_src %}
+  {{ url_for('static', filename='src/images/login-customer-image.jpg') }}
+{% endblock login_image_src %}
+{% block login_image_alt %}
+  Sofa decorativo
+{% endblock login_image_alt %}
+{% block content %}
+  <form method="post"
+        action="{{ url_for('customer_auth.register') }}"
+        class="flex w-full max-w-md flex-col gap-3">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block mb-1.5 text-sm font-medium text-heading"
+               for="first_name">Nombre</label>
+        <input id="first_name"
+               name="first_name"
+               type="text"
+               required
+               class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+               value="{{ request.form.get('first_name', '') }}">
+      </div>
+      <div>
+        <label class="block mb-1.5 text-sm font-medium text-heading" for="last_name">Apellido</label>
+        <input id="last_name"
+               name="last_name"
+               type="text"
+               required
+               class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+               value="{{ request.form.get('last_name', '') }}">
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block mb-1.5 text-sm font-medium text-heading" for="email">Correo electronico</label>
+        <input id="email"
+               name="email"
+               type="email"
+               required
+               class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+               value="{{ request.form.get('email', '') }}">
+      </div>
+      <div>
+        <label class="block mb-1.5 text-sm font-medium text-heading" for="phone">Telefono</label>
+        <input id="phone"
+               name="phone"
+               type="text"
+               required
+               class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+               value="{{ request.form.get('phone', '') }}">
+      </div>
+    </div>
+    <div>
+      <label class="block mb-1.5 text-sm font-medium text-heading" for="password">Contrasena</label>
+      <input id="password"
+             name="password"
+             type="password"
+             required
+             class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+             placeholder="Minimo 8 caracteres, mayuscula, numero y simbolo">
+    </div>
+    <button type="submit"
+            class="rounded-lg bg-sky-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-800">
+      Crear cuenta
+    </button>
+    <p class="text-sm text-body-subtle text-center">
+      Ya tienes cuenta?
+      <a href="{{ url_for('customer_auth.login') }}"
+         class="font-medium text-sky-900 hover:underline">Inicia sesion</a>
+    </p>
+    <div class="mt-1 border-t border-default-medium/60 pt-3">
+      <p class="text-sm text-body-subtle text-center">Trabajas en Roble y Diseno?</p>
+      <p class="mt-1 text-sm text-center">
+        <a href="/login?next=/admin"
+           class="font-medium text-sky-900 hover:underline">Acceder al panel administrativo</a>
+      </p>
+    </div>
+  </form>
+{% endblock content %}

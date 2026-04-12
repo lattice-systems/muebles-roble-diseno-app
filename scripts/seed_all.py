@@ -24,6 +24,7 @@ BASE_SEED_ORDER = [
     "seed_purchase.py",
     "seed_bom.py",
     "seed_inventory.py",
+    "seed_ecommerce_orders_reviews.py",
 ]
 
 RBAC_SEED = "seed_users_by_role.py"

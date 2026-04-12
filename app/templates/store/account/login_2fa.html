@@ -1,0 +1,39 @@
+{% extends "layouts/login.html" %}
+{% block title %}
+  Roble y Diseno - Verificacion 2FA
+{% endblock title %}
+{% block login_heading %}
+  Verificacion de seguridad
+{% endblock login_heading %}
+{% block step_description %}
+  Ingresa el codigo de 6 digitos de tu aplicacion autenticadora.
+{% endblock step_description %}
+{% block content %}
+  <form method="post"
+        action="{{ url_for('customer_auth.login_2fa') }}"
+        class="flex flex-col gap-4 w-full max-w-md">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
+    <div>
+      <label class="block mb-2 text-sm font-medium text-heading" for="token">Codigo 2FA</label>
+      <input id="token"
+             name="token"
+             type="text"
+             required
+             inputmode="numeric"
+             pattern="[0-9]{6}"
+             maxlength="6"
+             class="block w-full rounded-base border border-default-medium px-3 py-2.5 text-sm"
+             placeholder="000000">
+    </div>
+    <button type="submit"
+            class="rounded-base bg-brand text-white py-2.5 px-4 text-sm font-medium hover:bg-brand-strong">
+      Verificar codigo
+    </button>
+    <p class="text-sm text-body-subtle text-center">
+      <a href="{{ url_for('customer_auth.login') }}"
+         class="text-brand hover:underline">Volver al inicio de sesion</a>
+    </p>
+  </form>
+{% endblock content %}

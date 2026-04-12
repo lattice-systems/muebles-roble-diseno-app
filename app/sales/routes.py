@@ -42,6 +42,13 @@ def pos():
     """
     search_term = request.args.get("q", "")
     page = request.args.get("page", 1, type=int)
+    catalog_raw = (request.args.get("catalog", "") or "").strip()
+    selected_catalog_id = int(catalog_raw) if catalog_raw.isdigit() else None
+
+    selected_sort = (request.args.get("sort", "name") or "name").strip()
+    valid_sort_options = {"name", "best_sellers", "best_rated"}
+    if selected_sort not in valid_sort_options:
+        selected_sort = "name"
 
     # Recuperar cliente de la sesión
     pos_customer = None
@@ -51,7 +58,13 @@ def pos():
         if not pos_customer:
             session.pop("pos_customer_id", None)
 
-    pagination = SaleService.get_products(search_term=search_term, page=page)
+    pagination = SaleService.get_products(
+        search_term=search_term,
+        page=page,
+        furniture_type_id=selected_catalog_id,
+        sort_by=selected_sort,
+    )
+    catalog_filters = SaleService.get_catalog_filters()
 
     return render_template(
         "sales/pos.html",
@@ -59,6 +72,12 @@ def pos():
         products=pagination.items,
         pagination=pagination,
         search_term=search_term,
+        catalog_filters=catalog_filters,
+        selected_catalog_id=selected_catalog_id,
+        selected_sort=selected_sort,
+        has_active_pos_filters=(
+            selected_catalog_id is not None or selected_sort != "name"
+        ),
     )
 
 

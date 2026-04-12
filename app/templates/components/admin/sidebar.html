@@ -220,7 +220,7 @@
         </li>
         {% if can('ecommerce.manage') %}
           <li>
-            <a href="#"
+            <a href="{{ url_for('ecommerce.home') }}"
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
           </li>
         {% endif %}
@@ -350,15 +350,20 @@
         };
 
         if (sidebar) {
-            const savedState = localStorage.getItem(collapsedStorageKey);
-            applySidebarState(savedState === "1");
+            const savedState = sessionStorage.getItem(collapsedStorageKey);
+            if (savedState === "1" || savedState === "0") {
+                applySidebarState(savedState === "1");
+            } else {
+                applySidebarState(true);
+                sessionStorage.setItem(collapsedStorageKey, "1");
+            }
         }
 
         if (compactToggle) {
             compactToggle.addEventListener("click", function() {
                 const nextCollapsed = !sidebar.classList.contains("sidebar-collapsed");
                 applySidebarState(nextCollapsed);
-                localStorage.setItem(collapsedStorageKey, nextCollapsed ? "1" : "0");
+                sessionStorage.setItem(collapsedStorageKey, nextCollapsed ? "1" : "0");
             });
         }
 
@@ -367,7 +372,7 @@
                 if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
                     event.preventDefault();
                     applySidebarState(false);
-                    localStorage.setItem(collapsedStorageKey, "0");
+                    sessionStorage.setItem(collapsedStorageKey, "0");
                 }
             });
         }
@@ -398,7 +403,7 @@
                 if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
                     event.preventDefault();
                     applySidebarState(false);
-                    localStorage.setItem(collapsedStorageKey, "0");
+                    sessionStorage.setItem(collapsedStorageKey, "0");
                     return;
                 }
             });

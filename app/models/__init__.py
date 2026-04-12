@@ -3,6 +3,7 @@ from .bom import Bom
 from .bom_item import BomItem
 from .color import Color
 from .customer import Customer
+from .customer_user import CustomerUser
 from .furniture_type import FurnitureType
 from .order import Order
 from .order_item import OrderItem
@@ -11,6 +12,7 @@ from .payment_method import PaymentMethod
 from .product import Product
 from .product_color import ProductColor
 from .product_inventory import ProductInventory
+from .product_review import ProductReview
 from .production_order import ProductionOrder
 from .production_order_material import ProductionOrderMaterial
 from .purchase_order import PurchaseOrder
@@ -35,6 +37,7 @@ __all__ = [
     "BomItem",
     "Color",
     "Customer",
+    "CustomerUser",
     "FurnitureType",
     "Order",
     "OrderItem",
@@ -43,6 +46,7 @@ __all__ = [
     "Product",
     "ProductColor",
     "ProductInventory",
+    "ProductReview",
     "ProductionOrder",
     "ProductionOrderMaterial",
     "PurchaseOrder",
