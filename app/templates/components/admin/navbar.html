@@ -27,6 +27,9 @@
 {% if can('customer_orders.read') %}
   {% set _ = admin_global_search_items.append({"label": "Ordenes de cliente", "group": "Ventas", "keywords": "pedidos ecommerce", "href": url_for('customer_orders.index')}) %}
 {% endif %}
+{% if can('ecommerce.manage') %}
+  {% set _ = admin_global_search_items.append({"label": admin_nav_links.ecommerce.label, "group": admin_nav_links.ecommerce.group, "keywords": admin_nav_links.ecommerce.keywords, "href": admin_nav_links.ecommerce.href}) %}
+{% endif %}
 {% if can('products.read') %}
   {% set _ = admin_global_search_items.append({"label": "Productos", "group": "Catalogo", "keywords": "articulos precios inventario", "href": url_for('products.index')}) %}
 {% endif %}
@@ -213,8 +216,8 @@
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
           </li>
           <li>
-            <a href="{{ url_for('ecommerce.home') }}"
-               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
+            <a href="{{ admin_nav_links.ecommerce.href }}"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">{{ admin_nav_links.ecommerce.label }}</a>
           </li>
           <li>
             <form action="{{ url_for('login.logout') }}"
