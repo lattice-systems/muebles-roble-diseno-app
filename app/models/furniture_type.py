@@ -15,6 +15,7 @@ class FurnitureType(AuditMixin, db.Model):
     subtitle = db.Column(db.String(255), nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
     slug = db.Column(db.String(120), nullable=True, unique=True, index=True)
+    requires_contact_request = db.Column(db.Boolean, nullable=False, default=False)
     status = db.Column(db.Boolean, nullable=False, default=True)
     active = synonym("status")
 
@@ -28,6 +29,7 @@ class FurnitureType(AuditMixin, db.Model):
             "subtitle": self.subtitle,
             "image_url": self.image_url,
             "slug": self.slug,
+            "requires_contact_request": self.requires_contact_request,
             "status": self.status,
             "active": self.active,
             **self._audit_dict(),

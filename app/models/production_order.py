@@ -12,6 +12,9 @@ class ProductionOrder(AuditMixin, db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(50), nullable=False)
     scheduled_date = db.Column(db.Date, nullable=False)
+    is_special_request = db.Column(db.Boolean, nullable=False, default=False)
+    do_not_add_to_finished_stock = db.Column(db.Boolean, nullable=False, default=False)
+    special_notes = db.Column(db.Text, nullable=True)
 
     # FK hacia la orden de cliente que originó esta orden de producción
     customer_order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=True)
@@ -54,6 +57,9 @@ class ProductionOrder(AuditMixin, db.Model):
             "scheduled_date": (
                 self.scheduled_date.isoformat() if self.scheduled_date else None
             ),
+            "is_special_request": self.is_special_request,
+            "do_not_add_to_finished_stock": self.do_not_add_to_finished_stock,
+            "special_notes": self.special_notes,
             **self._audit_dict(),
             "customer_order_id": self.customer_order_id,
         }

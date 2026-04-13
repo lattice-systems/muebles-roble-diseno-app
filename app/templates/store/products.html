@@ -113,6 +113,18 @@
   <section id="products-results"
            class="py-16 px-6 max-w-7xl mx-auto min-h-screen"
            style="scroll-margin-top: 6rem">
+    {% if selected_category and selected_category.requires_contact_request %}
+      <div class="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
+        <h3 class="text-lg font-semibold">Muebles personalizados</h3>
+        <p class="text-sm mt-1">
+          Esta categoría funciona bajo pedido. No se procesa compra directa en línea: debes contactar una sucursal o agendar una cita.
+        </p>
+        <a href="{{ url_for('ecommerce.contact', request_type='appointment') }}"
+           class="mt-3 inline-flex items-center rounded-lg bg-sky-900 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 transition-colors">
+          Agendar cita
+        </a>
+      </div>
+    {% endif %}
     {% if products %}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 justify-items-center w-full">
         {% for product in products %}<div class="block w-full h-full max-w-sm">{{ product_card(product) }}</div>{% endfor %}

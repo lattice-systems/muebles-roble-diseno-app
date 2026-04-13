@@ -16,6 +16,7 @@ class Product(AuditMixin, db.Model):
     description = db.Column(db.Text, nullable=True)
     specifications = db.Column(db.Text, nullable=True)
     price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    is_special_request = db.Column(db.Boolean, nullable=False, default=False)
     status = db.Column(db.Boolean, nullable=False, default=True)
 
     furniture_type = db.relationship("FurnitureType", back_populates="products")
@@ -52,6 +53,7 @@ class Product(AuditMixin, db.Model):
             "description": self.description,
             "specifications": self.specifications,
             "price": float(self.price) if self.price is not None else None,
+            "is_special_request": self.is_special_request,
             "status": self.status,
             **self._audit_dict(),
         }

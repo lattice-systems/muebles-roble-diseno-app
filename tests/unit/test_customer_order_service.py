@@ -258,6 +258,36 @@ class TestSendToProduction:
                 user_id=user.id,
             )
 
+    def test_send_special_order_to_production_without_bom_creates_order(
+        self, app, db_session, seed_basic_data
+    ):
+        """Las órdenes especiales deben avanzar a producción sin receta BOM."""
+        customer = seed_basic_data["customer"]
+        product = seed_basic_data["product"]
+        user = seed_basic_data["user"]
+
+        order = CustomerOrderService.create_order(
+            customer_id=customer.id,
+            items=[{"product_id": product.id, "quantity": 1}],
+            estimated_delivery_date=date.today() + timedelta(days=7),
+            created_by_id=user.id,
+            is_special_request=True,
+        )
+
+        production_orders = CustomerOrderService.send_to_production(
+            order_id=order.id,
+            user_id=user.id,
+        )
+
+        assert len(production_orders) == 1
+        production_order = production_orders[0]
+        assert production_order.customer_order_id == order.id
+        assert production_order.is_special_request is True
+        assert production_order.do_not_add_to_finished_stock is True
+
+        refreshed_order = CustomerOrderService.get_order_by_id(order.id)
+        assert refreshed_order.status == "en_produccion"
+
 
 class TestCreateFromEcommerce:
     """Tests para CustomerOrderService.create_from_ecommerce()."""

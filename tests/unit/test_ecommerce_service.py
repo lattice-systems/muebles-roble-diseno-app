@@ -205,6 +205,54 @@ class TestCartOperations:
             # total = subtotal + iva
             assert abs(cart["total"] - (cart["subtotal"] + cart["iva"])) < 0.02
 
+    def test_add_custom_furniture_product_is_blocked(
+        self, app, db_session, seed_basic_data
+    ):
+        """Los productos personalizados no se agregan al carrito e-commerce."""
+        from app.models.furniture_type import FurnitureType
+        from app.models.product import Product
+        from app.models.product_inventory import ProductInventory
+
+        custom_type = FurnitureType(
+            title="Muebles personalizados test",
+            subtitle="Categoria especial",
+            image_url="https://example.com/custom.jpg",
+            slug="muebles-personalizados-test",
+            requires_contact_request=True,
+            status=True,
+        )
+        db_session.add(custom_type)
+        db_session.flush()
+
+        custom_product = Product(
+            sku="CUSTOM-TEST-001",
+            name="Producto especial test",
+            furniture_type_id=custom_type.id,
+            description="Producto bajo pedido",
+            price=2500.0,
+            status=True,
+        )
+        db_session.add(custom_product)
+        db_session.flush()
+
+        db_session.add(
+            ProductInventory(
+                product_id=custom_product.id,
+                stock=5,
+            )
+        )
+        db_session.commit()
+
+        with app.test_request_context():
+            from flask import session
+
+            session.clear()
+            with pytest.raises(ValueError, match="bajo pedido"):
+                EcommerceService.add_product_to_cart(
+                    product_id=custom_product.id,
+                    quantity=1,
+                )
+
 
 class TestFreightQuote:
     """Tests para cotización de flete."""

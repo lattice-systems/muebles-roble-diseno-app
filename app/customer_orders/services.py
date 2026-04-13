@@ -162,6 +162,8 @@ class CustomerOrderService:
         payment_method_id: Optional[int] = None,
         notes: str = "",
         source: str = "manual",
+        is_special_request: bool = False,
+        customer_user_id: Optional[int] = None,
         created_by_id: Optional[int] = None,
     ) -> Order:
         """
@@ -231,6 +233,8 @@ class CustomerOrderService:
             payment_method_id=payment_method_id,
             notes=notes.strip() if notes else None,
             source=source,
+            is_special_request=bool(is_special_request),
+            customer_user_id=customer_user_id,
             created_by_id=created_by_id,
         )
         db.session.add(order)
@@ -320,7 +324,9 @@ class CustomerOrderService:
 
         - Reserva stock existente de producto terminado por item.
         - Si hay faltante, crea ProductionOrder solo por la cantidad faltante.
-        - Inicializa consumo planificado de materiales con la receta BOM.
+                - Inicializa consumo planificado de materiales con la receta BOM.
+                - Para órdenes especiales, no exige receta BOM y marca la orden para no
+                    ingresar inventario terminado general.
         - La orden de cliente siempre pasa a 'en_produccion' al enviarse.
         - El cierre a 'terminado' queda a cargo del módulo de Producción.
 
@@ -356,13 +362,17 @@ class CustomerOrderService:
                 status="pendiente",
                 scheduled_date=order.estimated_delivery_date or date.today(),
                 customer_order_id=order.id,
+                is_special_request=bool(order.is_special_request),
+                do_not_add_to_finished_stock=bool(order.is_special_request),
+                special_notes=(order.notes if order.is_special_request else None),
                 created_by=user_id,
                 updated_by=user_id,
             )
             db.session.add(prod_order)
             db.session.flush()
 
-            ProductionService.initialize_material_plan_for_order(prod_order)
+            if not order.is_special_request:
+                ProductionService.initialize_material_plan_for_order(prod_order)
             production_orders.append(prod_order)
 
         order.status = "en_produccion"

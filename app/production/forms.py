@@ -3,7 +3,14 @@ Formularios para el módulo de Producción y Recetas (BOM).
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, StringField, TextAreaField
+from wtforms import (
+    BooleanField,
+    DateField,
+    IntegerField,
+    SelectField,
+    StringField,
+    TextAreaField,
+)
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 
@@ -53,6 +60,20 @@ class ProductionOrderForm(FlaskForm):
     scheduled_date = DateField(
         "Fecha programada",
         validators=[DataRequired(message="La fecha programada es obligatoria")],
+    )
+
+    is_special_request = BooleanField("Orden especial de cliente")
+
+    do_not_add_to_finished_stock = BooleanField(
+        "No ingresar al stock general al terminar"
+    )
+
+    special_notes = TextAreaField(
+        "Notas especiales",
+        validators=[
+            Optional(),
+            Length(max=1000, message="Las notas no pueden exceder 1000 caracteres"),
+        ],
     )
 
 

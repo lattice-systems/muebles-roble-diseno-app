@@ -1,0 +1,178 @@
+{% extends "layouts/admin.html" %}
+{% from "admin/components/table_status_badge.html" import status_badge %}
+{% from "admin/components/table_header.html" import table_header %}
+{% from "admin/components/table_footer.html" import table_footer %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end %}
+{% macro request_status_badge(status) -%}
+  {% if status == 'new' %}
+    {{ status_badge('Nueva', 'warning') }}
+  {% elif status == 'assigned' %}
+    {{ status_badge('Asignada', 'info') }}
+  {% elif status == 'in_progress' %}
+    {{ status_badge('En proceso', 'brand') }}
+  {% elif status == 'responded' %}
+    {{ status_badge('Respondida', 'neutral') }}
+  {% elif status == 'completed' %}
+    {{ status_badge('Completada', 'success') }}
+  {% elif status == 'rejected' %}
+    {{ status_badge('Rechazada', 'danger') }}
+  {% else %}
+    {{ status_badge(status|replace('_', ' ') |title, 'neutral') }}
+  {% endif %}
+{%- endmacro %}
+{% macro request_type_label(request_type) -%}
+  {{ type_labels.get(request_type, request_type|replace('_', ' ') |title) }}
+{%- endmacro %}
+{% block title %}
+  Admin - Solicitudes personalizadas
+{% endblock title %}
+{% block content %}
+  <div class="flex flex-col gap-2.5 2xl:gap-4">
+    {% set admin_header_title = "Solicitudes personalizadas" %}
+    {% set admin_header_subtitle = "Gestiona contactos y citas para muebles bajo pedido" %}
+    {% include "admin/components/page_header.html" %}
+    {% include "admin/components/alerts.html" %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 2xl:gap-4">
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-4">
+        <p class="text-xs text-body">Total de solicitudes</p>
+        <p class="mt-1 text-xl 2xl:text-2xl font-semibold text-heading">{{ summary_metrics.total }}</p>
+      </div>
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-4">
+        <p class="text-xs text-body">Solicitudes abiertas</p>
+        <p class="mt-1 text-xl 2xl:text-2xl font-semibold text-heading">{{ summary_metrics.abiertas }}</p>
+      </div>
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-4">
+        <p class="text-xs text-body">Sin asignar</p>
+        <p class="mt-1 text-xl 2xl:text-2xl font-semibold text-heading">{{ summary_metrics.sin_asignar }}</p>
+      </div>
+      <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-4">
+        <p class="text-xs text-body">Convertidas a pedido</p>
+        <p class="mt-1 text-xl 2xl:text-2xl font-semibold text-heading">{{ summary_metrics.convertidas }}</p>
+      </div>
+    </div>
+    <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+      {% call table_header(
+        search_action=url_for('contact_requests.index'),
+        search_input_id='contact-request-search',
+        search_name='q',
+        search_value=search_term,
+        search_placeholder='Buscar por nombre, correo o asunto',
+        search_label='Buscar solicitudes',
+        hidden_fields=[('status', status_filter), ('type', type_filter)],
+        clear_condition=search_term,
+        clear_onclick="document.getElementById('contact-request-search').value='';document.getElementById('searchForm').submit();"
+        ) %}
+        <form method="get"
+              action="{{ url_for('contact_requests.index') }}"
+              class="flex flex-wrap items-end gap-2.5">
+          <input type="hidden" name="q" value="{{ search_term }}">
+          <div class="w-44">
+            <label for="status"
+                   class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Estado</label>
+            <select id="status"
+                    name="status"
+                    class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+              <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos</option>
+              {% for status in status_options %}
+                <option value="{{ status }}"
+                        {% if status_filter == status %}selected{% endif %}>
+                  {{ status_labels.get(status, status|replace('_', ' ') |title) }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="w-44">
+            <label for="type"
+                   class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Tipo</label>
+            <select id="type"
+                    name="type"
+                    class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+              <option value="all" {% if type_filter == 'all' %}selected{% endif %}>Todos</option>
+              {% for request_type in type_options %}
+                <option value="{{ request_type }}"
+                        {% if type_filter == request_type %}selected{% endif %}>
+                  {{ type_labels.get(request_type, request_type|replace('_', ' ') |title) }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button type="submit"
+                    class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+              Aplicar filtros
+            </button>
+            <a href="{{ url_for('contact_requests.index') }}"
+               class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-3 py-2 focus:outline-none">
+              Restablecer
+            </a>
+          </div>
+        </form>
+      {% endcall %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-body">
+          <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
+            <tr>
+              <th class="px-6 py-4">Folio</th>
+              <th class="px-6 py-4">Solicitante</th>
+              <th class="px-6 py-4">Tipo</th>
+              <th class="px-6 py-4">Estado</th>
+              <th class="px-6 py-4">Asignado</th>
+              <th class="px-6 py-4">Fecha</th>
+              <th class="px-6 py-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in requests %}
+              <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
+                <td class="px-6 py-4 font-mono text-xs text-heading">#{{ "%05d" | format(item.id) }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="font-medium text-heading">{{ item.full_name }}</span>
+                    <span class="text-body text-xs">{{ item.email }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">{{ request_type_label(item.request_type) }}</td>
+                <td class="px-6 py-4">{{ request_status_badge(item.status) }}</td>
+                <td class="px-6 py-4">
+                  {% if item.assigned_to %}
+                    {{ item.assigned_to.full_name }}
+                  {% else %}
+                    <span class="text-body">Sin asignar</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">{{ item.created_at.strftime("%d/%m/%Y %H:%M") if item.created_at else '—' }}</td>
+                {{ row_actions_cell_start("px-6 py-4") }}
+                {{ row_actions_group_start("flex flex-wrap justify-end gap-2") }}
+                <a href="{{ url_for('contact_requests.detail', request_id=item.id) }}"
+                   class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+                  Ver detalle
+                </a>
+                {% if not item.assigned_to %}
+                  <form method="post"
+                        action="{{ url_for('contact_requests.assign_to_me', request_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+                      Asignarme
+                    </button>
+                  </form>
+                {% endif %}
+                {{ row_actions_group_end() }}
+                {{ row_actions_cell_end() }}
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-body">No se encontraron solicitudes.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ table_footer(pagination,
+            'contact_requests.index',
+            {'q': search_term, 'status': status_filter, 'type': type_filter},
+            range_label='Mostrando',
+            of_label='de') }}
+    </div>
+  </div>
+{% endblock content %}

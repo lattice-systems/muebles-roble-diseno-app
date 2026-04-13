@@ -273,7 +273,7 @@ def add_item():
 
         product = (
             Product.query.options(selectinload(Product.images))
-            .filter_by(id=product_id, status=True)
+            .filter_by(id=product_id, status=True, is_special_request=False)
             .first()
         )
         if not product:

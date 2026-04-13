@@ -38,6 +38,7 @@ def _parse_bom_items_from_request() -> list[dict]:
 
 def _parse_material_updates_from_request() -> list[dict]:
     raw_material_ids = request.form.getlist("raw_material_id[]")
+    quantities_planned = request.form.getlist("quantity_planned[]")
     quantities_used = request.form.getlist("quantity_used[]")
     waste_applied = request.form.getlist("waste_applied[]")
 
@@ -50,6 +51,9 @@ def _parse_material_updates_from_request() -> list[dict]:
         rows.append(
             {
                 "raw_material_id": raw_material_id,
+                "quantity_planned": (
+                    quantities_planned[idx] if idx < len(quantities_planned) else ""
+                ),
                 "quantity_used": (
                     quantities_used[idx] if idx < len(quantities_used) else "0"
                 ),
@@ -103,6 +107,12 @@ def create_order():
                 quantity=form.quantity.data,
                 scheduled_date=form.scheduled_date.data,
                 user_id=current_user.id,
+                is_special_request=bool(form.is_special_request.data),
+                do_not_add_to_finished_stock=bool(
+                    form.do_not_add_to_finished_stock.data
+                    or form.is_special_request.data
+                ),
+                special_notes=form.special_notes.data,
             )
             flash("Orden de producción creada correctamente", "success")
             return redirect(url_for("production.order_details", order_id=order.id))
@@ -127,16 +137,38 @@ def order_details(order_id: int):
 
     status_form = ProductionStatusForm()
     allowed_statuses = ProductionService.get_allowed_status_transitions(order)
+    status_label_map = {
+        "pendiente": "Pendiente",
+        "en_proceso": "En proceso",
+        "terminado": "Terminado",
+        "cancelado": "Cancelado",
+        "in_progress": "En proceso",
+        "finished": "Terminado",
+        "completed": "Terminado",
+        "cancelled": "Cancelado",
+    }
     status_form.status.choices = [
-        (status, status.replace("_", " ").title()) for status in allowed_statuses
-    ] or [(order.status, order.status.replace("_", " ").title())]
+        (status, status_label_map.get(status, status.replace("_", " ").title()))
+        for status in allowed_statuses
+    ] or [
+        (
+            order.status,
+            status_label_map.get(order.status, order.status.replace("_", " ").title()),
+        )
+    ]
     status_form.status.data = order.status
+
+    current_material_ids = [row.raw_material_id for row in order.material_consumptions]
+    raw_material_choices = ProductionService.get_raw_material_choices(
+        include_inactive_ids=current_material_ids
+    )
 
     return render_template(
         "admin/production/order_details.html",
         order=order,
         status_form=status_form,
         allowed_statuses=allowed_statuses,
+        raw_material_choices=raw_material_choices,
     )
 
 
@@ -174,6 +206,22 @@ def update_order_materials(order_id: int):
             user_id=current_user.id,
         )
         flash("Consumos de materiales actualizados", "success")
+    except (ValidationError, ConflictError, NotFoundError) as e:
+        flash(e.message, "error")
+
+    return redirect(url_for("production.order_details", order_id=order_id))
+
+
+@production_bp.route("/orders/<int:order_id>/materials/initialize", methods=["POST"])
+@auth_required()
+def initialize_order_materials(order_id: int):
+    """Inicializa materiales planeados desde la BOM vigente del producto."""
+    try:
+        ProductionService.initialize_material_plan(
+            production_order_id=order_id,
+            user_id=current_user.id,
+        )
+        flash("Materiales planeados cargados desde la BOM vigente.", "success")
     except (ValidationError, ConflictError, NotFoundError) as e:
         flash(e.message, "error")
 

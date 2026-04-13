@@ -37,10 +37,10 @@
           Recetas BOM
         </a>
         {% if can('production.create') %}
-        <a href="{{ url_for('production.create_order') }}"
-           class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
-          Nueva orden
-        </a>
+          <a href="{{ url_for('production.create_order') }}"
+             class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none">
+            Nueva orden
+          </a>
         {% endif %}
       {% endcall %}
       <div class="overflow-x-auto">
@@ -48,6 +48,7 @@
           <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
             <tr>
               <th class="px-6 py-4">Orden</th>
+              <th class="px-6 py-4">Tipo</th>
               <th class="px-6 py-4">Producto</th>
               <th class="px-6 py-4">Cantidad</th>
               <th class="px-6 py-4">Estado</th>
@@ -60,6 +61,13 @@
             {% for order in orders %}
               <tr class="bg-neutral-primary-soft border-b border-default-medium hover:bg-neutral-secondary-soft">
                 <td class="px-6 py-4 font-mono text-xs text-heading">#{{ "%04d" | format(order.id) }}</td>
+                <td class="px-6 py-4">
+                  {% if order.is_special_request %}
+                    {{ status_badge('Especial', 'brand') }}
+                  {% else %}
+                    {{ status_badge('Estándar', 'neutral') }}
+                  {% endif %}
+                </td>
                 <td class="px-6 py-4">
                   <div class="flex flex-col">
                     <span class="font-medium text-heading">{{ order.product.name if order.product else '—' }}</span>
@@ -104,7 +112,7 @@
               </tr>
             {% else %}
               <tr>
-                <td colspan="7" class="px-6 py-8 text-center text-body">No hay órdenes de producción registradas.</td>
+                <td colspan="8" class="px-6 py-8 text-center text-body">No hay órdenes de producción registradas.</td>
               </tr>
             {% endfor %}
           </tbody>

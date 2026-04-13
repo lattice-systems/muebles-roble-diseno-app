@@ -30,6 +30,7 @@ def create_product(form):
         description=(form.description.data or "").strip(),
         specifications=(form.specifications.data or "").strip(),
         price=form.price.data,
+        is_special_request=bool(form.is_special_request.data),
         status=form.status.data,
     )
 
@@ -56,6 +57,7 @@ def update_product(product, form):
     product.description = (form.description.data or "").strip()
     product.specifications = (form.specifications.data or "").strip()
     product.price = form.price.data
+    product.is_special_request = bool(form.is_special_request.data)
     product.status = form.status.data
 
     current_relations = ProductColor.query.filter_by(product_id=product.id).all()

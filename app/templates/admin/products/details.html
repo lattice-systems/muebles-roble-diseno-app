@@ -53,6 +53,16 @@
             {% endif %}
           </div>
         </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Canal de venta</span>
+          <div>
+            {% if product.is_special_request %}
+              {{ status_badge('Interno / especial', 'brand') }}
+            {% else %}
+              {{ status_badge('Comercial', 'neutral') }}
+            {% endif %}
+          </div>
+        </div>
         <div class="flex flex-col gap-1 md:col-span-2">
           <span class="text-xs 2xl:text-sm text-body">Imágenes</span>
           <div class="flex flex-wrap gap-3 mt-1">

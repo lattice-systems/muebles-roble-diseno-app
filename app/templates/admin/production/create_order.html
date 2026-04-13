@@ -41,6 +41,30 @@
             {% endfor %}
           </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4 items-start">
+          <label class="inline-flex items-start gap-2.5 text-xs 2xl:text-sm text-heading">
+            {{ form.is_special_request(class_="mt-0.5 h-4 w-4 rounded border-default-medium text-brand focus:ring-brand") }}
+            <span>
+              <span class="font-medium">{{ form.is_special_request.label.text }}</span>
+              <span class="block text-body">Para pedidos personalizados gestionados por solicitud de cliente.</span>
+            </span>
+          </label>
+          <label class="inline-flex items-start gap-2.5 text-xs 2xl:text-sm text-heading">
+            {{ form.do_not_add_to_finished_stock(class_="mt-0.5 h-4 w-4 rounded border-default-medium text-brand focus:ring-brand") }}
+            <span>
+              <span class="font-medium">{{ form.do_not_add_to_finished_stock.label.text }}</span>
+              <span class="block text-body">Usar cuando se entrega directo al cliente, sin inventario general.</span>
+            </span>
+          </label>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="{{ form.special_notes.id }}"
+                 class="text-xs 2xl:text-sm font-medium text-heading">{{ form.special_notes.label.text }}</label>
+          {{ form.special_notes(rows='4', class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", placeholder="Detalles de diseño, medidas especiales o condiciones de entrega") }}
+          {% for error in form.special_notes.errors %}
+            <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+          {% endfor %}
+        </div>
         <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-2">
           <a href="{{ url_for('production.orders_index') }}"
              class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">

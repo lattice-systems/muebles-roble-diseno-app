@@ -15,19 +15,19 @@
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       {% call table_header(url_for('products.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre, SKU o tipo', search_label='Search', hidden_fields=[('status', status_filter)], clear_condition=search_term) %}
         {% if can('products.create') %}
-        <a href="{{ url_for('products.create') }}"
-           class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-          <svg class="w-4 h-4 me-1.5 -ms-0.5"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
-          </svg>
-          Agregar
-        </a>
+          <a href="{{ url_for('products.create') }}"
+             class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+            <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
+            </svg>
+            Agregar
+          </a>
         {% endif %}
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
@@ -106,13 +106,13 @@
               </button>
             </li>
             {% if can('products.delete') %}
-            <li>
-              <button type="button"
-                      id="bulkDeactivateBtn"
-                      class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                Desactivar seleccionados
-              </button>
-            </li>
+              <li>
+                <button type="button"
+                        id="bulkDeactivateBtn"
+                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                  Desactivar seleccionados
+                </button>
+              </li>
             {% endif %}
           </ul>
         </div>
@@ -135,6 +135,7 @@
               <th scope="col" class="px-6 py-3 font-medium">Tipo de mueble</th>
               <th scope="col" class="px-6 py-3 font-medium">Precio</th>
               <th scope="col" class="px-6 py-3 font-medium">Stock</th>
+              <th scope="col" class="px-6 py-3 font-medium">Canal</th>
               <th scope="col" class="px-6 py-3 font-medium">Estado</th>
               <th scope="col"
                   class="px-6 py-3 font-medium w-72 min-w-72 whitespace-nowrap">Acciones</th>
@@ -167,6 +168,13 @@
                 <td class="px-6 py-4">${{ product.price }}</td>
                 <td class="px-6 py-4">{{ product.inventory_records[0].stock if product.inventory_records else 0 }}</td>
                 <td class="px-6 py-4">
+                  {% if product.is_special_request %}
+                    {{ status_badge('Interno', 'brand') }}
+                  {% else %}
+                    {{ status_badge('Comercial', 'neutral') }}
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">
                   {% if product.status %}
                     {{ status_badge('Activo', 'success') }}
                   {% else %}
@@ -183,23 +191,23 @@
                     </a>
                   </li>
                   {% if can('products.update') %}
-                  <li>
-                    <a href="{{ url_for('products.edit', product_id=product.id) }}"
-                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                      Editar
-                    </a>
-                  </li>
+                    <li>
+                      <a href="{{ url_for('products.edit', product_id=product.id) }}"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                        Editar
+                      </a>
+                    </li>
                   {% endif %}
                 {% endcall %}
                 {% if can('products.delete') %}
-                {{ row_status_toggle_button('toggle-product-status-modal-' ~ product.id, product.status, 'Desactivar', 'Activar') }}
+                  {{ row_status_toggle_button('toggle-product-status-modal-' ~ product.id, product.status, 'Desactivar', 'Activar') }}
                 {% endif %}
                 {{ row_actions_group_end() }}
                 {{ row_actions_cell_end() }}
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
-                <td colspan="8" class="px-6 py-8 text-center text-body">No se encontraron productos</td>
+                <td colspan="9" class="px-6 py-8 text-center text-body">No se encontraron productos</td>
               </tr>
             {% endfor %}
           </tbody>

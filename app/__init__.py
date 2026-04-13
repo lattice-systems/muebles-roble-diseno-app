@@ -225,6 +225,10 @@ def create_app(config_class=None):
 
     app.register_blueprint(customer_orders_bp, url_prefix="/admin/customer-orders")
 
+    from .contact_requests import contact_requests_bp
+
+    app.register_blueprint(contact_requests_bp, url_prefix="/admin/contact-requests")
+
     from .production import production_bp
 
     app.register_blueprint(production_bp, url_prefix="/admin/production")

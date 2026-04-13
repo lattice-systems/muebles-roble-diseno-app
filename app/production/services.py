@@ -497,6 +497,9 @@ class ProductionService:
         scheduled_date: date,
         user_id: int | None,
         customer_order_id: int | None = None,
+        is_special_request: bool = False,
+        do_not_add_to_finished_stock: bool = False,
+        special_notes: str | None = None,
     ) -> ProductionOrder:
         product = db.session.get(Product, product_id)
         if not product:
@@ -512,13 +515,17 @@ class ProductionService:
                 status="pendiente",
                 scheduled_date=scheduled_date,
                 customer_order_id=customer_order_id,
+                is_special_request=bool(is_special_request),
+                do_not_add_to_finished_stock=bool(do_not_add_to_finished_stock),
+                special_notes=(special_notes.strip() if special_notes else None),
                 created_by=user_id,
                 updated_by=user_id,
             )
             db.session.add(order)
             db.session.flush()
 
-            ProductionService.initialize_material_plan_for_order(order)
+            if not is_special_request:
+                ProductionService.initialize_material_plan_for_order(order)
 
             ProductionService._log_audit(
                 table_name="production_orders",
@@ -553,11 +560,6 @@ class ProductionService:
                 "No se puede registrar consumo en una orden terminada o cancelada"
             )
 
-        if not order.material_consumptions:
-            raise ValidationError(
-                "La orden no tiene consumo planificado. Inicializa la receta primero"
-            )
-
         if not materials_data:
             raise ValidationError("No se recibieron materiales para actualizar")
 
@@ -571,24 +573,67 @@ class ProductionService:
         try:
             for row in materials_data:
                 raw_material_id = int(row.get("raw_material_id", 0))
+                if raw_material_id <= 0:
+                    raise ValidationError("Materia prima inválida en el consumo")
+
+                quantity_planned_raw = str(row.get("quantity_planned", "")).strip()
+                quantity_planned = (
+                    ProductionService._to_decimal(quantity_planned_raw)
+                    if quantity_planned_raw
+                    else None
+                )
                 quantity_used = ProductionService._to_decimal(
                     row.get("quantity_used", 0)
                 )
-                material_row = by_raw_material.get(raw_material_id)
-                if not material_row:
-                    raise ValidationError(
-                        "Uno de los materiales enviados no pertenece a esta orden"
-                    )
-
                 waste_applied = ProductionService._to_decimal(
-                    row.get("waste_applied", material_row.waste_applied)
+                    row.get("waste_applied", 0)
                 )
 
                 if quantity_used < 0:
                     raise ValidationError("La cantidad usada no puede ser negativa")
 
+                if quantity_planned is not None and quantity_planned < 0:
+                    raise ValidationError("La cantidad planeada no puede ser negativa")
+
                 if waste_applied < 0 or waste_applied > 100:
                     raise ValidationError("La merma aplicada debe estar entre 0 y 100")
+
+                material_row = by_raw_material.get(raw_material_id)
+                if not material_row:
+                    if not order.is_special_request:
+                        raise ValidationError(
+                            "Uno de los materiales enviados no pertenece a esta orden"
+                        )
+
+                    raw_material = db.session.get(RawMaterial, raw_material_id)
+                    if not raw_material:
+                        raise NotFoundError("Materia prima no encontrada")
+
+                    planned_for_new = quantity_planned
+                    if planned_for_new is None:
+                        planned_for_new = (
+                            quantity_used if quantity_used > 0 else Decimal("0")
+                        )
+
+                    material_row = ProductionOrderMaterial(
+                        production_order_id=order.id,
+                        raw_material_id=raw_material.id,
+                        quantity_planned=planned_for_new,
+                        quantity_used=Decimal("0"),
+                        unit_cost=ProductionService._get_latest_unit_price(
+                            raw_material.id
+                        ),
+                        waste_applied=ProductionService._to_decimal(
+                            raw_material.waste_percentage
+                        ),
+                    )
+                    db.session.add(material_row)
+                    by_raw_material[raw_material.id] = material_row
+
+                if quantity_planned is not None and (
+                    order.is_special_request or not order.material_consumptions
+                ):
+                    material_row.quantity_planned = quantity_planned
 
                 material_row.quantity_used = quantity_used
                 material_row.waste_applied = waste_applied
@@ -623,7 +668,8 @@ class ProductionService:
         user_id: int | None,
     ) -> None:
         if not order.material_consumptions:
-            ProductionService.initialize_material_plan_for_order(order)
+            if not order.is_special_request:
+                ProductionService.initialize_material_plan_for_order(order)
 
         consumptions: list[tuple[ProductionOrderMaterial, Decimal]] = []
 
@@ -663,21 +709,22 @@ class ProductionService:
                 )
             )
 
-        inventory = ProductInventory.query.filter_by(
-            product_id=order.product_id
-        ).first()
-        if inventory:
-            inventory.stock = int(inventory.stock or 0) + int(order.quantity)
-            inventory.updated_by = user_id
-        else:
-            db.session.add(
-                ProductInventory(
-                    product_id=order.product_id,
-                    stock=int(order.quantity),
-                    created_by=user_id,
-                    updated_by=user_id,
+        if not order.do_not_add_to_finished_stock:
+            inventory = ProductInventory.query.filter_by(
+                product_id=order.product_id
+            ).first()
+            if inventory:
+                inventory.stock = int(inventory.stock or 0) + int(order.quantity)
+                inventory.updated_by = user_id
+            else:
+                db.session.add(
+                    ProductInventory(
+                        product_id=order.product_id,
+                        stock=int(order.quantity),
+                        created_by=user_id,
+                        updated_by=user_id,
+                    )
                 )
-            )
 
     @staticmethod
     def _sync_customer_order_status(
@@ -779,7 +826,8 @@ class ProductionService:
 
         try:
             if target_status == "en_proceso":
-                ProductionService.initialize_material_plan_for_order(order)
+                if not order.is_special_request:
+                    ProductionService.initialize_material_plan_for_order(order)
 
             if target_status == "terminado":
                 ProductionService._consume_materials_and_update_inventory(

@@ -158,6 +158,10 @@
         {% set _ = sales_items.append({"label": "Órdenes de Cliente", "href": url_for('customer_orders.index'), "icon":
                 icon_orders, "active": request.endpoint and request.endpoint.startswith('customer_orders.')}) %}
       {% endif %}
+      {% if can('contact_requests.read') %}
+        {% set _ = sales_items.append({"label": "Solicitudes personalizadas", "href": url_for('contact_requests.index'), "icon":
+                icon_orders, "active": request.endpoint and request.endpoint.startswith('contact_requests.')}) %}
+      {% endif %}
       {% if sales_items %}{{ sidebar_dropdown("Ventas", sales_items, icon_sales, "dropdown-sales") }}{% endif %}
       {% set analytics_items = [] %}
       {% if can('costs.read') %}

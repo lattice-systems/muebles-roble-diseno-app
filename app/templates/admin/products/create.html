@@ -79,6 +79,12 @@
             </div>
             <div class="flex items-end">
               <label class="inline-flex items-center gap-2 text-xs 2xl:text-sm text-heading">
+                {{ form.is_special_request(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
+                {{ form.is_special_request.label.text }}
+              </label>
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-xs 2xl:text-sm text-heading">
                 {{ form.status(class_="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft") }}
                 {{ form.status.label.text }}
               </label>
