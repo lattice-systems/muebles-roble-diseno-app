@@ -50,17 +50,25 @@
       </div>
     </div>
     <div class="flex flex-col gap-1 text-sm">
-      <p class="text-body">
-        Costo total:
-        <span class="text-heading">${{ "%.2f"|format(detail.summary.total_cost|float) }}</span>
+      <p class="text-heading font-medium">
+        Costo total de materiales:
+        <span class="text-body">${{ "%.2f"|format(detail.summary.material_cost|float) }}</span>
       </p>
-      <p class="text-body">
+      <p class="text-heading font-medium">
+        Mano de obra y gastos indirectos:
+        <span class="text-body">30% adicional</span>
+      </p>
+      <p class="text-heading font-medium">
+        Costo total de producción:
+        <span class="text-body">${{ "%.2f"|format(detail.summary.total_cost|float) }}</span>
+      </p>
+      <p class="text-heading font-medium">
         Precio venta:
-        <span class="text-heading">${{ "%.2f"|format(detail.summary.sale_price|float) }}</span>
+        <span class="text-body">${{ "%.2f"|format(detail.summary.sale_price|float) }}</span>
       </p>
-      <p class="text-body">
-        Margen:
-        <span class="text-heading">
+      <p class="text-heading font-medium">
+        Utilidad:
+        <span class="text-body">
           {% if detail.summary.margin_value is not none %}
             ${{ "%.2f"|format(detail.summary.margin_value|float) }}
           {% else %}
@@ -70,10 +78,6 @@
       </p>
     </div>
     <div class="flex items-center justify-end gap-2.5">
-      <a href="{{ url_for('costs.index') }}"
-         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-        Volver
-      </a>
       <form method="post"
             action="{{ url_for('costs.export_cost_csv', product_id=detail.product.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

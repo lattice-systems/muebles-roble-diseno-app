@@ -11,10 +11,6 @@
         {% set admin_header_subtitle = "Periodo: " ~ report.date_from ~ " a " ~ report.date_to %}
         {% include "admin/components/page_header.html" %}
       </div>
-      <a href="{{ url_for('reports.index') }}"
-         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium rounded-base text-sm px-4 py-2">
-        Volver
-      </a>
     </div>
     <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">
       <div class="overflow-x-auto">

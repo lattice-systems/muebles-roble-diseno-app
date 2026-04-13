@@ -70,6 +70,47 @@ class TestSearchCustomers:
         assert results == []
 
 
+class TestProductCatalogFiltering:
+    """Tests para filtros de productos del POS."""
+
+    def test_get_products_excludes_special_request_products(
+        self, app, db_session, seed_basic_data
+    ):
+        """El catálogo POS no debe incluir productos marcados como especiales."""
+        from app.models.furniture_type import FurnitureType
+        from app.models.product import Product
+        from app.models.product_inventory import ProductInventory
+
+        furniture_type = FurnitureType(
+            title="Especial POS",
+            subtitle="No comercial",
+            image_url="https://example.com/especial-pos.jpg",
+            slug="especial-pos",
+            status=True,
+        )
+        db_session.add(furniture_type)
+        db_session.flush()
+
+        special_product = Product(
+            sku="POS-ESP-001",
+            name="Producto especial POS",
+            furniture_type_id=furniture_type.id,
+            description="No debe aparecer en POS",
+            price=1800.0,
+            status=True,
+            is_special_request=True,
+        )
+        db_session.add(special_product)
+        db_session.flush()
+
+        db_session.add(ProductInventory(product_id=special_product.id, stock=4))
+        db_session.commit()
+
+        pagination = SaleService.get_products(page=1, per_page=50)
+        product_ids = {product.id for product in pagination.items}
+        assert special_product.id not in product_ids
+
+
 class TestCreateCustomer:
     """Tests para SaleService.create_customer()."""
 

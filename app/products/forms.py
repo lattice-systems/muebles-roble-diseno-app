@@ -35,6 +35,8 @@ class ProductForm(FlaskForm):
 
     stock = IntegerField("Stock inicial", validators=[Optional(), NumberRange(min=0)])
 
+    is_special_request = BooleanField("Producto especial (oculto en ecommerce y POS)")
+
     status = BooleanField("Activo", default=True)
 
     images = MultipleFileField("Imágenes")

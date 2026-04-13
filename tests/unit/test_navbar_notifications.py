@@ -16,9 +16,12 @@ class DummyAuthenticatedUser:
         self.id = user_id
 
 
-def test_navbar_notifications_merge_security_and_audit_events(
+def test_navbar_notifications_merge_security_and_audit_events_for_superadmin(
     app, db_session, seed_basic_data, monkeypatch
 ):
+    role = seed_basic_data["role"]
+    role.name = "superadmin"
+
     user = seed_basic_data["user"]
     now = datetime.utcnow()
 
@@ -62,6 +65,48 @@ def test_navbar_notifications_merge_security_and_audit_events(
     assert data["items"][1]["href"].endswith("/details")
 
 
+def test_navbar_notifications_hide_security_events_for_admin(
+    app, db_session, seed_basic_data, monkeypatch
+):
+    user = seed_basic_data["user"]
+    now = datetime.utcnow()
+
+    db_session.add(
+        SecurityEventLog(
+            event_type="auth.account.locked",
+            result="denied",
+            user_id=user.id,
+            email_or_identifier=user.email,
+            ip_address="127.0.0.1",
+            reason="Tres intentos fallidos",
+            source="unit_test",
+            timestamp=now,
+        )
+    )
+    db_session.add(
+        AuditLog(
+            table_name="users",
+            action="DELETE",
+            user_id=user.id,
+            record_id="99",
+            source="unit_test",
+            timestamp=now - timedelta(minutes=5),
+        )
+    )
+    db_session.commit()
+
+    monkeypatch.setattr(
+        navbar_notifications, "current_user", DummyAuthenticatedUser(user.id)
+    )
+
+    with app.test_request_context("/admin"):
+        data = navbar_notifications.build_navbar_notifications()
+
+    assert data["count"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["kind"] == "audit"
+
+
 def test_navbar_notifications_returns_empty_for_anonymous_user(monkeypatch):
     class AnonymousUser:
         is_authenticated = False
@@ -76,6 +121,9 @@ def test_navbar_notifications_returns_empty_for_anonymous_user(monkeypatch):
 def test_navbar_notifications_can_be_dismissed(
     app, db_session, seed_basic_data, monkeypatch
 ):
+    role = seed_basic_data["role"]
+    role.name = "superadmin"
+
     user = seed_basic_data["user"]
     now = datetime.utcnow()
 

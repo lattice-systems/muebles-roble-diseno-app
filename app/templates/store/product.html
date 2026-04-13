@@ -148,7 +148,9 @@
               <div>
                 <p class="text-[11px] uppercase tracking-wide text-body-subtle">Disponibilidad</p>
                 <p class="text-sm font-semibold mt-0.5 {% if product.in_stock %}text-emerald-700{% else %}text-rose-700{% endif %}">
-                  {% if product.in_stock %}
+                  {% if product.requires_contact_request %}
+                    Fabricación bajo pedido
+                  {% elif product.in_stock %}
                     En stock ({{ product.stock }} piezas)
                   {% else %}
                     Agotado temporalmente
@@ -169,7 +171,9 @@
               <div>
                 <p class="text-[11px] uppercase tracking-wide text-body-subtle">Envío</p>
                 <p class="text-sm font-semibold text-heading mt-0.5">
-                  {% if product.in_stock %}
+                  {% if product.requires_contact_request %}
+                    Agenda una cita para definir diseño y tiempos
+                  {% elif product.in_stock %}
                     Entrega estimada 3-5 días
                   {% else %}
                     Reabastecimiento próximamente
@@ -197,34 +201,48 @@
           {% endif %}
         </div>
         <div class="mt-8 flex flex-wrap gap-3 items-center">
-          <form method="post"
-                action="{{ url_for('ecommerce.add_to_cart', product_id=product.id) }}"
-                class="flex flex-wrap items-center gap-3">
-            <input type="hidden"
-                   name="csrf_token"
-                   value="{{ csrf_token() if csrf_token else '' }}">
-            <input type="hidden"
-                   name="next"
-                   value="{{ request.full_path if request.query_string else request.path }}">
-            <label for="quantity" class="text-sm font-medium text-heading">Cantidad</label>
-            <input id="quantity"
-                   name="quantity"
-                   type="number"
-                   min="1"
-                   max="{{ product.stock if product.stock is defined and product.stock > 0 else 1 }}"
-                   value="1"
-                   class="h-11 w-20 rounded-lg border border-slate-300 px-3 text-center focus:ring-sky-900 focus:border-sky-900"
-                   {% if not product.in_stock %}disabled{% endif %}>
-            <button type="submit"
-                    class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300"
-                    {% if not product.in_stock %}disabled{% endif %}>
-              {% if product.in_stock %}
-                Añadir al carrito
-              {% else %}
-                Sin stock
-              {% endif %}
-            </button>
-          </form>
+          {% if product.requires_contact_request %}
+            <div class="w-full rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Este mueble se fabrica a medida. Para continuar, debes visitar una sucursal o agendar una cita con nuestro equipo.
+            </div>
+            <a href="{{ url_for('ecommerce.contact', request_type='appointment', product=product.title) }}"
+               class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors inline-flex items-center">
+              Agendar cita
+            </a>
+            <a href="{{ url_for('ecommerce.contact', request_type='custom_furniture', product=product.title) }}"
+               class="h-11 px-6 rounded-lg border border-slate-300 text-heading font-semibold hover:bg-slate-100 transition-colors inline-flex items-center">
+              Contactar sucursal
+            </a>
+          {% else %}
+            <form method="post"
+                  action="{{ url_for('ecommerce.add_to_cart', product_id=product.id) }}"
+                  class="flex flex-wrap items-center gap-3">
+              <input type="hidden"
+                     name="csrf_token"
+                     value="{{ csrf_token() if csrf_token else '' }}">
+              <input type="hidden"
+                     name="next"
+                     value="{{ request.full_path if request.query_string else request.path }}">
+              <label for="quantity" class="text-sm font-medium text-heading">Cantidad</label>
+              <input id="quantity"
+                     name="quantity"
+                     type="number"
+                     min="1"
+                     max="{{ product.stock if product.stock is defined and product.stock > 0 else 1 }}"
+                     value="1"
+                     class="h-11 w-20 rounded-lg border border-slate-300 px-3 text-center focus:ring-sky-900 focus:border-sky-900"
+                     {% if not product.in_stock %}disabled{% endif %}>
+              <button type="submit"
+                      class="h-11 px-6 rounded-lg bg-sky-900 text-white font-semibold hover:bg-sky-800 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300"
+                      {% if not product.in_stock %}disabled{% endif %}>
+                {% if product.in_stock %}
+                  Añadir al carrito
+                {% else %}
+                  Sin stock
+                {% endif %}
+              </button>
+            </form>
+          {% endif %}
           <button type="button"
                   class="js-share-product h-11 px-6 rounded-lg border border-slate-300 text-heading font-semibold hover:bg-slate-100 transition-colors"
                   data-share-title="{{ product.title }}"

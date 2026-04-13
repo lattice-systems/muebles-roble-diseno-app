@@ -3,7 +3,16 @@
 from decimal import Decimal
 from urllib.parse import urlparse
 
-from flask import abort, jsonify, redirect, render_template, request, session, url_for
+from flask import (
+    abort,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from app.customer_auth.decorators import get_current_customer_user
 from app.customer_auth.services import CustomerAuthService
@@ -224,11 +233,20 @@ def products():
         page=page,
     )
     all_categories = EcommerceService.get_product_categories()
+    selected_category = next(
+        (
+            category
+            for category in all_categories
+            if category.get("slug") == filtered_catalog["type_slug"]
+        ),
+        None,
+    )
 
     return render_template(
         "store/products.html",
         products=filtered_catalog["products"],
         categories=all_categories,
+        selected_category=selected_category,
         total_products=filtered_catalog["total_products"],
         filtered_total=filtered_catalog["filtered_total"],
         filters={
@@ -322,7 +340,10 @@ def cart():
 def add_to_cart(product_id: int):
     """Agrega un producto al carrito de sesión."""
     quantity = request.form.get("quantity", 1, type=int) or 1
-    EcommerceService.add_product_to_cart(product_id=product_id, quantity=quantity)
+    try:
+        EcommerceService.add_product_to_cart(product_id=product_id, quantity=quantity)
+    except ValueError as exc:
+        flash(str(exc), "error")
     return _resolve_redirect_target(default_endpoint="ecommerce.products")
 
 
@@ -525,10 +546,70 @@ def freight_quote():
     return jsonify(quote)
 
 
-@ecommerce_bp.route("/contact")
+@ecommerce_bp.route("/contact", methods=["GET", "POST"])
 def contact():
-    """Página de contacto."""
-    return render_template("store/contact.html", active_section="contact")
+    """Página de contacto/cita para solicitudes personalizadas."""
+    customer_user = get_current_customer_user()
+    linked_customer = (
+        CustomerAuthService.get_linked_customer(customer_user)
+        if customer_user
+        else None
+    )
+
+    product_hint = (request.args.get("product") or "").strip()
+    query_request_type = (
+        request.args.get("request_type") or "custom_furniture"
+    ).strip()
+
+    form_data = {
+        "full_name": (
+            linked_customer.full_name
+            if linked_customer
+            else (customer_user.full_name if customer_user else "")
+        ),
+        "email": customer_user.email if customer_user else "",
+        "phone": linked_customer.phone if linked_customer else "",
+        "subject": f"Solicitud sobre: {product_hint}" if product_hint else "",
+        "message": "",
+        "request_type": query_request_type,
+        "preferred_datetime": "",
+    }
+
+    contact_error = None
+    contact_success = False
+
+    if request.method == "POST":
+        from app.contact_requests.services import ContactRequestService
+
+        form_data = {
+            "full_name": (request.form.get("full_name") or "").strip(),
+            "email": (request.form.get("email") or "").strip(),
+            "phone": (request.form.get("phone") or "").strip(),
+            "subject": (request.form.get("subject") or "").strip(),
+            "message": (request.form.get("message") or "").strip(),
+            "request_type": (request.form.get("request_type") or "").strip(),
+            "preferred_datetime": (
+                request.form.get("preferred_datetime") or ""
+            ).strip(),
+        }
+
+        try:
+            ContactRequestService.create_from_public_form(
+                form_data,
+                customer_user_id=(customer_user.id if customer_user else None),
+            )
+            contact_success = True
+            form_data["message"] = ""
+        except ValueError as exc:
+            contact_error = str(exc)
+
+    return render_template(
+        "store/contact.html",
+        active_section="contact",
+        form_data=form_data,
+        contact_error=contact_error,
+        contact_success=contact_success,
+    )
 
 
 @ecommerce_bp.route("/about")

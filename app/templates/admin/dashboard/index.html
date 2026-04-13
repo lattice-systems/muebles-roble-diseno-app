@@ -141,7 +141,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 2xl:gap-6">
       <!-- Ordenes en Proceso (Ocupa 2/3 en escritorio) -->
       <div class="xl:col-span-2 bg-neutral-primary-soft border border-default rounded-base shadow-xs flex flex-col h-full">
-        <div class="px-5 2xl:px-6 py-4 2xl:py-5 border-b border-default-medium flex justify-between items-center bg-neutral-secondary/30">
+        <div class="px-5 2xl:px-6 py-4 2xl:py-5 border-b border-default-medium flex justify-between items-center bg-neutral-secondary/30 gap-2.5">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-blue-600"
                  aria-hidden="true"
@@ -153,8 +153,20 @@
             </svg>
             <h2 class="text-heading text-sm 2xl:text-base font-semibold">Órdenes de Producción Activas</h2>
           </div>
-          <a href="{{ url_for('production.orders_index') }}"
-             class="text-brand text-xs 2xl:text-sm font-medium hover:underline">Ver todas</a>
+          <div class="flex items-center gap-2.5">
+            <form method="get" action="{{ url_for('dashboard.index') }}">
+              <select name="production_assignee_id"
+                      onchange="this.form.submit()"
+                      class="block w-56 px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-primary-soft border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                {% for value, label in production_assignee_choices %}
+                  <option value="{{ value }}"
+                          {% if production_assignee_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <a href="{{ url_for('production.orders_index', assignee_id=production_assignee_filter) }}"
+               class="text-brand text-xs 2xl:text-sm font-medium hover:underline whitespace-nowrap">Ver todas</a>
+          </div>
         </div>
         <div class="overflow-x-auto flex-1">
           <table class="w-full text-xs 2xl:text-sm text-left text-body">
@@ -535,7 +547,13 @@
                   categories: topProductsData.categories,
                   labels: {
                       hideOverlappingLabels: true,
-                      trim: true,
+                      trim: false,
+                      formatter: function(value) {
+                          if (typeof value !== 'string') {
+                              return value;
+                          }
+                          return value.length > 40 ? value.slice(0, 40) + '...' : value;
+                      },
                       style: {
                           colors: textColor,
                           fontSize: '12px'
@@ -550,6 +568,7 @@
               },
               yaxis: {
                   labels: {
+                      offsetX: 10,
                       style: {
                           colors: headingColor,
                           fontSize: '13px',
@@ -572,7 +591,7 @@
                       top: 4,
                       right: 6,
                       bottom: 8,
-                      left: 6
+                      left: 18
                   },
                   xaxis: {
                       lines: {

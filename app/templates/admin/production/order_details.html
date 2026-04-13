@@ -10,7 +10,7 @@
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
         <div>
           <p class="text-xs text-body">Producto</p>
           <p class="text-sm font-semibold text-heading">{{ order.product.name if order.product else '—' }}</p>
@@ -42,7 +42,48 @@
             {% endif %}
           </p>
         </div>
+        <div>
+          <p class="text-xs text-body">Responsable</p>
+          <p class="text-sm font-semibold text-heading">
+            {{ order.assigned_user.full_name if order.assigned_user else 'Sin asignar' }}
+          </p>
+          <p class="text-xs text-body">
+            {{ order.assigned_user.role.name if order.assigned_user and order.assigned_user.role else '—' }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Tipo de orden</p>
+          <p>
+            {% if order.is_special_request %}
+              {{ status_badge('Especial', 'brand') }}
+            {% else %}
+              {{ status_badge('Estándar', 'neutral') }}
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Origen</p>
+          {% if order.customer_order_id %}
+            <a href="{{ url_for('customer_orders.detail', order_id=order.customer_order_id) }}"
+               class="text-sm font-semibold text-fg-brand-strong hover:underline">Orden cliente #{{ "%04d" | format(order.customer_order_id) }}</a>
+          {% else %}
+            <p class="text-sm font-semibold text-heading">Manual</p>
+          {% endif %}
+        </div>
       </div>
+      {% if order.is_special_request %}
+        <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-base text-xs 2xl:text-sm text-amber-900">
+          Esta orden está marcada como <strong>especial de cliente</strong>.
+          {% if order.do_not_add_to_finished_stock %}
+            Al terminar, no se sumará inventario general de producto terminado.
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if order.special_notes %}
+        <div class="mt-3 p-3 bg-neutral-secondary-soft border border-default-medium rounded-base text-xs 2xl:text-sm text-body whitespace-pre-wrap">
+          {{ order.special_notes }}
+        </div>
+      {% endif %}
       {% if order.customer_order_id %}
         <div class="mt-4 p-3 bg-brand-softer border border-brand-soft rounded-base text-xs 2xl:text-sm text-body">
           Esta orden proviene de la orden de cliente
@@ -54,6 +95,9 @@
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading mb-3">Cambio de estado</h3>
+        <p class="text-xs 2xl:text-sm text-body mb-3">
+          Utiliza este control para avanzar el proceso de fabricación: Pendiente -> En proceso -> Terminado, o cancelar si la orden ya no procede.
+        </p>
         {% if allowed_statuses %}
           <form method="post"
                 action="{{ url_for('production.update_order_status', order_id=order.id) }}"
@@ -79,11 +123,32 @@
       </div>
       <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading mb-3">Acciones rápidas</h3>
+        {% if assign_form.assigned_user_id.choices and can('production.update') %}
+          <form method="post"
+                action="{{ url_for('production.assign_order', order_id=order.id) }}"
+                class="mb-4 flex flex-col gap-2.5">
+            {{ assign_form.hidden_tag() }}
+            <div>
+              <label for="{{ assign_form.assigned_user_id.id }}"
+                     class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Responsable de producción</label>
+              <select id="{{ assign_form.assigned_user_id.id }}"
+                      name="{{ assign_form.assigned_user_id.name }}"
+                      class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                {% for value, label in assign_form.assigned_user_id.choices %}
+                  <option value="{{ value }}"
+                          {% if assign_form.assigned_user_id.data == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit"
+                      class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                Guardar responsable
+              </button>
+            </div>
+          </form>
+        {% endif %}
         <div class="flex flex-wrap gap-2.5">
-          <a href="{{ url_for('production.orders_index') }}"
-             class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-            Volver al listado
-          </a>
           <a href="{{ url_for('production.boms_index') }}"
              class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
             Ver recetas BOM
@@ -92,6 +157,7 @@
       </div>
     </div>
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default overflow-hidden">
+      {% set can_edit_materials = order.status not in ['terminado', 'cancelado'] %}
       <div class="p-4 2xl:p-6 border-b border-default-medium">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading">Consumo de materiales</h3>
         <p class="text-xs 2xl:text-sm text-body">Registra cantidad usada real y merma aplicada por material.</p>
@@ -103,6 +169,22 @@
         <form method="post"
               action="{{ url_for('production.update_order_materials', order_id=order.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select id="rawMaterialSelectTemplate" class="hidden">
+            <option value="" disabled selected>Seleccione material...</option>
+            {% for rm_id, rm_name in raw_material_choices %}<option value="{{ rm_id }}">{{ rm_name }}</option>{% endfor %}
+          </select>
+          {% if order.is_special_request and can_edit_materials %}
+            <div class="px-4 2xl:px-6 pt-4 flex flex-wrap gap-2.5 items-center justify-between">
+              <p class="text-xs 2xl:text-sm text-body">
+                Puedes agregar insumos manuales para este pedido especial y registrar su consumo real.
+              </p>
+              <button type="button"
+                      id="addSpecialMaterialRowBtn"
+                      class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+                Añadir material
+              </button>
+            </div>
+          {% endif %}
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-body">
               <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
@@ -113,9 +195,10 @@
                   <th class="px-6 py-4">Usado real</th>
                   <th class="px-6 py-4">Merma %</th>
                   <th class="px-6 py-4">Costo unitario</th>
+                  {% if order.is_special_request and can_edit_materials %}<th class="px-6 py-4 text-center">Acción</th>{% endif %}
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="materialsBody">
                 {% for item in order.material_consumptions %}
                   <tr class="border-b border-default-medium hover:bg-neutral-secondary-soft">
                     <td class="px-6 py-4">
@@ -127,7 +210,21 @@
                              name="raw_material_id[]"
                              value="{{ item.raw_material_id }}">
                     </td>
-                    <td class="px-6 py-4 text-heading font-medium">{{ "%.3f" | format(item.quantity_planned | float) }}</td>
+                    <td class="px-6 py-4">
+                      {% if order.is_special_request and can_edit_materials %}
+                        <input type="number"
+                               step="0.001"
+                               min="0"
+                               name="quantity_planned[]"
+                               value="{{ "%.3f" | format(item.quantity_planned | float) }}"
+                               class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                      {% else %}
+                        <span class="text-heading font-medium">{{ "%.3f" | format(item.quantity_planned | float) }}</span>
+                        <input type="hidden"
+                               name="quantity_planned[]"
+                               value="{{ "%.3f" | format(item.quantity_planned | float) }}">
+                      {% endif %}
+                    </td>
                     <td class="px-6 py-4">
                       {% if item.raw_material and item.raw_material.stock is not none %}
                         <div class="flex flex-col">
@@ -144,7 +241,7 @@
                              min="0"
                              name="quantity_used[]"
                              value="{{ "%.3f" | format(item.quantity_used | float) }}"
-                             {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                             {% if not can_edit_materials %}disabled{% endif %}
                              class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
                     </td>
                     <td class="px-6 py-4">
@@ -154,10 +251,13 @@
                              max="100"
                              name="waste_applied[]"
                              value="{{ "%.2f" | format(item.waste_applied | float) }}"
-                             {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                             {% if not can_edit_materials %}disabled{% endif %}
                              class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
                     </td>
                     <td class="px-6 py-4">${{ "%.2f" | format(item.unit_cost | float) }}</td>
+                    {% if order.is_special_request and can_edit_materials %}
+                      <td class="px-6 py-4 text-center text-body text-xs">—</td>
+                    {% endif %}
                   </tr>
                 {% endfor %}
               </tbody>
@@ -165,15 +265,151 @@
           </div>
           <div class="p-4 2xl:p-6 border-t border-default-medium flex justify-end">
             <button type="submit"
-                    {% if order.status in ['terminado', 'cancelado'] %}disabled{% endif %}
+                    {% if not can_edit_materials %}disabled{% endif %}
                     class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
               Guardar consumos
             </button>
           </div>
         </form>
       {% else %}
-        <div class="p-6 text-body text-sm">Esta orden aún no tiene materiales planificados desde receta BOM.</div>
+        {% if can_edit_materials and not order.is_special_request %}
+          <div class="p-6 border-b border-default-medium flex flex-wrap items-center justify-between gap-3">
+            <p class="text-body text-sm">Esta orden no tiene materiales planificados todavía.</p>
+            <form method="post"
+                  action="{{ url_for('production.initialize_order_materials', order_id=order.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                Cargar materiales desde BOM
+              </button>
+            </form>
+          </div>
+          <div class="p-6 text-body text-sm">Primero debes cargar los materiales planeados para registrar consumos.</div>
+        {% elif can_edit_materials and order.is_special_request %}
+          <div class="p-6 border-b border-default-medium flex flex-wrap items-center justify-between gap-3">
+            <p class="text-body text-sm">
+              Esta orden especial aún no tiene materiales planificados. Puedes cargarlos desde la BOM vigente o definir insumos manualmente.
+            </p>
+            <form method="post"
+                  action="{{ url_for('production.initialize_order_materials', order_id=order.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                Cargar materiales desde BOM
+              </button>
+            </form>
+          </div>
+          <form method="post"
+                action="{{ url_for('production.update_order_materials', order_id=order.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select id="rawMaterialSelectTemplate" class="hidden">
+              <option value="" disabled selected>Seleccione material...</option>
+              {% for rm_id, rm_name in raw_material_choices %}<option value="{{ rm_id }}">{{ rm_name }}</option>{% endfor %}
+            </select>
+            <div class="px-4 2xl:px-6 pt-4 flex justify-end">
+              <button type="button"
+                      id="addSpecialMaterialRowBtn"
+                      class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 focus:outline-none">
+                Añadir material
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left text-body">
+                <thead class="text-xs bg-neutral-secondary-medium text-body border-b border-default-medium">
+                  <tr>
+                    <th class="px-6 py-4">Material</th>
+                    <th class="px-6 py-4">Planeado</th>
+                    <th class="px-6 py-4">Stock actual</th>
+                    <th class="px-6 py-4">Usado real</th>
+                    <th class="px-6 py-4">Merma %</th>
+                    <th class="px-6 py-4">Costo unitario</th>
+                    <th class="px-6 py-4 text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="materialsBody">
+                </tbody>
+              </table>
+            </div>
+            <div class="p-4 2xl:p-6 border-t border-default-medium flex justify-end">
+              <button type="submit"
+                      class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                Guardar consumos
+              </button>
+            </div>
+          </form>
+        {% else %}
+          <div class="p-6 text-body text-sm">
+            {% if order.is_special_request %}
+              Esta orden especial aún no tiene materiales planificados.
+            {% else %}
+              Esta orden aún no tiene materiales planificados desde receta BOM.
+            {% endif %}
+          </div>
+        {% endif %}
       {% endif %}
     </div>
   </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const addBtn = document.getElementById("addSpecialMaterialRowBtn");
+          const tbody = document.getElementById("materialsBody");
+          const templateNode = document.getElementById("rawMaterialSelectTemplate");
+
+          if (!addBtn || !tbody || !templateNode) {
+              return;
+          }
+
+          const selectTemplate = templateNode.innerHTML;
+
+          const attachRemoveHandler = (button) => {
+              button.addEventListener("click", () => {
+                  const row = button.closest("tr");
+                  if (row) {
+                      row.remove();
+                  }
+              });
+          };
+
+          tbody.querySelectorAll(".remove-material-row").forEach(attachRemoveHandler);
+
+          const buildRow = () => {
+              const tr = document.createElement("tr");
+              tr.className = "border-b border-default-medium hover:bg-neutral-secondary-soft";
+              tr.innerHTML = `
+                <td class="px-6 py-4">
+                  <select name="raw_material_id[]" required class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                    ${selectTemplate}
+                  </select>
+                </td>
+                <td class="px-6 py-4">
+                  <input type="number" step="0.001" min="0" name="quantity_planned[]" value="0.000" class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                </td>
+                <td class="px-6 py-4 text-body text-xs 2xl:text-sm">Se valida al guardar</td>
+                <td class="px-6 py-4">
+                  <input type="number" step="0.001" min="0" name="quantity_used[]" value="0.000" class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                </td>
+                <td class="px-6 py-4">
+                  <input type="number" step="0.01" min="0" max="100" name="waste_applied[]" value="0.00" class="block w-full px-2.5 py-1.5 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                </td>
+                <td class="px-6 py-4 text-body text-xs 2xl:text-sm">Automático</td>
+                <td class="px-6 py-4 text-center">
+                  <button type="button" class="remove-material-row inline-flex items-center justify-center text-fg-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-danger-subtle rounded-base w-8 h-8 focus:outline-none" title="Eliminar fila">×</button>
+                </td>
+              `;
+
+              const removeButton = tr.querySelector(".remove-material-row");
+              if (removeButton) {
+                  attachRemoveHandler(removeButton);
+              }
+
+              tbody.appendChild(tr);
+          };
+
+          addBtn.addEventListener("click", buildRow);
+
+          if (tbody.children.length === 0) {
+              buildRow();
+          }
+      });
+  </script>
 {% endblock content %}

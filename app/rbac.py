@@ -116,6 +116,9 @@ CUSTOMER_ORDERS_READ = "customer_orders.read"
 CUSTOMER_ORDERS_CREATE = "customer_orders.create"
 CUSTOMER_ORDERS_UPDATE = "customer_orders.update"
 
+CONTACT_REQUESTS_READ = "contact_requests.read"
+CONTACT_REQUESTS_MANAGE = "contact_requests.manage"
+
 COSTS_READ = "costs.read"
 COSTS_CREATE = "costs.create"
 COSTS_UPDATE = "costs.update"
@@ -173,6 +176,8 @@ ALL_PERMISSIONS = {
     CUSTOMER_ORDERS_READ,
     CUSTOMER_ORDERS_CREATE,
     CUSTOMER_ORDERS_UPDATE,
+    CONTACT_REQUESTS_READ,
+    CONTACT_REQUESTS_MANAGE,
     COSTS_READ,
     COSTS_CREATE,
     COSTS_UPDATE,
@@ -239,6 +244,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         CUSTOMER_ORDERS_CREATE,
         CUSTOMER_ORDERS_READ,
         CUSTOMER_ORDERS_UPDATE,
+        CONTACT_REQUESTS_READ,
+        CONTACT_REQUESTS_MANAGE,
         COSTS_READ,
         COSTS_EXPORT,
         REPORTS_READ,
@@ -518,7 +525,8 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "users.create_user": USERS_CREATE,
         "users.edit_user": USERS_UPDATE,
         "users.detail_user": USERS_READ,
-        "users.toggle_status": USERS_DELETE,
+        "users.toggle_status": (USERS_DELETE, USERS_UPDATE),
+        "users.toggle_customer_status": (USERS_DELETE, USERS_UPDATE),
         "users.bulk_action_users": lambda: resolve_action_permission(
             {
                 "export": USERS_EXPORT,
@@ -611,7 +619,9 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "production.order_details": PRODUCTION_READ,
         "production.create_order": PRODUCTION_CREATE,
         "production.update_order_status": PRODUCTION_UPDATE,
+        "production.assign_order": PRODUCTION_UPDATE,
         "production.update_order_materials": PRODUCTION_UPDATE,
+        "production.initialize_order_materials": PRODUCTION_UPDATE,
         "production.boms_index": PRODUCTION_READ,
         "production.bom_details": PRODUCTION_READ,
         "production.create_bom": PRODUCTION_CREATE,
@@ -687,6 +697,12 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "customer_orders.cancel": CUSTOMER_ORDERS_UPDATE,
         "customer_orders.send_to_production": CUSTOMER_ORDERS_UPDATE,
         "customer_orders.update_status": CUSTOMER_ORDERS_UPDATE,
+        # Contact Requests
+        "contact_requests.index": CONTACT_REQUESTS_READ,
+        "contact_requests.detail": CONTACT_REQUESTS_READ,
+        "contact_requests.assign_to_me": CONTACT_REQUESTS_MANAGE,
+        "contact_requests.update_status": CONTACT_REQUESTS_MANAGE,
+        "contact_requests.convert_to_special_order": CONTACT_REQUESTS_MANAGE,
     }
     return endpoint_permissions
 

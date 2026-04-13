@@ -3,7 +3,14 @@ Formularios para el módulo de Producción y Recetas (BOM).
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, StringField, TextAreaField
+from wtforms import (
+    BooleanField,
+    DateField,
+    IntegerField,
+    SelectField,
+    StringField,
+    TextAreaField,
+)
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 
@@ -55,6 +62,26 @@ class ProductionOrderForm(FlaskForm):
         validators=[DataRequired(message="La fecha programada es obligatoria")],
     )
 
+    assigned_user_id = SelectField(
+        "Responsable de producción",
+        coerce=int,
+        validators=[DataRequired(message="Debe seleccionar un responsable")],
+    )
+
+    is_special_request = BooleanField("Orden especial de cliente")
+
+    do_not_add_to_finished_stock = BooleanField(
+        "No ingresar al stock general al terminar"
+    )
+
+    special_notes = TextAreaField(
+        "Notas especiales",
+        validators=[
+            Optional(),
+            Length(max=1000, message="Las notas no pueden exceder 1000 caracteres"),
+        ],
+    )
+
 
 class ProductionStatusForm(FlaskForm):
     """Formulario para transiciones de estado de órdenes de producción."""
@@ -68,4 +95,14 @@ class ProductionStatusForm(FlaskForm):
             ("cancelado", "Cancelado"),
         ],
         validators=[DataRequired(message="Debe seleccionar un estado")],
+    )
+
+
+class ProductionAssigneeForm(FlaskForm):
+    """Formulario para asignar o reasignar responsable de una orden."""
+
+    assigned_user_id = SelectField(
+        "Responsable",
+        coerce=int,
+        validators=[DataRequired(message="Debe seleccionar un responsable")],
     )

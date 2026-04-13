@@ -123,12 +123,14 @@ class CostService:
             )
 
         material_cost = CostService._round_money(material_cost)
+        overhead_percentage = Decimal("0.30")  # 30% adicional sobre el costo de materiales
+        total_cost: Decimal = material_cost * (Decimal("1.00") + overhead_percentage)
 
         return {
             "bom": bom,
             "detail_items": detail_items,
             "material_cost": material_cost,
-            "total_cost": material_cost,
+            "total_cost": total_cost,
         }
 
     @staticmethod

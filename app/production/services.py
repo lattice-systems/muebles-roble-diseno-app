@@ -23,12 +23,18 @@ from app.models import (
     PurchaseOrderItem,
     RawMaterial,
     RawMaterialMovement,
+    User,
 )
+from app.rbac import ROLE_ADMIN, ROLE_PRODUCTION, ROLE_SUPERADMIN, resolve_role_key
 from app.shared.audit_logging import log_application_audit
 
 
 class ProductionService:
     """Servicio central para Recetas (BOM) y Producción."""
+
+    ASSIGNABLE_ROLE_KEYS: frozenset[str] = frozenset(
+        {ROLE_PRODUCTION, ROLE_ADMIN, ROLE_SUPERADMIN}
+    )
 
     DEFAULT_PRODUCTION_VALID_STATUSES: tuple[str, ...] = (
         "pendiente",
@@ -67,6 +73,73 @@ class ProductionService:
         if not transitions:
             return ProductionService.DEFAULT_PRODUCTION_STATUS_TRANSITIONS
         return transitions
+
+    @staticmethod
+    def _is_assignable_user(user: User | None) -> bool:
+        if not user or not user.role:
+            return False
+        role_key = resolve_role_key(user.role.name)
+        return role_key in ProductionService.ASSIGNABLE_ROLE_KEYS
+
+    @staticmethod
+    def get_assignable_users(include_user_id: int | None = None) -> list[User]:
+        query = User.query.options(joinedload(User.role))
+
+        if include_user_id is not None:
+            query = query.filter(or_(User.status.is_(True), User.id == include_user_id))
+        else:
+            query = query.filter(User.status.is_(True))
+
+        users = query.order_by(User.full_name.asc()).all()
+        return [user for user in users if ProductionService._is_assignable_user(user)]
+
+    @staticmethod
+    def get_assignable_user_choices(
+        include_user_id: int | None = None,
+    ) -> list[tuple[int, str]]:
+        choices: list[tuple[int, str]] = []
+        for user in ProductionService.get_assignable_users(
+            include_user_id=include_user_id
+        ):
+            role_name = user.role.name if user.role else "Sin rol"
+            status_suffix = " (inactivo)" if not user.status else ""
+            choices.append((user.id, f"{user.full_name} ({role_name}){status_suffix}"))
+        return choices
+
+    @staticmethod
+    def resolve_default_assignee_id(preferred_user_id: int | None = None) -> int | None:
+        if preferred_user_id is not None:
+            preferred_user = db.session.get(User, preferred_user_id)
+            if (
+                preferred_user
+                and preferred_user.status
+                and ProductionService._is_assignable_user(preferred_user)
+            ):
+                return preferred_user.id
+
+        assignable_users = ProductionService.get_assignable_users()
+        if assignable_users:
+            return assignable_users[0].id
+        return None
+
+    @staticmethod
+    def _validate_assigned_user_or_raise(assigned_user_id: int) -> User:
+        if assigned_user_id <= 0:
+            raise ValidationError("Debe seleccionar un responsable válido")
+
+        user = db.session.get(User, assigned_user_id)
+        if not user:
+            raise NotFoundError("El responsable seleccionado no existe")
+
+        if not user.status:
+            raise ValidationError("El responsable seleccionado está inactivo")
+
+        if not ProductionService._is_assignable_user(user):
+            raise ValidationError(
+                "Solo se puede asignar a usuarios con rol Producción, Admin o Super Admin"
+            )
+
+        return user
 
     @staticmethod
     def _log_audit(
@@ -373,16 +446,21 @@ class ProductionService:
         *,
         search_term: str | None = None,
         status_filter: str = "all",
+        assigned_user_id: int | None = None,
         page: int = 1,
         per_page: int = 10,
     ):
         query = ProductionOrder.query.options(
             joinedload(ProductionOrder.product),
             joinedload(ProductionOrder.customer_order),
+            joinedload(ProductionOrder.assigned_user).joinedload(User.role),
         )
 
         if status_filter and status_filter != "all":
             query = query.filter(ProductionOrder.status == status_filter)
+
+        if assigned_user_id is not None:
+            query = query.filter(ProductionOrder.assigned_user_id == assigned_user_id)
 
         if search_term and search_term.strip():
             term = f"%{search_term.strip()}%"
@@ -401,6 +479,7 @@ class ProductionService:
             ProductionOrder.query.options(
                 joinedload(ProductionOrder.product),
                 joinedload(ProductionOrder.customer_order).joinedload(Order.customer),
+                joinedload(ProductionOrder.assigned_user).joinedload(User.role),
                 selectinload(ProductionOrder.material_consumptions)
                 .joinedload(ProductionOrderMaterial.raw_material)
                 .joinedload(RawMaterial.unit),
@@ -496,7 +575,11 @@ class ProductionService:
         quantity: int,
         scheduled_date: date,
         user_id: int | None,
+        assigned_user_id: int | None = None,
         customer_order_id: int | None = None,
+        is_special_request: bool = False,
+        do_not_add_to_finished_stock: bool = False,
+        special_notes: str | None = None,
     ) -> ProductionOrder:
         product = db.session.get(Product, product_id)
         if not product:
@@ -505,20 +588,41 @@ class ProductionService:
         if quantity <= 0:
             raise ValidationError("La cantidad a producir debe ser mayor a 0")
 
+        resolved_assignee_id = assigned_user_id
+        if resolved_assignee_id is None:
+            resolved_assignee_id = ProductionService.resolve_default_assignee_id(
+                preferred_user_id=user_id
+            )
+
+        if resolved_assignee_id is None:
+            raise ValidationError(
+                "No hay usuarios activos con rol Producción, Admin o Super Admin "
+                "para asignar la orden"
+            )
+
+        assigned_user = ProductionService._validate_assigned_user_or_raise(
+            resolved_assignee_id
+        )
+
         try:
             order = ProductionOrder(
                 product_id=product_id,
                 quantity=quantity,
                 status="pendiente",
                 scheduled_date=scheduled_date,
+                assigned_user_id=assigned_user.id,
                 customer_order_id=customer_order_id,
+                is_special_request=bool(is_special_request),
+                do_not_add_to_finished_stock=bool(do_not_add_to_finished_stock),
+                special_notes=(special_notes.strip() if special_notes else None),
                 created_by=user_id,
                 updated_by=user_id,
             )
             db.session.add(order)
             db.session.flush()
 
-            ProductionService.initialize_material_plan_for_order(order)
+            if not is_special_request:
+                ProductionService.initialize_material_plan_for_order(order)
 
             ProductionService._log_audit(
                 table_name="production_orders",
@@ -540,6 +644,46 @@ class ProductionService:
             )
 
     @staticmethod
+    def assign_production_order(
+        *,
+        production_order_id: int,
+        assigned_user_id: int,
+        user_id: int | None,
+    ) -> ProductionOrder:
+        order = ProductionService.get_production_order_by_id(production_order_id)
+        assigned_user = ProductionService._validate_assigned_user_or_raise(
+            assigned_user_id
+        )
+
+        if order.assigned_user_id == assigned_user.id:
+            return order
+
+        previous_data = order.to_dict()
+
+        try:
+            order.assigned_user_id = assigned_user.id
+            order.updated_by = user_id
+
+            ProductionService._log_audit(
+                table_name="production_orders",
+                action="UPDATE",
+                user_id=user_id,
+                previous_data=previous_data,
+                new_data=order.to_dict(),
+            )
+
+            db.session.commit()
+            return order
+        except (ValidationError, ConflictError, NotFoundError):
+            db.session.rollback()
+            raise
+        except Exception as e:
+            db.session.rollback()
+            raise ValidationError(
+                f"No fue posible reasignar la orden de producción: {str(e)}"
+            )
+
+    @staticmethod
     def update_material_usage(
         *,
         production_order_id: int,
@@ -551,11 +695,6 @@ class ProductionService:
         if order.status in ("terminado", "cancelado"):
             raise ConflictError(
                 "No se puede registrar consumo en una orden terminada o cancelada"
-            )
-
-        if not order.material_consumptions:
-            raise ValidationError(
-                "La orden no tiene consumo planificado. Inicializa la receta primero"
             )
 
         if not materials_data:
@@ -571,24 +710,67 @@ class ProductionService:
         try:
             for row in materials_data:
                 raw_material_id = int(row.get("raw_material_id", 0))
+                if raw_material_id <= 0:
+                    raise ValidationError("Materia prima inválida en el consumo")
+
+                quantity_planned_raw = str(row.get("quantity_planned", "")).strip()
+                quantity_planned = (
+                    ProductionService._to_decimal(quantity_planned_raw)
+                    if quantity_planned_raw
+                    else None
+                )
                 quantity_used = ProductionService._to_decimal(
                     row.get("quantity_used", 0)
                 )
-                material_row = by_raw_material.get(raw_material_id)
-                if not material_row:
-                    raise ValidationError(
-                        "Uno de los materiales enviados no pertenece a esta orden"
-                    )
-
                 waste_applied = ProductionService._to_decimal(
-                    row.get("waste_applied", material_row.waste_applied)
+                    row.get("waste_applied", 0)
                 )
 
                 if quantity_used < 0:
                     raise ValidationError("La cantidad usada no puede ser negativa")
 
+                if quantity_planned is not None and quantity_planned < 0:
+                    raise ValidationError("La cantidad planeada no puede ser negativa")
+
                 if waste_applied < 0 or waste_applied > 100:
                     raise ValidationError("La merma aplicada debe estar entre 0 y 100")
+
+                material_row = by_raw_material.get(raw_material_id)
+                if not material_row:
+                    if not order.is_special_request:
+                        raise ValidationError(
+                            "Uno de los materiales enviados no pertenece a esta orden"
+                        )
+
+                    raw_material = db.session.get(RawMaterial, raw_material_id)
+                    if not raw_material:
+                        raise NotFoundError("Materia prima no encontrada")
+
+                    planned_for_new = quantity_planned
+                    if planned_for_new is None:
+                        planned_for_new = (
+                            quantity_used if quantity_used > 0 else Decimal("0")
+                        )
+
+                    material_row = ProductionOrderMaterial(
+                        production_order_id=order.id,
+                        raw_material_id=raw_material.id,
+                        quantity_planned=planned_for_new,
+                        quantity_used=Decimal("0"),
+                        unit_cost=ProductionService._get_latest_unit_price(
+                            raw_material.id
+                        ),
+                        waste_applied=ProductionService._to_decimal(
+                            raw_material.waste_percentage
+                        ),
+                    )
+                    db.session.add(material_row)
+                    by_raw_material[raw_material.id] = material_row
+
+                if quantity_planned is not None and (
+                    order.is_special_request or not order.material_consumptions
+                ):
+                    material_row.quantity_planned = quantity_planned
 
                 material_row.quantity_used = quantity_used
                 material_row.waste_applied = waste_applied
@@ -623,7 +805,8 @@ class ProductionService:
         user_id: int | None,
     ) -> None:
         if not order.material_consumptions:
-            ProductionService.initialize_material_plan_for_order(order)
+            if not order.is_special_request:
+                ProductionService.initialize_material_plan_for_order(order)
 
         consumptions: list[tuple[ProductionOrderMaterial, Decimal]] = []
 
@@ -663,21 +846,22 @@ class ProductionService:
                 )
             )
 
-        inventory = ProductInventory.query.filter_by(
-            product_id=order.product_id
-        ).first()
-        if inventory:
-            inventory.stock = int(inventory.stock or 0) + int(order.quantity)
-            inventory.updated_by = user_id
-        else:
-            db.session.add(
-                ProductInventory(
-                    product_id=order.product_id,
-                    stock=int(order.quantity),
-                    created_by=user_id,
-                    updated_by=user_id,
+        if not order.do_not_add_to_finished_stock:
+            inventory = ProductInventory.query.filter_by(
+                product_id=order.product_id
+            ).first()
+            if inventory:
+                inventory.stock = int(inventory.stock or 0) + int(order.quantity)
+                inventory.updated_by = user_id
+            else:
+                db.session.add(
+                    ProductInventory(
+                        product_id=order.product_id,
+                        stock=int(order.quantity),
+                        created_by=user_id,
+                        updated_by=user_id,
+                    )
                 )
-            )
 
     @staticmethod
     def _sync_customer_order_status(
@@ -779,7 +963,8 @@ class ProductionService:
 
         try:
             if target_status == "en_proceso":
-                ProductionService.initialize_material_plan_for_order(order)
+                if not order.is_special_request:
+                    ProductionService.initialize_material_plan_for_order(order)
 
             if target_status == "terminado":
                 ProductionService._consume_materials_and_update_inventory(

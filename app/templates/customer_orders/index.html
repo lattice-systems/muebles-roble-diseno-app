@@ -159,6 +159,7 @@
                 <th scope="col" class="px-6 py-3 font-medium">Fecha</th>
                 <th scope="col" class="px-6 py-3 font-medium">Entrega Est.</th>
                 <th scope="col" class="px-6 py-3 font-medium">Estado</th>
+                <th scope="col" class="px-6 py-3 font-medium">Tipo</th>
                 <th scope="col" class="px-6 py-3 font-medium">Origen</th>
                 <th scope="col" class="px-6 py-3 font-medium">Total</th>
                 <th scope="col" class="px-6 py-3 font-medium">Acciones</th>
@@ -198,6 +199,13 @@
                     {% endif %}
                   </td>
                   <td class="px-6 py-4">
+                    {% if order.is_special_request %}
+                      <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-brand-subtle text-fg-brand-strong text-xs font-medium rounded bg-brand-softer">Especial</span>
+                    {% else %}
+                      <span class="inline-flex items-center px-2 py-1 ring-1 ring-inset ring-default-medium text-heading text-xs font-medium rounded bg-neutral-secondary-medium">Estándar</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4">
                     {{ {'pos':'POS','ecommerce':'E-commerce','manual':'Manual'}.get(order.source, order.source) }}
                   </td>
                   <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">${{ "%.2f"|format(order.total|float) }}</td>
@@ -219,7 +227,7 @@
                 </tr>
               {% else %}
                 <tr class="bg-neutral-primary-soft border-b border-default">
-                  <td colspan="8" class="px-6 py-8 text-center text-body">
+                  <td colspan="9" class="px-6 py-8 text-center text-body">
                     No se encontraron órdenes
                     {% if filters.customer or filters.status %}con los filtros aplicados{% endif %}
                     .

@@ -58,6 +58,31 @@ class TestEcommercePages:
         resp = client.get("/ecommerce/contact")
         assert resp.status_code == 200
 
+    def test_contact_form_submission_creates_request(
+        self, client, app, db_session, seed_basic_data
+    ):
+        """POST /ecommerce/contact crea una solicitud de contacto/cita."""
+        resp = client.post(
+            "/ecommerce/contact",
+            data={
+                "full_name": "Cliente Personalizado",
+                "email": "cliente.personalizado@test.com",
+                "phone": "4771234567",
+                "subject": "Diseño de mesa a medida",
+                "message": "Necesito una mesa personalizada para comedor amplio.",
+                "request_type": "custom_furniture",
+            },
+        )
+        assert resp.status_code == 200
+
+        with app.app_context():
+            from app.models.contact_request import ContactRequest
+
+            created = ContactRequest.query.order_by(ContactRequest.id.desc()).first()
+            assert created is not None
+            assert created.email == "cliente.personalizado@test.com"
+            assert created.request_type == "custom_furniture"
+
     def test_about_page(self, client, db_session, seed_basic_data):
         """GET /ecommerce/about devuelve 200."""
         resp = client.get("/ecommerce/about")
@@ -120,6 +145,49 @@ class TestCartRoutes:
         )
         resp = client.post("/ecommerce/cart/clear")
         assert resp.status_code == 302
+
+    def test_add_custom_product_to_cart_is_blocked(
+        self, client, db_session, seed_basic_data
+    ):
+        """Los productos personalizados no deben entrar al carrito."""
+        from app.models.furniture_type import FurnitureType
+        from app.models.product import Product
+        from app.models.product_inventory import ProductInventory
+
+        custom_type = FurnitureType(
+            title="Personalizados Integracion",
+            subtitle="Categoria personalizada",
+            image_url="https://example.com/custom-integration.jpg",
+            slug="personalizados-integracion",
+            requires_contact_request=True,
+            status=True,
+        )
+        db_session.add(custom_type)
+        db_session.flush()
+
+        custom_product = Product(
+            sku="CUSTOM-INT-001",
+            name="Producto personalizado integración",
+            furniture_type_id=custom_type.id,
+            description="Producto para test",
+            price=3000.0,
+            status=True,
+        )
+        db_session.add(custom_product)
+        db_session.flush()
+
+        db_session.add(ProductInventory(product_id=custom_product.id, stock=10))
+        db_session.commit()
+
+        resp = client.post(
+            f"/ecommerce/cart/add/{custom_product.id}",
+            data={"quantity": 1},
+        )
+        assert resp.status_code == 302
+
+        with client.session_transaction() as sess:
+            guest_cart = sess.get("ecommerce_cart_guest", {})
+            assert str(custom_product.id) not in guest_cart
 
 
 class TestFreightQuoteAPI:

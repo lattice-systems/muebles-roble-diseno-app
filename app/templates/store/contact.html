@@ -32,6 +32,14 @@
         equipo siempre estará disponible para ayudarte. ¡No dudes en contactarnos!
       </p>
     </div>
+    {% if contact_success %}
+      <div class="mb-8 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+        Recibimos tu solicitud correctamente. Nuestro equipo te contactará pronto para continuar con tu mueble personalizado.
+      </div>
+    {% endif %}
+    {% if contact_error %}
+      <div class="mb-8 rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-800">{{ contact_error }}</div>
+    {% endif %}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
       <!-- Contact Info -->
       <div class="space-y-10">
@@ -87,13 +95,19 @@
       </div>
       <!-- Contact Form -->
       <div>
-        <form class="space-y-6">
+        <form method="post"
+              action="{{ url_for('ecommerce.contact') }}"
+              class="space-y-6">
+          <input type="hidden"
+                 name="csrf_token"
+                 value="{{ csrf_token() if csrf_token else '' }}">
           <div>
-            <label for="name" class="block text-sm font-semibold text-heading mb-2">Nombre</label>
+            <label for="full_name" class="block text-sm font-semibold text-heading mb-2">Nombre</label>
             <input type="text"
-                   id="name"
-                   name="name"
-                   placeholder="Abc"
+                   id="full_name"
+                   name="full_name"
+                   value="{{ form_data.full_name if form_data else '' }}"
+                   placeholder="Nombre completo"
                    class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
           </div>
           <div>
@@ -101,7 +115,46 @@
             <input type="email"
                    id="email"
                    name="email"
-                   placeholder="Abc@def.com"
+                   value="{{ form_data.email if form_data else '' }}"
+                   placeholder="abc@def.com"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+          </div>
+          <div>
+            <label for="phone" class="block text-sm font-semibold text-heading mb-2">Teléfono</label>
+            <input type="text"
+                   id="phone"
+                   name="phone"
+                   value="{{ form_data.phone if form_data else '' }}"
+                   placeholder="4771234567"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+          </div>
+          <div>
+            <label for="request_type"
+                   class="block text-sm font-semibold text-heading mb-2">Tipo de solicitud</label>
+            <select id="request_type"
+                    name="request_type"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
+              <option value="custom_furniture"
+                      {% if form_data and form_data.request_type == 'custom_furniture' %}selected{% endif %}>
+                Mueble personalizado
+              </option>
+              <option value="appointment"
+                      {% if form_data and form_data.request_type == 'appointment' %}selected{% endif %}>
+                Agendar cita
+              </option>
+              <option value="contact"
+                      {% if form_data and form_data.request_type == 'contact' %}selected{% endif %}>
+                Contacto general
+              </option>
+            </select>
+          </div>
+          <div>
+            <label for="preferred_datetime"
+                   class="block text-sm font-semibold text-heading mb-2">Fecha preferida (opcional)</label>
+            <input type="datetime-local"
+                   id="preferred_datetime"
+                   name="preferred_datetime"
+                   value="{{ form_data.preferred_datetime if form_data else '' }}"
                    class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
           </div>
           <div>
@@ -109,7 +162,8 @@
             <input type="text"
                    id="subject"
                    name="subject"
-                   placeholder="Esto es opcional"
+                   value="{{ form_data.subject if form_data else '' }}"
+                   placeholder="Asunto de tu solicitud"
                    class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors">
           </div>
           <div>
@@ -118,7 +172,7 @@
                       name="message"
                       rows="4"
                       placeholder="¡Hola! Me gustaría preguntar sobre..."
-                      class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors resize-none"></textarea>
+                      class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-sky-900 focus:border-sky-900 transition-colors resize-none">{{ form_data.message if form_data else '' }}</textarea>
           </div>
           <button type="submit"
                   class="bg-sky-900 text-white font-semibold py-3 px-12 rounded-md hover:bg-sky-800 transition-colors w-full sm:w-auto">

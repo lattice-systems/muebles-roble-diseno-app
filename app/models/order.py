@@ -20,6 +20,7 @@ class Order(db.Model):
     notes = db.Column(db.Text, nullable=True)
     # source: 'pos' | 'ecommerce' | 'manual'
     source = db.Column(db.String(20), nullable=False, default="manual")
+    is_special_request = db.Column(db.Boolean, nullable=False, default=False)
     customer_user_id = db.Column(
         db.Integer,
         db.ForeignKey("customer_users.id"),
@@ -102,6 +103,7 @@ class Order(db.Model):
             "payment_method_id": self.payment_method_id,
             "notes": self.notes,
             "source": self.source,
+            "is_special_request": self.is_special_request,
             "customer_user_id": self.customer_user_id,
             "created_by_id": self.created_by_id,
             "cancelled_at": (

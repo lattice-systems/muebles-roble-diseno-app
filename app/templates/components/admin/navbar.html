@@ -27,6 +27,9 @@
 {% if can('customer_orders.read') %}
   {% set _ = admin_global_search_items.append({"label": "Ordenes de cliente", "group": "Ventas", "keywords": "pedidos ecommerce", "href": url_for('customer_orders.index')}) %}
 {% endif %}
+{% if can('contact_requests.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Solicitudes personalizadas", "group": "Ventas", "keywords": "contacto cita muebles personalizados", "href": url_for('contact_requests.index')}) %}
+{% endif %}
 {% if can('ecommerce.manage') %}
   {% set _ = admin_global_search_items.append({"label": admin_nav_links.ecommerce.label, "group": admin_nav_links.ecommerce.group, "keywords": admin_nav_links.ecommerce.keywords, "href": admin_nav_links.ecommerce.href}) %}
 {% endif %}

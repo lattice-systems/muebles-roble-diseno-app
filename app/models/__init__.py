@@ -2,6 +2,7 @@ from .audit_log import AuditLog
 from .bom import Bom
 from .bom_item import BomItem
 from .color import Color
+from .contact_request import ContactRequest
 from .customer import Customer
 from .customer_user import CustomerUser
 from .furniture_type import FurnitureType
@@ -36,6 +37,7 @@ __all__ = [
     "Bom",
     "BomItem",
     "Color",
+    "ContactRequest",
     "Customer",
     "CustomerUser",
     "FurnitureType",

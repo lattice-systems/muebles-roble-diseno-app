@@ -3,7 +3,7 @@
   Admin - Detalles de Materia Prima
 {% endblock title %}
 {% block content %}
-  <div class="max-w-4xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+  <div class="mx-auto flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalle de materia prima" %}
     {% set admin_header_subtitle = "Consulta la información completa de la materia prima" %}
     {% include "admin/components/page_header.html" %}
@@ -181,21 +181,6 @@
           </nav>
         {% endif %}
       </div>
-    </div>
-    <div class="mt-4 pb-8 flex items-center justify-start">
-      <a href="{{ session.get('raw_materials_list_url', url_for('raw_materials.index') ) }}"
-         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-4 py-2 focus:outline-none gap-2">
-        <svg class="w-4 h-4"
-             aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             fill="none"
-             viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
-        </svg>
-        Volver a la lista
-      </a>
     </div>
   </div>
 {% endblock content %}

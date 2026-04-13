@@ -227,7 +227,7 @@ class SaleService:
         query = Product.query.options(
             selectinload(Product.inventory_records),
             selectinload(Product.images),
-        ).filter_by(status=True)
+        ).filter_by(status=True, is_special_request=False)
 
         if search_term:
             search = f"%{search_term.strip()}%"

@@ -4,7 +4,7 @@
   Admin - Detalle de producto
 {% endblock title %}
 {% block content %}
-  <div class="max-w-3xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+  <div class="mx-auto flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalle de producto" %}
     {% set admin_header_subtitle = "Consulta la información del producto seleccionado" %}
     {% include "admin/components/page_header.html" %}
@@ -53,6 +53,16 @@
             {% endif %}
           </div>
         </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs 2xl:text-sm text-body">Canal de venta</span>
+          <div>
+            {% if product.is_special_request %}
+              {{ status_badge('Interno / especial', 'brand') }}
+            {% else %}
+              {{ status_badge('Comercial', 'neutral') }}
+            {% endif %}
+          </div>
+        </div>
         <div class="flex flex-col gap-1 md:col-span-2">
           <span class="text-xs 2xl:text-sm text-body">Imágenes</span>
           <div class="flex flex-wrap gap-3 mt-1">
@@ -69,10 +79,6 @@
         </div>
       </div>
       <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-6">
-        <a href="{{ url_for('products.index') }}"
-           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-          Volver
-        </a>
         <a href="{{ url_for('products.edit', product_id=product.id) }}"
            class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
           Editar

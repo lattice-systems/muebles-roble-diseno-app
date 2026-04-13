@@ -80,6 +80,7 @@ class EcommerceService:
                     ),
                     "alt": cat.title,
                     "slug": cat.slug,
+                    "requires_contact_request": bool(cat.requires_contact_request),
                 }
             )
         return result
@@ -98,6 +99,7 @@ class EcommerceService:
                 joinedload(Product.images),
             )
             .filter(Product.status.is_(True))
+            .filter(Product.is_special_request.is_(False))
             .order_by(Product.id.desc())
         )
 
@@ -194,6 +196,15 @@ class EcommerceService:
             for rel in product.colors
             if rel.color and rel.color.name and rel.color.status
         ]
+        requires_contact_request = bool(
+            product.is_special_request
+            or (
+                product.furniture_type
+                and bool(
+                    getattr(product.furniture_type, "requires_contact_request", False)
+                )
+            )
+        )
 
         return {
             "id": product.id,
@@ -220,6 +231,8 @@ class EcommerceService:
             "rating_average": 0.0,
             "rating_count": 0,
             "rating_total_points": 0,
+            "is_special_request": bool(product.is_special_request),
+            "requires_contact_request": requires_contact_request,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
@@ -784,10 +797,22 @@ class EcommerceService:
         return max(0, stock)
 
     @staticmethod
+    def _requires_contact_request(product_data: dict[str, object]) -> bool:
+        return bool(
+            product_data.get("requires_contact_request")
+            or product_data.get("is_special_request")
+        )
+
+    @staticmethod
     def add_product_to_cart(product_id: int, quantity: int = 1) -> dict[str, object]:
         product = EcommerceService.get_product_by_id(product_id)
         if not product:
             return EcommerceService.get_cart()
+
+        if EcommerceService._requires_contact_request(product):
+            raise ValueError(
+                "Este producto es bajo pedido. Debes contactar una sucursal o agendar una cita."
+            )
 
         max_stock = EcommerceService._get_stock_for_product(product)
         if max_stock <= 0:
@@ -814,6 +839,11 @@ class EcommerceService:
 
         product = EcommerceService.get_product_by_id(product_id)
         if not product:
+            cart_store.pop(product_id, None)
+            EcommerceService._save_cart_store(cart_store)
+            return EcommerceService.get_cart()
+
+        if EcommerceService._requires_contact_request(product):
             cart_store.pop(product_id, None)
             EcommerceService._save_cart_store(cart_store)
             return EcommerceService.get_cart()
@@ -880,6 +910,9 @@ class EcommerceService:
         for product_id, requested_quantity in cart_store.items():
             product = EcommerceService.get_product_by_id(product_id)
             if not product:
+                continue
+
+            if EcommerceService._requires_contact_request(product):
                 continue
 
             stock = EcommerceService._get_stock_for_product(product)
@@ -1036,6 +1069,17 @@ class EcommerceService:
         cart_data = EcommerceService.get_cart()
         if not cart_data["total_items"]:
             raise ValueError("Tu carrito esta vacio. Agrega productos para continuar.")
+
+        blocked_products = [
+            item["product"].get("title", "Producto")
+            for item in cart_data.get("cart_items", [])
+            if EcommerceService._requires_contact_request(item.get("product") or {})
+        ]
+        if blocked_products:
+            raise ValueError(
+                "Los muebles personalizados no se procesan en checkout online. "
+                "Contacta una sucursal para continuar."
+            )
 
         first_name = (form_data.get("first_name") or "").strip()
         last_name = (form_data.get("last_name") or "").strip()

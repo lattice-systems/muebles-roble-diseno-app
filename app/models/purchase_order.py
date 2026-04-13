@@ -15,7 +15,10 @@ class PurchaseOrder(AuditMixin, db.Model):
 
     supplier = db.relationship("Supplier", back_populates="purchase_orders")
     items = db.relationship(
-        "PurchaseOrderItem", back_populates="purchase_order", lazy=True
+        "PurchaseOrderItem",
+        back_populates="purchase_order",
+        lazy=True,
+        order_by="PurchaseOrderItem.id",
     )
 
     def to_dict(self) -> dict:

@@ -15,6 +15,7 @@ from app.extensions import db
 from app.models.audit_log import AuditLog
 from app.models.navbar_notification_dismissal import NavbarNotificationDismissal
 from app.models.security_event_log import SecurityEventLog
+from app.rbac import ROLE_ADMIN, ROLE_SUPERADMIN, resolve_role_key
 from app.security_audit.services import SecurityAuditService
 
 IMPORTANT_SECURITY_EVENTS = {
@@ -145,6 +146,33 @@ def _dismissed_notification_keys() -> set[tuple[str, int]]:
     }
 
 
+def _current_user_role_key() -> str | None:
+    """Resuelve el rol canonico del usuario autenticado actual."""
+    role = getattr(current_user, "role", None)
+    role_name = getattr(role, "name", None) if role is not None else None
+    if role_name:
+        return resolve_role_key(role_name)
+
+    # Fallback para dobles de pruebas que solo incluyen id/is_authenticated.
+    user_id = getattr(current_user, "id", None)
+    if user_id is None:
+        return None
+
+    from app.models.user import User
+
+    db_user = db.session.get(User, user_id)
+    db_role = getattr(db_user, "role", None) if db_user is not None else None
+    return resolve_role_key(getattr(db_role, "name", None))
+
+
+def _can_receive_security_notifications(role_key: str | None) -> bool:
+    return role_key == ROLE_SUPERADMIN
+
+
+def _can_receive_audit_notifications(role_key: str | None) -> bool:
+    return role_key in {ROLE_SUPERADMIN, ROLE_ADMIN}
+
+
 def dismiss_notification(source_kind: str, source_id: int) -> bool:
     if not getattr(current_user, "is_authenticated", False):
         return False
@@ -229,10 +257,20 @@ def build_navbar_notifications(
     if not getattr(current_user, "is_authenticated", False):
         return {"items": [], "count": 0}
 
+    role_key = _current_user_role_key()
+    if not role_key:
+        return {"items": [], "count": 0}
+
     cutoff = datetime.utcnow() - timedelta(hours=lookback_hours)
-    security_notifications = _build_important_security_notifications(cutoff)
-    audit_notifications = _build_important_audit_notifications(cutoff)
-    notifications = _sort_notifications([*security_notifications, *audit_notifications])
+    notifications: list[dict] = []
+
+    if _can_receive_security_notifications(role_key):
+        notifications.extend(_build_important_security_notifications(cutoff))
+
+    if _can_receive_audit_notifications(role_key):
+        notifications.extend(_build_important_audit_notifications(cutoff))
+
+    notifications = _sort_notifications(notifications)
 
     if not include_dismissed:
         dismissed_keys = _dismissed_notification_keys()
