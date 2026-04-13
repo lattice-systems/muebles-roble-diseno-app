@@ -21,17 +21,6 @@ class PurchaseOrderForm(FlaskForm):
         validators=[DataRequired(message="La fecha es requerida")],
     )
 
-    status = SelectField(
-        "Estado",
-        choices=[
-            ("pendiente", "Pendiente"),
-            ("confirmada", "Confirmada"),
-            ("recibida", "Recibida"),
-            ("cancelada", "Cancelada"),
-        ],
-        default="pendiente",
-        validators=[DataRequired(message="El estado es requerido")],
-    )
 
 
 class PurchaseOrderItemForm(FlaskForm):

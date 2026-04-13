@@ -102,7 +102,6 @@ def create_order():
         data = {
             "supplier_id": form.supplier_id.data,
             "order_date": form.order_date.data,
-            "status": form.status.data,
         }
 
         try:
@@ -149,7 +148,6 @@ def edit_order(id_order: int):
     if request.method == "GET":
         form.supplier_id.data = order.supplier_id
         form.order_date.data = order.order_date
-        form.status.data = order.status
     elif form.validate_on_submit():
         rm_ids = request.form.getlist("raw_material_id[]")
         quantities = request.form.getlist("quantity[]")
@@ -174,7 +172,6 @@ def edit_order(id_order: int):
         data = {
             "supplier_id": form.supplier_id.data,
             "order_date": form.order_date.data,
-            "status": form.status.data,
         }
 
         try:

@@ -158,8 +158,6 @@ class PurchaseOrderService:
         """Crea una nueva orden de compra y sus ítems, calculando el total."""
         supplier_id = data.get("supplier_id")
         order_date = data.get("order_date")
-        status = data.get("status", "pendiente")
-
         if not supplier_id:
             raise ValidationError("El proveedor es requerido")
         if not order_date:
@@ -174,7 +172,7 @@ class PurchaseOrderService:
         order = PurchaseOrder(
             supplier_id=supplier_id,
             order_date=order_date,
-            status=status,
+            status="pendiente",
             total=0,
         )
         db.session.add(order)

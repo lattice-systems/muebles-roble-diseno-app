@@ -15,7 +15,7 @@
             class="flex flex-col gap-4 2xl:gap-6">
         {{ form.hidden_tag() }}
         <!-- Cabecera de la Orden -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 2xl:gap-4 items-start">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4 items-start">
           <div class="flex flex-col gap-1">
             <label for="{{ form.supplier_id.id }}"
                    class="text-xs 2xl:text-sm font-medium text-heading">{{ form.supplier_id.label.text }}</label>
@@ -32,13 +32,7 @@
               <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
             {% endfor %}
           </div>
-          <div class="flex flex-col gap-1">
-            <label for="{{ form.status.id }}"
-                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.status.label.text }}</label>
-            {{ form.status(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs", disabled="disabled") }}
-            <input type="hidden" name="status" value="{{ form.status.data }}">
-            {% for error in form.status.errors %}<p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>{% endfor %}
-          </div>
+
         </div>
         <!-- Template Oculto para Materias Primas -->
         <select id="rawMaterialSelectTemplate" class="hidden">
