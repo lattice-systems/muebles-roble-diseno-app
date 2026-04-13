@@ -14,6 +14,27 @@ from app.shared.audit_logging import log_application_audit
 class UnitOfMeasureService:
     """Servicio para operaciones de negocio relacionadas con unidades de medida."""
 
+    _TYPE_NORMALIZATION = {
+        "longitud": "longitud",
+        "length": "longitud",
+        "peso": "peso",
+        "weight": "peso",
+        "volumen": "volumen",
+        "volume": "volumen",
+        "unidad": "unidad",
+        "count": "unidad",
+        "unit": "unidad",
+    }
+
+    @staticmethod
+    def _normalize_type(unit_type: str) -> str:
+        """Normaliza aliases del tipo para persistir siempre en español."""
+        if unit_type is None:
+            return ""
+        return UnitOfMeasureService._TYPE_NORMALIZATION.get(
+            unit_type.strip().lower(), ""
+        )
+
     @staticmethod
     def get_all(
         search_term: str = "",
@@ -36,9 +57,9 @@ class UnitOfMeasureService:
             )
 
         if status_filter == "active":
-            query = query.filter(UnitOfMeasure.status)
+            query = query.filter(UnitOfMeasure.status.is_(True))
         elif status_filter == "inactive":
-            query = query.filter(not UnitOfMeasure.status)
+            query = query.filter(UnitOfMeasure.status.is_(False))
 
         return query.order_by(UnitOfMeasure.id_unit_of_measure.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -61,14 +82,14 @@ class UnitOfMeasureService:
         """
         name = data.get("name", "").strip()
         abbreviation = data.get("abbreviation", "").strip()
-        unit_type = data.get("type", "").strip()
+        unit_type = UnitOfMeasureService._normalize_type(data.get("type", ""))
         active = data.get("active", True)
 
         if not name:
             raise ValidationError("El nombre de la unidad de medida es requerido")
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
-        if unit_type not in ["longitud", "peso", "volumen", "unidad"]:
+        if not unit_type:
             raise ValidationError(
                 "El tipo de unidad debe ser longitud, peso, volumen o unidad"
             )
@@ -155,7 +176,7 @@ class UnitOfMeasureService:
 
         name = data.get("name", "").strip()
         abbreviation = data.get("abbreviation", "").strip()
-        unit_type = data.get("type", "").strip()
+        unit_type = UnitOfMeasureService._normalize_type(data.get("type", ""))
         active = data.get("active", unit_of_measure.status)
 
         if not name:
@@ -164,7 +185,7 @@ class UnitOfMeasureService:
         if not abbreviation:
             raise ValidationError("La abreviatura de la unidad de medida es requerida")
 
-        if unit_type not in ["longitud", "peso", "volumen", "unidad"]:
+        if not unit_type:
             raise ValidationError(
                 "El tipo de unidad debe ser longitud, peso, volumen o unidad"
             )
