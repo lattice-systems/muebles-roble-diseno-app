@@ -119,22 +119,22 @@
     <!-- 2. Gráficas -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 2xl:gap-6">
       <!-- Ventas Semanales Chart -->
-      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 2xl:p-6 shadow-xs">
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 2xl:p-6 shadow-xs overflow-hidden">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-heading text-lg 2xl:text-xl font-semibold tracking-tight">Ventas de la Semana</h2>
           <a href="{{ url_for('reports.index') }}"
              class="text-brand text-xs 2xl:text-sm font-medium hover:underline">Ver Reportes</a>
         </div>
         <!-- ApexCharts container -->
-        <div id="weekly-sales-chart" class="w-full h-72"></div>
+        <div id="weekly-sales-chart" class="w-full h-72 min-h-72"></div>
       </div>
       <!-- Top Productos Chart -->
-      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 2xl:p-6 shadow-xs">
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 2xl:p-6 shadow-xs overflow-hidden">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-heading text-lg 2xl:text-xl font-semibold tracking-tight">Top 5 Productos (30 días)</h2>
         </div>
         <!-- ApexCharts container -->
-        <div id="top-products-chart" class="w-full h-72"></div>
+        <div id="top-products-chart" class="w-full h-72 min-h-72"></div>
       </div>
     </div>
     <!-- 3. Secciones Operativas -->
@@ -158,11 +158,11 @@
         </div>
         <div class="overflow-x-auto flex-1">
           <table class="w-full text-xs 2xl:text-sm text-left text-body">
-            <thead class="text-[10px] 2xl:text-xs uppercase bg-neutral-secondary-medium text-body border-b border-default-medium">
+            <thead class="text-2xs 2xl:text-xs uppercase bg-neutral-secondary-medium text-body border-b border-default-medium">
               <tr>
                 <th class="px-5 2xl:px-6 py-3 font-semibold">Folio</th>
                 <th class="px-5 2xl:px-6 py-3 font-semibold">Producto</th>
-                <th class="px-5 2xl:px-6 py-3 font-semibold">Progreso</th>
+                <th class="px-5 2xl:px-6 py-3 font-semibold">Cantidad</th>
                 <th class="px-5 2xl:px-6 py-3 font-semibold">Estado</th>
                 <th class="px-5 2xl:px-6 py-3 font-semibold text-right">Progreso</th>
               </tr>
@@ -170,7 +170,12 @@
             <tbody>
               {% for order in data.active_production_orders %}
                 <tr class="border-b border-default-soft hover:bg-neutral-secondary-soft transition-colors group">
-                  {% set manufactured_qty = order.manufactured_quantity if order.manufactured_quantity is defined else 0 %}
+                  {% set order_qty_raw = order.quantity if order.quantity is not none else 0 %}
+                  {% set safe_qty = order_qty_raw|float %}
+                  {% set order_status = ((order.status or '')|string|trim|lower|replace(' ', '_')) %}
+                  {% set has_manufactured_quantity = order.manufactured_quantity is defined and order.manufactured_quantity is not none %}
+                  {% set manufactured_qty_raw = order.manufactured_quantity if has_manufactured_quantity else 0 %}
+                  {% set manufactured_qty = manufactured_qty_raw|float %}
                   <td class="px-5 2xl:px-6 py-3 font-medium text-heading">#{{ order.id }}</td>
                   <td class="px-5 2xl:px-6 py-3">
                     <div class="flex items-center gap-3">
@@ -179,7 +184,7 @@
                              alt="{{ order.product.name }}"
                              class="w-8 h-8 rounded-md object-cover border border-default">
                       {% else %}
-                        <div class="w-8 h-8 rounded-md bg-neutral-secondary-strong border border-default-strong flex flex-shrink-0 items-center justify-center text-body">
+                        <div class="w-8 h-8 rounded-md bg-neutral-secondary-strong border border-default-strong flex shrink-0 items-center justify-center text-body">
                           <svg class="w-4 h-4"
                                aria-hidden="true"
                                xmlns="http://www.w3.org/2000/svg"
@@ -189,33 +194,59 @@
                           </svg>
                         </div>
                       {% endif %}
-                      <span class="font-medium text-heading truncate max-w-[200px]">{{ order.product.name }}</span>
+                      <span class="font-medium text-heading truncate max-w-50">{{ order.product.name }}</span>
                     </div>
                   </td>
                   <td class="px-5 2xl:px-6 py-3 text-heading font-semibold">
-                    <span class="text-brand">{{ manufactured_qty }}</span> / {{ order.quantity }}
+                    {% if has_manufactured_quantity %}
+                      <span class="text-brand">{{ manufactured_qty_raw }}</span> / {{ order_qty_raw }}
+                    {% else %}
+                      {{ order_qty_raw }}
+                    {% endif %}
                   </td>
                   <td class="px-5 2xl:px-6 py-3">
-                    {% if order.status in ['en_proceso', 'in_progress'] %}
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] 2xl:text-xs font-medium bg-blue-100 text-blue-800">
+                    {% if order_status in ['en_proceso', 'in_progress'] %}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-2xs 2xl:text-xs font-medium bg-blue-100 text-blue-800">
                         <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5 animate-pulse"></span>
                         En proceso
                       </span>
-                    {% else %}
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] 2xl:text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {% elif order_status in ['terminado', 'completed', 'finalizado', 'finalizada'] %}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-2xs 2xl:text-xs font-medium bg-green-100 text-green-800">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                        Terminado
+                      </span>
+                    {% elif order_status in ['cancelado', 'cancelled'] %}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-2xs 2xl:text-xs font-medium bg-red-100 text-red-800">
+                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                        Cancelado
+                      </span>
+                    {% elif order_status in ['pendiente', 'pending'] %}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-2xs 2xl:text-xs font-medium bg-yellow-100 text-yellow-800">
                         <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
                         Pendiente
+                      </span>
+                    {% else %}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-2xs 2xl:text-xs font-medium bg-neutral-secondary-medium text-body">
+                        {{ order.status|replace('_', ' ') |title if order.status else 'Pendiente' }}
                       </span>
                     {% endif %}
                   </td>
                   <td class="px-5 2xl:px-6 py-3 text-right">
-                    {% set safe_qty = order.quantity if order.quantity else 0 %}
-                    {% set progress = ((manufactured_qty / safe_qty) * 100) if safe_qty > 0 else 0 %}
+                    {% if has_manufactured_quantity and safe_qty > 0 %}
+                      {% set progress = (manufactured_qty / safe_qty) * 100 %}
+                    {% elif order_status in ['terminado', 'completed', 'finalizado', 'finalizada'] %}
+                      {% set progress = 100 %}
+                    {% elif order_status in ['en_proceso', 'in_progress'] %}
+                      {% set progress = 50 %}
+                    {% else %}
+                      {% set progress = 0 %}
+                    {% endif %}
+                    {% set progress_bar = 0 if progress < 0 else (100 if progress > 100 else progress) %}
                     <div class="flex items-center justify-end gap-2">
                       <div class="w-16 h-1.5 bg-neutral-secondary-strong rounded-full overflow-hidden">
-                        <div class="h-full bg-brand" style="width: {{ progress }}%"></div>
+                        <div class="h-full bg-brand" style="width: {{ progress_bar }}%"></div>
                       </div>
-                      <span class="text-[10px] font-medium text-body">{{ "%.0f"|format(progress) }}%</span>
+                      <span class="text-2xs font-medium text-body">{{ "%.0f"|format(progress) }}%</span>
                     </div>
                   </td>
                 </tr>
@@ -251,46 +282,49 @@
                  viewBox="0 0 24 24">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
-            <h2 class="text-heading text-sm 2xl:text-base font-semibold">Atención Requiere</h2>
+            <h2 class="text-heading text-sm 2xl:text-base font-semibold">Atención Requerida</h2>
           </div>
           {% if data.low_stock_alerts %}
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">{{ data.low_stock_alerts|length }}</span>
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-2xs font-bold">{{ data.low_stock_alerts|length }}</span>
           {% endif %}
         </div>
-        <div class="flex-1 overflow-y-auto max-h-[400px]">
+        <div class="flex-1 overflow-y-auto max-h-100">
           {% if data.low_stock_alerts %}
             <div class="divide-y divide-default-soft">
               {% for material in data.low_stock_alerts %}
                 <div class="p-4 2xl:p-5 hover:bg-neutral-secondary-soft transition-colors">
+                  {% set minimum_stock = material.minimum_stock if material.minimum_stock is not none else 0 %}
+                  {% set safe_minimum_stock = minimum_stock if minimum_stock > 0 else 0 %}
                   <div class="flex justify-between items-start mb-2">
                     <a href="{{ url_for('raw_materials.detail_raw_material', raw_material_id=material.id) }}"
                        class="font-medium text-sm text-heading hover:text-brand transition-colors">
                       {{ material.name }}
                     </a>
-                    {% if material.stock <= (material.minimum_stock / 2) %}
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800 border border-red-200">
+                    {% if safe_minimum_stock > 0 and material.stock <= (safe_minimum_stock / 2) %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-medium bg-red-100 text-red-800 border border-red-200">
                         Crítico
                       </span>
                     {% else %}
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
                         Bajo
                       </span>
                     {% endif %}
                   </div>
                   <div class="w-full bg-neutral-secondary-strong rounded-full h-1.5 mb-2">
-                    {% set stock_percentage = (material.stock / material.minimum_stock) * 100 %}
+                    {% set stock_percentage = ((material.stock / safe_minimum_stock) * 100) if safe_minimum_stock > 0 else 100 %}
+                    {% set stock_bar_width = 0 if stock_percentage < 0 else (100 if stock_percentage > 100 else stock_percentage) %}
                     <div class="h-full rounded-full {% if stock_percentage <= 50 %}bg-red-500{% else %}bg-orange-400{% endif %}"
-                         style="width: {{ stock_percentage if stock_percentage <= 100 else 100 }}%"></div>
+                         style="width: {{ stock_bar_width }}%"></div>
                   </div>
                   <div class="flex justify-between items-center text-xs text-body">
                     <span>Stock: <strong class="text-heading">{{ "%.2f"|format(material.stock) }}</strong> {{ material.unit.abbreviation if material.unit else '' }}</span>
-                    <span>Min: <strong>{{ "%.2f"|format(material.minimum_stock) }}</strong></span>
+                    <span>Min: <strong>{{ "%.2f"|format(minimum_stock) }}</strong></span>
                   </div>
                 </div>
               {% endfor %}
             </div>
           {% else %}
-            <div class="flex flex-col items-center justify-center h-full p-8 text-center text-body min-h-[250px]">
+            <div class="flex flex-col items-center justify-center h-full p-8 text-center text-body min-h-62.5">
               <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-3">
                 <svg class="w-8 h-8 text-green-500"
                      aria-hidden="true"
@@ -312,27 +346,67 @@
   </div>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <!-- djlint:off -->
-              <script type="application/json" id="weekly-sales-data">{{ data.weekly_sales_chart | tojson | safe }}</script>
-              <script type="application/json" id="top-products-data">{{ data.top_products_chart | tojson | safe }}</script>
-  <!-- djlint:on -->
   <script>
       document.addEventListener("DOMContentLoaded", function() {
-          // Configuraciones globales para que el diseño luzca premium (fuente Tailwind, modo claro/oscuro compatible)
+          const weeklyChartContainer = document.getElementById("weekly-sales-chart");
+          const topProductsChartContainer = document.getElementById("top-products-chart");
+
+          if (!weeklyChartContainer || !topProductsChartContainer) {
+              return;
+          }
+
+          const renderFallback = function(container, message) {
+              container.innerHTML = "<div class='w-full h-full flex items-center justify-center text-xs text-body text-center px-4'>" + message + "</div>";
+          };
+
+          if (typeof ApexCharts === "undefined") {
+              renderFallback(weeklyChartContainer, "No fue posible cargar la gráfica de ventas.");
+              renderFallback(topProductsChartContainer, "No fue posible cargar la gráfica de productos.");
+              return;
+          }
+
+          const weeklySalesDataRaw = {
+              {
+                  data.weekly_sales_chart | tojson | safe
+              }
+          };
+          const topProductsDataRaw = {
+              {
+                  data.top_products_chart | tojson | safe
+              }
+          };
+          const ensureChartData = function(rawData, fallbackName) {
+              if (rawData && Array.isArray(rawData.categories) && Array.isArray(rawData.series)) {
+                  return rawData;
+              }
+              return {
+                  categories: [],
+                  series: [{
+                      name: fallbackName,
+                      data: []
+                  }]
+              };
+          };
+
+          // Configuraciones globales para gráficas
           const isDarkMode = document.documentElement.classList.contains('dark');
           const textColor = isDarkMode ? '#9ca3af' : '#6b7280';
           const headingColor = isDarkMode ? '#f9fafb' : '#111827';
           const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
-          const fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif';
+          const systemFontFamily = window.getComputedStyle(document.body).fontFamily;
+          const fontFamily = systemFontFamily && systemFontFamily.trim().length ?
+              systemFontFamily :
+              'ui-sans-serif, system-ui, sans-serif';
 
           // 1. Gráfica de Ventas Semanales (Area Chart)
-          const weeklySalesData = JSON.parse(document.getElementById('weekly-sales-data').textContent);
+          const weeklySalesData = ensureChartData(weeklySalesDataRaw, "Ventas Totales");
 
           const weeklyOptions = {
               chart: {
                   type: 'area',
-                  height: '100%',
+                  height: 260,
                   fontFamily: fontFamily,
+                  parentHeightOffset: 0,
                   toolbar: {
                       show: false
                   },
@@ -342,9 +416,15 @@
                   }
               },
               series: weeklySalesData.series,
+              noData: {
+                  text: 'Sin datos disponibles'
+              },
               xaxis: {
                   categories: weeklySalesData.categories,
                   labels: {
+                      hideOverlappingLabels: true,
+                      trim: true,
+                      maxHeight: 42,
                       style: {
                           colors: textColor,
                           fontSize: '12px'
@@ -391,6 +471,12 @@
               grid: {
                   borderColor: gridColor,
                   strokeDashArray: 4,
+                  padding: {
+                      top: 6,
+                      right: 6,
+                      bottom: 8,
+                      left: 4
+                  },
                   yaxis: {
                       lines: {
                           show: true
@@ -407,24 +493,32 @@
               }
           };
 
-          const weeklyChart = new ApexCharts(document.querySelector("#weekly-sales-chart"), weeklyOptions);
+          const weeklyChart = new ApexCharts(weeklyChartContainer, weeklyOptions);
           weeklyChart.render();
 
 
           // 2. Gráfica de Productos Top (Bar Chart Horizontal)
-          const topProductsData = JSON.parse(document.getElementById('top-products-data').textContent);
+          const topProductsData = ensureChartData(
+              topProductsDataRaw,
+              "Unidades vendidas",
+          );
+          const hasTopProductsData = topProductsData.categories.length > 0;
 
           const topProductsOptions = {
               chart: {
                   type: 'bar',
-                  height: '100%',
+                  height: 260,
                   fontFamily: fontFamily,
+                  parentHeightOffset: 0,
                   toolbar: {
                       show: false
                   },
                   background: 'transparent'
               },
               series: topProductsData.series,
+              noData: {
+                  text: 'Sin datos de productos'
+              },
               plotOptions: {
                   bar: {
                       horizontal: true,
@@ -435,6 +529,8 @@
               xaxis: {
                   categories: topProductsData.categories,
                   labels: {
+                      hideOverlappingLabels: true,
+                      trim: true,
                       style: {
                           colors: textColor,
                           fontSize: '12px'
@@ -458,7 +554,7 @@
               },
               colors: ['#0ea5e9'], // Light blue / Cyan 500
               dataLabels: {
-                  enabled: true,
+                  enabled: hasTopProductsData,
                   style: {
                       colors: ['#fff'],
                       fontSize: '12px'
@@ -467,6 +563,12 @@
               grid: {
                   borderColor: gridColor,
                   strokeDashArray: 4,
+                  padding: {
+                      top: 4,
+                      right: 6,
+                      bottom: 8,
+                      left: 6
+                  },
                   xaxis: {
                       lines: {
                           show: true
@@ -483,7 +585,7 @@
               }
           };
 
-          const topProductsChart = new ApexCharts(document.querySelector("#top-products-chart"), topProductsOptions);
+          const topProductsChart = new ApexCharts(topProductsChartContainer, topProductsOptions);
           topProductsChart.render();
       });
   </script>
