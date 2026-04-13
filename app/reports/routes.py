@@ -8,6 +8,7 @@ from flask_security import auth_required
 
 from app.reports import reports_bp
 from app.reports.services import ReportService
+from app.dashboard.services import DashboardService
 
 
 class SimplePagination:
@@ -90,6 +91,18 @@ def index():
     target_date = date_to
 
     dashboard = ReportService.get_dashboard(target_date=target_date)
+    weekly_sales = dashboard.get("weekly_sales") if dashboard else None
+    if (
+        not weekly_sales
+        or not isinstance(weekly_sales.get("items"), list)
+        or len(weekly_sales.get("items", [])) != 7
+        or "max_amount" not in weekly_sales
+    ):
+        dashboard = ReportService.get_dashboard(target_date=target_date, force_refresh=True)
+
+    # Get chart data for ApexCharts
+    weekly_sales_chart = DashboardService.get_weekly_sales_chart(target_date=target_date)
+
     comparison_metrics = ReportService.get_dashboard_comparison_metrics(
         target_date=target_date
     )
@@ -122,6 +135,7 @@ def index():
     return render_template(
         "admin/reports/index.html",
         dashboard=dashboard,
+        weekly_sales_chart=weekly_sales_chart,
         general_report=general_report,
         comparison_metrics=comparison_metrics,
         pagination=pagination,
@@ -164,6 +178,15 @@ def sales_details():
     target_date = date_to
 
     dashboard = ReportService.get_dashboard(target_date=target_date)
+    weekly_sales = dashboard.get("weekly_sales") if dashboard else None
+    if (
+        not weekly_sales
+        or not isinstance(weekly_sales.get("items"), list)
+        or len(weekly_sales.get("items", [])) != 7
+        or "max_amount" not in weekly_sales
+    ):
+        dashboard = ReportService.get_dashboard(target_date=target_date, force_refresh=True)
+
     recent = ReportService.get_recent_sales_rows(date_from=date_from, date_to=date_to)
 
     return render_template(
