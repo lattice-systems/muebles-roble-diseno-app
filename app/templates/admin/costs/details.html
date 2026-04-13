@@ -50,17 +50,25 @@
       </div>
     </div>
     <div class="flex flex-col gap-1 text-sm">
-      <p class="text-body">
-        Costo total:
-        <span class="text-heading">${{ "%.2f"|format(detail.summary.total_cost|float) }}</span>
+      <p class="text-heading font-medium">
+        Costo total de materiales:
+        <span class="text-body">${{ "%.2f"|format(detail.summary.material_cost|float) }}</span>
       </p>
-      <p class="text-body">
+      <p class="text-heading font-medium">
+        Mano de obra y gastos indirectos: 
+        <span class="text-body">30% adicional</span>
+      </p>
+      <p class="text-heading font-medium">
+        Costo total de producción:
+        <span class="text-body">${{ "%.2f"|format(detail.summary.total_cost|float) }}</span>
+      </p>
+      <p class="text-heading font-medium">
         Precio venta:
-        <span class="text-heading">${{ "%.2f"|format(detail.summary.sale_price|float) }}</span>
+        <span class="text-body">${{ "%.2f"|format(detail.summary.sale_price|float) }}</span>
       </p>
-      <p class="text-body">
-        Margen:
-        <span class="text-heading">
+      <p class="text-heading font-medium">
+        Utilidad:
+        <span class="text-body">
           {% if detail.summary.margin_value is not none %}
             ${{ "%.2f"|format(detail.summary.margin_value|float) }}
           {% else %}
