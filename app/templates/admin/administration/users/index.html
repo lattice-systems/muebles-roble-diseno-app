@@ -7,28 +7,52 @@
   Admin - Usuarios
 {% endblock title %}
 {% block content %}
+  {% set is_clients_tab = user_tab == 'clients' %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Usuarios" %}
-    {% set admin_header_subtitle = "Gestiona usuarios existentes o añade uno nuevo" %}
+    {% set admin_header_subtitle = "Gestiona cuentas de clientes y empleados sin mezclar ambos contextos" %}
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
+    <div class="sm:hidden">
+      <label for="users-tabs" class="sr-only">Tipo de usuario</label>
+      <select id="users-tabs"
+              onchange="location = this.value;"
+              class="block w-full px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
+        <option value="{{ url_for('users.index', tab='employees', q=search_term, status=status_filter) }}"
+                {% if not is_clients_tab %}selected{% endif %}>Empleados</option>
+        <option value="{{ url_for('users.index', tab='clients', q=search_term, status=status_filter) }}"
+                {% if is_clients_tab %}selected{% endif %}>Clientes</option>
+      </select>
+    </div>
+    <ul class="hidden text-sm font-medium text-center text-body sm:flex -space-x-px">
+      <li class="w-full focus-within:z-10">
+        <a href="{{ url_for('users.index', tab='employees', q=search_term, status=status_filter) }}"
+           class="inline-block w-full border border-default leading-5 text-sm px-4 py-2.5 focus:outline-none rounded-s-base {% if not is_clients_tab %}text-heading bg-neutral-secondary-medium font-medium focus:ring-4 focus:ring-neutral-secondary-strong hover:bg-neutral-secondary-medium hover:text-heading{% else %}text-body bg-neutral-primary-soft hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium{% endif %}"
+           {% if not is_clients_tab %}aria-current="page"{% endif %}>Empleados</a>
+      </li>
+      <li class="w-full focus-within:z-10">
+        <a href="{{ url_for('users.index', tab='clients', q=search_term, status=status_filter) }}"
+           class="inline-block w-full border border-default leading-5 text-sm px-4 py-2.5 focus:outline-none rounded-e-base {% if is_clients_tab %}text-heading bg-neutral-secondary-medium font-medium focus:ring-4 focus:ring-neutral-secondary-strong hover:bg-neutral-secondary-medium hover:text-heading{% else %}text-body bg-neutral-primary-soft hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-secondary-strong font-medium{% endif %}"
+           {% if is_clients_tab %}aria-current="page"{% endif %}>Clientes</a>
+      </li>
+    </ul>
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      {% call table_header(url_for('users.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre o correo', search_label='Search', hidden_fields=[('status', status_filter)], clear_condition=search_term) %}
-        {% if can('users.create') %}
-        <a id="addUserButton"
-           href="{{ url_for('users.create_user') }}"
-           class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-          <svg class="w-4 h-4 me-1.5 -ms-0.5"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
-          </svg>
-          Agregar
-        </a>
+      {% call table_header(url_for('users.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre o correo', search_label='Search', hidden_fields=[('status', status_filter), ('tab', user_tab)], clear_condition=search_term) %}
+        {% if can('users.create') and not is_clients_tab %}
+          <a id="addUserButton"
+             href="{{ url_for('users.create_user') }}"
+             class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+            <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
+            </svg>
+            Agregar
+          </a>
         {% endif %}
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
@@ -61,15 +85,15 @@
           <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
               aria-labelledby="filterDropdownButton">
             <li>
-              <a href="{{ url_for('users.index', q=search_term, status='all') }}"
+              <a href="{{ url_for('users.index', q=search_term, status='all', tab=user_tab) }}"
                  class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Todos</a>
             </li>
             <li>
-              <a href="{{ url_for('users.index', q=search_term, status='active') }}"
+              <a href="{{ url_for('users.index', q=search_term, status='active', tab=user_tab) }}"
                  class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Activos</a>
             </li>
             <li>
-              <a href="{{ url_for('users.index', q=search_term, status='inactive') }}"
+              <a href="{{ url_for('users.index', q=search_term, status='inactive', tab=user_tab) }}"
                  class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Inactivos</a>
             </li>
           </ul>
@@ -176,10 +200,10 @@
                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Ver detalles</a>
                   </li>
                   {% if can('users.update') %}
-                  <li>
-                    <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
-                       class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
-                  </li>
+                    <li>
+                      <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
+                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">Editar</a>
+                    </li>
                   {% endif %}
                 {% endcall %}
                 {{ row_status_toggle_button('toggle-user-status-modal-' ~ user.id, user.status, 'Desactivar', 'Activar') }}
@@ -188,12 +212,18 @@
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
-                <td colspan="6" class="px-6 py-8 text-center text-body">No se encontraron usuarios</td>
+                <td colspan="6" class="px-6 py-8 text-center text-body">
+                  {% if is_clients_tab %}
+                    No se encontraron clientes.
+                  {% else %}
+                    No se encontraron empleados.
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-        {{ table_footer(pagination, 'users.index', {'q': search_term, 'status': status_filter}) }}
+        {{ table_footer(pagination, 'users.index', {'q': search_term, 'status': status_filter, 'tab': user_tab}) }}
       </div>
     </div>
   </div>
@@ -208,6 +238,7 @@
            value="{{ csrf_token() if csrf_token else '' }}">
     <input type="hidden" name="q" value="{{ search_term }}">
     <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="tab" value="{{ user_tab }}">
     <input type="hidden" name="page" value="{{ pagination.page }}">
     <input type="hidden" name="action" id="bulk-action-input" value="">
     <input type="hidden"
@@ -262,6 +293,7 @@
                        value="{{ csrf_token() if csrf_token else '' }}">
                 <input type="hidden" name="q" value="{{ search_term }}">
                 <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="hidden" name="tab" value="{{ user_tab }}">
                 <input type="hidden" name="page" value="{{ pagination.page }}">
                 <button type="submit"
                         class="text-white {% if user.status %}bg-danger hover:bg-danger-strong focus:ring-danger-medium{% else %}bg-brand hover:bg-brand-strong focus:ring-brand-medium{% endif %} box-border border border-transparent focus:ring-4 shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">

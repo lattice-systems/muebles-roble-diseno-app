@@ -3,11 +3,11 @@ from datetime import datetime
 from io import StringIO
 
 from flask import flash, make_response, redirect, render_template, request, url_for
-from flask_security import current_user, login_required, auth_required, url_for_security
+from flask_security import auth_required, current_user, login_required, url_for_security
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.users import users_bp
-from app.users.forms import UserForm, UserEditForm
+from app.users.forms import UserEditForm, UserForm
 from app.users.services import UserService
 
 
@@ -21,6 +21,11 @@ def _parse_selected_ids(raw_ids: str) -> list[int]:
         if user_id > 0 and user_id not in ids:
             ids.append(user_id)
     return ids
+
+
+def _normalize_user_tab(raw_tab: str | None) -> str:
+    tab = (raw_tab or "employees").strip().lower()
+    return tab if tab in {"employees", "clients"} else "employees"
 
 
 @users_bp.route("/profile", methods=["GET"])
@@ -50,11 +55,13 @@ def setup_2fa():
 def index():
     search_term = request.args.get("q", "").strip()
     status_filter = request.args.get("status", "all")
+    user_tab = _normalize_user_tab(request.args.get("tab"))
     page = request.args.get("page", 1, type=int)
 
     pagination = UserService.get_all(
         search_term=search_term or None,
         status_filter=status_filter,
+        user_tab=user_tab,
         page=page,
         per_page=10,
     )
@@ -65,6 +72,7 @@ def index():
         pagination=pagination,
         search_term=search_term,
         status_filter=status_filter,
+        user_tab=user_tab,
     )
 
 
@@ -107,6 +115,7 @@ def create_user():
 def toggle_status(id_user: int):
     search_term = request.form.get("q", "").strip()
     status_filter = request.form.get("status", "all")
+    user_tab = _normalize_user_tab(request.form.get("tab"))
     page_raw = request.form.get("page", "1")
     page = int(page_raw) if page_raw.isdigit() else 1
 
@@ -120,6 +129,7 @@ def toggle_status(id_user: int):
                     page=page,
                     q=search_term,
                     status=status_filter,
+                    tab=user_tab,
                 )
             )
 
@@ -141,6 +151,7 @@ def toggle_status(id_user: int):
             page=page,
             q=search_term,
             status=status_filter,
+            tab=user_tab,
         )
     )
 
@@ -205,6 +216,7 @@ def detail_user(id_user: int):
 def bulk_action_users():
     search_term = request.form.get("q", "").strip()
     status_filter = request.form.get("status", "all")
+    user_tab = _normalize_user_tab(request.form.get("tab"))
     page_raw = request.form.get("page", "1")
     page = int(page_raw) if page_raw.isdigit() else 1
 
@@ -219,6 +231,7 @@ def bulk_action_users():
                 page=page,
                 q=search_term,
                 status=status_filter,
+                tab=user_tab,
             )
         )
 
@@ -232,6 +245,7 @@ def bulk_action_users():
                     page=page,
                     q=search_term,
                     status=status_filter,
+                    tab=user_tab,
                 )
             )
 
@@ -289,6 +303,7 @@ def bulk_action_users():
                 page=page,
                 q=search_term,
                 status=status_filter,
+                tab=user_tab,
             )
         )
 
@@ -299,5 +314,6 @@ def bulk_action_users():
             page=page,
             q=search_term,
             status=status_filter,
+            tab=user_tab,
         )
     )

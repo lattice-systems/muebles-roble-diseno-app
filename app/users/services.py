@@ -14,6 +14,8 @@ from app.models.user import User
 class UserService:
     """Servicio para operaciones de negocio relacionadas con usuarios."""
 
+    CLIENT_ROLE_NAMES = {"client", "cliente"}
+
     @staticmethod
     def get_by_ids(user_ids: list[int]) -> list[User]:
         """Obtiene usuarios por una lista de IDs."""
@@ -31,6 +33,7 @@ class UserService:
     def get_all(
         search_term: str | None = None,
         status_filter: str | None = None,
+        user_tab: str = "employees",
         page: int = 1,
         per_page: int = 10,
     ):
@@ -40,7 +43,19 @@ class UserService:
         Returns:
                 Pagination: Objeto de paginación de Flask-SQLAlchemy
         """
-        query = User.query.options(joinedload(User.role))
+        query = User.query.options(joinedload(User.role)).outerjoin(
+            Role, User.role_id == Role.id
+        )
+
+        role_name_expr = func.lower(func.coalesce(Role.name, ""))
+        if user_tab == "clients":
+            query = query.filter(
+                role_name_expr.in_(tuple(UserService.CLIENT_ROLE_NAMES))
+            )
+        else:
+            query = query.filter(
+                ~role_name_expr.in_(tuple(UserService.CLIENT_ROLE_NAMES))
+            )
 
         if status_filter == "active":
             query = query.filter(User.status.is_(True))
@@ -73,7 +88,7 @@ class UserService:
         roles = (
             Role.query.filter(
                 Role.status.is_(True),
-                func.lower(Role.name) != "cliente",
+                func.lower(Role.name).notin_(tuple(UserService.CLIENT_ROLE_NAMES)),
             )
             .order_by(Role.name.asc())
             .all()
