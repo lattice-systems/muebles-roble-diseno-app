@@ -198,6 +198,7 @@ Notas:
 - Los scripts estan disenados para ser idempotentes en entorno de desarrollo.
 - `Muebles personalizados` permanece como categoria activa sin productos iniciales (intencional).
 - El costo de fabricacion depende de la cadena `BOM + purchase_order_items`.
+- La logica de pricing y coherencia visual-material del seed se documenta en `docs/PRICING_BUSINESS_LOGIC.md`.
 
 ---
 
