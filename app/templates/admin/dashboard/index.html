@@ -344,14 +344,19 @@
       </div>
     </div>
   </div>
+  <div id="dashboard-chart-data"
+       class="hidden"
+       data-weekly-sales='{{ (data.weekly_sales_chart or {}) | tojson | forceescape }}'
+       data-top-products='{{ (data.top_products_chart or {}) | tojson | forceescape }}'></div>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <script>
       document.addEventListener("DOMContentLoaded", function() {
           const weeklyChartContainer = document.getElementById("weekly-sales-chart");
           const topProductsChartContainer = document.getElementById("top-products-chart");
+          const chartDataElement = document.getElementById("dashboard-chart-data");
 
-          if (!weeklyChartContainer || !topProductsChartContainer) {
+          if (!weeklyChartContainer || !topProductsChartContainer || !chartDataElement) {
               return;
           }
 
@@ -365,16 +370,6 @@
               return;
           }
 
-          const weeklySalesDataRaw = {
-              {
-                  data.weekly_sales_chart | tojson | safe
-              }
-          };
-          const topProductsDataRaw = {
-              {
-                  data.top_products_chart | tojson | safe
-              }
-          };
           const ensureChartData = function(rawData, fallbackName) {
               if (rawData && Array.isArray(rawData.categories) && Array.isArray(rawData.series)) {
                   return rawData;
@@ -386,6 +381,13 @@
                       data: []
                   }]
               };
+          };
+          const parseEmbeddedChartData = function(rawData, fallbackName) {
+              try {
+                  return ensureChartData(JSON.parse(rawData || "{}"), fallbackName);
+              } catch (error) {
+                  return ensureChartData({}, fallbackName);
+              }
           };
 
           // Configuraciones globales para gráficas
@@ -399,7 +401,10 @@
               'ui-sans-serif, system-ui, sans-serif';
 
           // 1. Gráfica de Ventas Semanales (Area Chart)
-          const weeklySalesData = ensureChartData(weeklySalesDataRaw, "Ventas Totales");
+          const weeklySalesData = parseEmbeddedChartData(
+              chartDataElement.dataset.weeklySales,
+              "Ventas Totales",
+          );
 
           const weeklyOptions = {
               chart: {
@@ -498,8 +503,8 @@
 
 
           // 2. Gráfica de Productos Top (Bar Chart Horizontal)
-          const topProductsData = ensureChartData(
-              topProductsDataRaw,
+          const topProductsData = parseEmbeddedChartData(
+              chartDataElement.dataset.topProducts,
               "Unidades vendidas",
           );
           const hasTopProductsData = topProductsData.categories.length > 0;
