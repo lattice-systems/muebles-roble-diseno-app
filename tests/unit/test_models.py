@@ -162,6 +162,7 @@ class TestOrderModel:
             "payment_method_id",
             "notes",
             "source",
+            "is_special_request",
             "customer_user_id",
             "created_by_id",
             "cancelled_at",
