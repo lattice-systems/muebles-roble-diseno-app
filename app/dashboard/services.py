@@ -283,14 +283,15 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_active_production_orders() -> list:
+    def get_active_production_orders(assigned_user_id: int | None = None) -> list:
         active_statuses = ["pendiente", "en_proceso", "pending", "in_progress"]
-        orders = (
-            ProductionOrder.query.filter(ProductionOrder.status.in_(active_statuses))
-            .order_by(ProductionOrder.scheduled_date.asc())
-            .limit(10)
-            .all()
+        query = ProductionOrder.query.filter(
+            ProductionOrder.status.in_(active_statuses)
         )
+        if assigned_user_id is not None:
+            query = query.filter(ProductionOrder.assigned_user_id == assigned_user_id)
+
+        orders = query.order_by(ProductionOrder.scheduled_date.asc()).limit(10).all()
         return orders
 
     @staticmethod
@@ -305,7 +306,7 @@ class DashboardService:
         )
 
     @staticmethod
-    def get_full_dashboard() -> dict:
+    def get_full_dashboard(assigned_user_id: int | None = None) -> dict:
         today = date.today()
         return {
             "sales_kpi": DashboardService.get_daily_sales_kpi(today),
@@ -314,6 +315,8 @@ class DashboardService:
             "profit_kpi": DashboardService.get_profit_kpi(today),
             "weekly_sales_chart": DashboardService.get_weekly_sales_chart(today),
             "top_products_chart": DashboardService.get_top_products_chart(today),
-            "active_production_orders": DashboardService.get_active_production_orders(),
+            "active_production_orders": DashboardService.get_active_production_orders(
+                assigned_user_id=assigned_user_id
+            ),
             "low_stock_alerts": DashboardService.get_low_stock_alerts(),
         }

@@ -10,7 +10,12 @@ from flask_security import auth_required, current_user
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 
 from . import production_bp
-from .forms import BomForm, ProductionOrderForm, ProductionStatusForm
+from .forms import (
+    BomForm,
+    ProductionAssigneeForm,
+    ProductionOrderForm,
+    ProductionStatusForm,
+)
 from .services import ProductionService
 
 
@@ -72,11 +77,30 @@ def orders_index():
     """Listado de órdenes de producción."""
     search_term = request.args.get("q", "").strip()
     status_filter = request.args.get("status", "all").strip() or "all"
+    assignee_filter = request.args.get("assignee_id", "all").strip() or "all"
+
+    assigned_user_id: int | None = None
+    if assignee_filter != "all":
+        try:
+            assigned_user_id = int(assignee_filter)
+        except (TypeError, ValueError):
+            assignee_filter = "all"
+
+    assignee_choices = [("all", "Todos los responsables")]
+    assignee_choices.extend(
+        [
+            (str(user_id), label)
+            for user_id, label in ProductionService.get_assignable_user_choices(
+                include_user_id=assigned_user_id
+            )
+        ]
+    )
     page = request.args.get("page", 1, type=int)
 
     pagination = ProductionService.get_production_orders(
         search_term=search_term or None,
         status_filter=status_filter,
+        assigned_user_id=assigned_user_id,
         page=page,
         per_page=10,
     )
@@ -87,6 +111,8 @@ def orders_index():
         pagination=pagination,
         search_term=search_term,
         status_filter=status_filter,
+        assignee_filter=assignee_filter,
+        assignee_choices=assignee_choices,
     )
 
 
@@ -96,6 +122,14 @@ def create_order():
     """Crea una orden de producción manual."""
     form = ProductionOrderForm()
     form.product_id.choices = ProductionService.get_product_choices()
+    form.assigned_user_id.choices = ProductionService.get_assignable_user_choices()
+
+    if not form.assigned_user_id.choices:
+        flash(
+            "No hay usuarios activos con rol Producción, Admin o Super Admin para asignar órdenes.",
+            "error",
+        )
+        return redirect(url_for("production.orders_index"))
 
     if request.method == "GET" and not form.scheduled_date.data:
         form.scheduled_date.data = date.today()
@@ -107,6 +141,7 @@ def create_order():
                 quantity=form.quantity.data,
                 scheduled_date=form.scheduled_date.data,
                 user_id=current_user.id,
+                assigned_user_id=form.assigned_user_id.data,
                 is_special_request=bool(form.is_special_request.data),
                 do_not_add_to_finished_stock=bool(
                     form.do_not_add_to_finished_stock.data
@@ -136,6 +171,7 @@ def order_details(order_id: int):
         return redirect(url_for("production.orders_index"))
 
     status_form = ProductionStatusForm()
+    assign_form = ProductionAssigneeForm()
     allowed_statuses = ProductionService.get_allowed_status_transitions(order)
     status_label_map = {
         "pendiente": "Pendiente",
@@ -158,6 +194,14 @@ def order_details(order_id: int):
     ]
     status_form.status.data = order.status
 
+    assign_form.assigned_user_id.choices = (
+        ProductionService.get_assignable_user_choices(
+            include_user_id=order.assigned_user_id
+        )
+    )
+    if order.assigned_user_id:
+        assign_form.assigned_user_id.data = order.assigned_user_id
+
     current_material_ids = [row.raw_material_id for row in order.material_consumptions]
     raw_material_choices = ProductionService.get_raw_material_choices(
         include_inactive_ids=current_material_ids
@@ -167,6 +211,7 @@ def order_details(order_id: int):
         "admin/production/order_details.html",
         order=order,
         status_form=status_form,
+        assign_form=assign_form,
         allowed_statuses=allowed_statuses,
         raw_material_choices=raw_material_choices,
     )
@@ -188,6 +233,38 @@ def update_order_status(order_id: int):
             user_id=current_user.id,
         )
         flash("Estado de producción actualizado", "success")
+    except (ValidationError, ConflictError, NotFoundError) as e:
+        flash(e.message, "error")
+
+    return redirect(url_for("production.order_details", order_id=order_id))
+
+
+@production_bp.route("/orders/<int:order_id>/assign", methods=["POST"])
+@auth_required()
+def assign_order(order_id: int):
+    """Asigna o reasigna el responsable de una orden de producción."""
+    try:
+        order = ProductionService.get_production_order_by_id(order_id)
+    except NotFoundError as e:
+        flash(e.message, "error")
+        return redirect(url_for("production.orders_index"))
+
+    form = ProductionAssigneeForm()
+    form.assigned_user_id.choices = ProductionService.get_assignable_user_choices(
+        include_user_id=order.assigned_user_id
+    )
+
+    if not form.validate_on_submit():
+        flash("Debe seleccionar un responsable válido", "error")
+        return redirect(url_for("production.order_details", order_id=order_id))
+
+    try:
+        ProductionService.assign_production_order(
+            production_order_id=order_id,
+            assigned_user_id=form.assigned_user_id.data,
+            user_id=current_user.id,
+        )
+        flash("Responsable de producción actualizado", "success")
     except (ValidationError, ConflictError, NotFoundError) as e:
         flash(e.message, "error")
 

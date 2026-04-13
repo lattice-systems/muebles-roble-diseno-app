@@ -40,6 +40,14 @@
               <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
             {% endfor %}
           </div>
+          <div class="flex flex-col gap-1">
+            <label for="{{ form.assigned_user_id.id }}"
+                   class="text-xs 2xl:text-sm font-medium text-heading">{{ form.assigned_user_id.label.text }}</label>
+            {{ form.assigned_user_id(class_="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs") }}
+            {% for error in form.assigned_user_id.errors %}
+              <p class="text-xs 2xl:text-sm text-fg-danger-strong">{{ error }}</p>
+            {% endfor %}
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4 items-start">
           <label class="inline-flex items-start gap-2.5 text-xs 2xl:text-sm text-heading">

@@ -62,6 +62,12 @@ class ProductionOrderForm(FlaskForm):
         validators=[DataRequired(message="La fecha programada es obligatoria")],
     )
 
+    assigned_user_id = SelectField(
+        "Responsable de producción",
+        coerce=int,
+        validators=[DataRequired(message="Debe seleccionar un responsable")],
+    )
+
     is_special_request = BooleanField("Orden especial de cliente")
 
     do_not_add_to_finished_stock = BooleanField(
@@ -89,4 +95,14 @@ class ProductionStatusForm(FlaskForm):
             ("cancelado", "Cancelado"),
         ],
         validators=[DataRequired(message="Debe seleccionar un estado")],
+    )
+
+
+class ProductionAssigneeForm(FlaskForm):
+    """Formulario para asignar o reasignar responsable de una orden."""
+
+    assigned_user_id = SelectField(
+        "Responsable",
+        coerce=int,
+        validators=[DataRequired(message="Debe seleccionar un responsable")],
     )

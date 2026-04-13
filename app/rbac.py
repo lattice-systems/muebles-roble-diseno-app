@@ -618,6 +618,7 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "production.order_details": PRODUCTION_READ,
         "production.create_order": PRODUCTION_CREATE,
         "production.update_order_status": PRODUCTION_UPDATE,
+        "production.assign_order": PRODUCTION_UPDATE,
         "production.update_order_materials": PRODUCTION_UPDATE,
         "production.initialize_order_materials": PRODUCTION_UPDATE,
         "production.boms_index": PRODUCTION_READ,

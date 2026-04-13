@@ -23,12 +23,18 @@ from app.models import (
     PurchaseOrderItem,
     RawMaterial,
     RawMaterialMovement,
+    User,
 )
+from app.rbac import ROLE_ADMIN, ROLE_PRODUCTION, ROLE_SUPERADMIN, resolve_role_key
 from app.shared.audit_logging import log_application_audit
 
 
 class ProductionService:
     """Servicio central para Recetas (BOM) y Producción."""
+
+    ASSIGNABLE_ROLE_KEYS: frozenset[str] = frozenset(
+        {ROLE_PRODUCTION, ROLE_ADMIN, ROLE_SUPERADMIN}
+    )
 
     DEFAULT_PRODUCTION_VALID_STATUSES: tuple[str, ...] = (
         "pendiente",
@@ -67,6 +73,73 @@ class ProductionService:
         if not transitions:
             return ProductionService.DEFAULT_PRODUCTION_STATUS_TRANSITIONS
         return transitions
+
+    @staticmethod
+    def _is_assignable_user(user: User | None) -> bool:
+        if not user or not user.role:
+            return False
+        role_key = resolve_role_key(user.role.name)
+        return role_key in ProductionService.ASSIGNABLE_ROLE_KEYS
+
+    @staticmethod
+    def get_assignable_users(include_user_id: int | None = None) -> list[User]:
+        query = User.query.options(joinedload(User.role))
+
+        if include_user_id is not None:
+            query = query.filter(or_(User.status.is_(True), User.id == include_user_id))
+        else:
+            query = query.filter(User.status.is_(True))
+
+        users = query.order_by(User.full_name.asc()).all()
+        return [user for user in users if ProductionService._is_assignable_user(user)]
+
+    @staticmethod
+    def get_assignable_user_choices(
+        include_user_id: int | None = None,
+    ) -> list[tuple[int, str]]:
+        choices: list[tuple[int, str]] = []
+        for user in ProductionService.get_assignable_users(
+            include_user_id=include_user_id
+        ):
+            role_name = user.role.name if user.role else "Sin rol"
+            status_suffix = " (inactivo)" if not user.status else ""
+            choices.append((user.id, f"{user.full_name} ({role_name}){status_suffix}"))
+        return choices
+
+    @staticmethod
+    def resolve_default_assignee_id(preferred_user_id: int | None = None) -> int | None:
+        if preferred_user_id is not None:
+            preferred_user = db.session.get(User, preferred_user_id)
+            if (
+                preferred_user
+                and preferred_user.status
+                and ProductionService._is_assignable_user(preferred_user)
+            ):
+                return preferred_user.id
+
+        assignable_users = ProductionService.get_assignable_users()
+        if assignable_users:
+            return assignable_users[0].id
+        return None
+
+    @staticmethod
+    def _validate_assigned_user_or_raise(assigned_user_id: int) -> User:
+        if assigned_user_id <= 0:
+            raise ValidationError("Debe seleccionar un responsable válido")
+
+        user = db.session.get(User, assigned_user_id)
+        if not user:
+            raise NotFoundError("El responsable seleccionado no existe")
+
+        if not user.status:
+            raise ValidationError("El responsable seleccionado está inactivo")
+
+        if not ProductionService._is_assignable_user(user):
+            raise ValidationError(
+                "Solo se puede asignar a usuarios con rol Producción, Admin o Super Admin"
+            )
+
+        return user
 
     @staticmethod
     def _log_audit(
@@ -373,16 +446,21 @@ class ProductionService:
         *,
         search_term: str | None = None,
         status_filter: str = "all",
+        assigned_user_id: int | None = None,
         page: int = 1,
         per_page: int = 10,
     ):
         query = ProductionOrder.query.options(
             joinedload(ProductionOrder.product),
             joinedload(ProductionOrder.customer_order),
+            joinedload(ProductionOrder.assigned_user).joinedload(User.role),
         )
 
         if status_filter and status_filter != "all":
             query = query.filter(ProductionOrder.status == status_filter)
+
+        if assigned_user_id is not None:
+            query = query.filter(ProductionOrder.assigned_user_id == assigned_user_id)
 
         if search_term and search_term.strip():
             term = f"%{search_term.strip()}%"
@@ -401,6 +479,7 @@ class ProductionService:
             ProductionOrder.query.options(
                 joinedload(ProductionOrder.product),
                 joinedload(ProductionOrder.customer_order).joinedload(Order.customer),
+                joinedload(ProductionOrder.assigned_user).joinedload(User.role),
                 selectinload(ProductionOrder.material_consumptions)
                 .joinedload(ProductionOrderMaterial.raw_material)
                 .joinedload(RawMaterial.unit),
@@ -496,6 +575,7 @@ class ProductionService:
         quantity: int,
         scheduled_date: date,
         user_id: int | None,
+        assigned_user_id: int | None = None,
         customer_order_id: int | None = None,
         is_special_request: bool = False,
         do_not_add_to_finished_stock: bool = False,
@@ -508,12 +588,29 @@ class ProductionService:
         if quantity <= 0:
             raise ValidationError("La cantidad a producir debe ser mayor a 0")
 
+        resolved_assignee_id = assigned_user_id
+        if resolved_assignee_id is None:
+            resolved_assignee_id = ProductionService.resolve_default_assignee_id(
+                preferred_user_id=user_id
+            )
+
+        if resolved_assignee_id is None:
+            raise ValidationError(
+                "No hay usuarios activos con rol Producción, Admin o Super Admin "
+                "para asignar la orden"
+            )
+
+        assigned_user = ProductionService._validate_assigned_user_or_raise(
+            resolved_assignee_id
+        )
+
         try:
             order = ProductionOrder(
                 product_id=product_id,
                 quantity=quantity,
                 status="pendiente",
                 scheduled_date=scheduled_date,
+                assigned_user_id=assigned_user.id,
                 customer_order_id=customer_order_id,
                 is_special_request=bool(is_special_request),
                 do_not_add_to_finished_stock=bool(do_not_add_to_finished_stock),
@@ -544,6 +641,46 @@ class ProductionService:
             db.session.rollback()
             raise ValidationError(
                 f"No fue posible crear la orden de producción: {str(e)}"
+            )
+
+    @staticmethod
+    def assign_production_order(
+        *,
+        production_order_id: int,
+        assigned_user_id: int,
+        user_id: int | None,
+    ) -> ProductionOrder:
+        order = ProductionService.get_production_order_by_id(production_order_id)
+        assigned_user = ProductionService._validate_assigned_user_or_raise(
+            assigned_user_id
+        )
+
+        if order.assigned_user_id == assigned_user.id:
+            return order
+
+        previous_data = order.to_dict()
+
+        try:
+            order.assigned_user_id = assigned_user.id
+            order.updated_by = user_id
+
+            ProductionService._log_audit(
+                table_name="production_orders",
+                action="UPDATE",
+                user_id=user_id,
+                previous_data=previous_data,
+                new_data=order.to_dict(),
+            )
+
+            db.session.commit()
+            return order
+        except (ValidationError, ConflictError, NotFoundError):
+            db.session.rollback()
+            raise
+        except Exception as e:
+            db.session.rollback()
+            raise ValidationError(
+                f"No fue posible reasignar la orden de producción: {str(e)}"
             )
 
     @staticmethod

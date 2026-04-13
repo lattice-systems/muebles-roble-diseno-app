@@ -355,12 +355,22 @@ class CustomerOrderService:
         # Import local para evitar ciclos entre módulos
         from app.production.services import ProductionService
 
+        assigned_user_id = ProductionService.resolve_default_assignee_id(
+            preferred_user_id=user_id
+        )
+        if assigned_user_id is None:
+            raise ValueError(
+                "No hay usuarios activos con rol Producción, Admin o Super Admin "
+                "para asignar las órdenes de producción."
+            )
+
         for item in order.items:
             prod_order = ProductionOrder(
                 product_id=item.product_id,
                 quantity=int(item.quantity),
                 status="pendiente",
                 scheduled_date=order.estimated_delivery_date or date.today(),
+                assigned_user_id=assigned_user_id,
                 customer_order_id=order.id,
                 is_special_request=bool(order.is_special_request),
                 do_not_add_to_finished_stock=bool(order.is_special_request),

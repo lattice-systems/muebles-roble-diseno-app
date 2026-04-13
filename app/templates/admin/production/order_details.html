@@ -10,7 +10,7 @@
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
     <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
         <div>
           <p class="text-xs text-body">Producto</p>
           <p class="text-sm font-semibold text-heading">{{ order.product.name if order.product else '—' }}</p>
@@ -41,6 +41,34 @@
               {{ status_badge(order.status|replace('_', ' ') |title, 'neutral') }}
             {% endif %}
           </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Responsable</p>
+          <p class="text-sm font-semibold text-heading">
+            {{ order.assigned_user.full_name if order.assigned_user else 'Sin asignar' }}
+          </p>
+          <p class="text-xs text-body">
+            {{ order.assigned_user.role.name if order.assigned_user and order.assigned_user.role else '—' }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Tipo de orden</p>
+          <p>
+            {% if order.is_special_request %}
+              {{ status_badge('Especial', 'brand') }}
+            {% else %}
+              {{ status_badge('Estándar', 'neutral') }}
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-body">Origen</p>
+          {% if order.customer_order_id %}
+            <a href="{{ url_for('customer_orders.detail', order_id=order.customer_order_id) }}"
+               class="text-sm font-semibold text-fg-brand-strong hover:underline">Orden cliente #{{ "%04d" | format(order.customer_order_id) }}</a>
+          {% else %}
+            <p class="text-sm font-semibold text-heading">Manual</p>
+          {% endif %}
         </div>
       </div>
       {% if order.is_special_request %}
@@ -95,6 +123,31 @@
       </div>
       <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-4 2xl:p-6">
         <h3 class="text-sm 2xl:text-base font-semibold text-heading mb-3">Acciones rápidas</h3>
+        {% if assign_form.assigned_user_id.choices and can('production.update') %}
+          <form method="post"
+                action="{{ url_for('production.assign_order', order_id=order.id) }}"
+                class="mb-4 flex flex-col gap-2.5">
+            {{ assign_form.hidden_tag() }}
+            <div>
+              <label for="{{ assign_form.assigned_user_id.id }}"
+                     class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Responsable de producción</label>
+              <select id="{{ assign_form.assigned_user_id.id }}"
+                      name="{{ assign_form.assigned_user_id.name }}"
+                      class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                {% for value, label in assign_form.assigned_user_id.choices %}
+                  <option value="{{ value }}"
+                          {% if assign_form.assigned_user_id.data == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit"
+                      class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
+                Guardar responsable
+              </button>
+            </div>
+          </form>
+        {% endif %}
         <div class="flex flex-wrap gap-2.5">
           <a href="{{ url_for('production.orders_index') }}"
              class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
