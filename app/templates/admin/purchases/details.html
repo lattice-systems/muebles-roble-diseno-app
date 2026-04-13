@@ -65,7 +65,14 @@
                       {{ item.raw_material.name if item.raw_material else 'Desc.' }}
                     </td>
                     <td class="px-3 py-2 2xl:px-4 whitespace-nowrap">
-                      {{ (item.received_quantity | float) if (item.received_quantity | float) % 1 != 0 else (item.received_quantity | int) }}/{{ (item.quantity | float) if (item.quantity | float) % 1 != 0 else (item.quantity | int) }}
+                      {% set rq = (item.received_quantity | float) if (item.received_quantity | float) % 1 != 0 else (item.received_quantity | int) %}
+                      {% set q = (item.quantity | float) if (item.quantity | float) % 1 != 0 else (item.quantity | int) %}
+                      {% set factor = item.conversion_factor | float %}
+                      {% if factor == 1.0 %}
+                        {{ rq }}/{{ q }} {{ item.raw_material.unit.abbreviation }}
+                      {% else %}
+                        {{ rq }}/{{ q }} und.<br><span class="text-[0.65rem] text-fg-disabled font-normal leading-3 pt-0.5 tracking-tight">(x {{ factor|int if factor % 1 == 0 else factor }} {{ item.raw_material.unit.abbreviation }})</span>
+                      {% endif %}
                     </td>
                     <td class="px-3 py-2 2xl:px-4 text-center">
                       x{{ (item.conversion_factor | float) if (item.conversion_factor | float) % 1 != 0 else (item.conversion_factor | int) }}
@@ -208,10 +215,21 @@
                   <tr class="bg-neutral-primary-soft border-b border-default">
                     <td class="px-3 py-2 font-medium">{{ item.raw_material.name }}</td>
                     <td class="px-3 py-2 text-center">
-                      {{ "%.3f"|format(item.quantity) | replace('.000', '') }} {{ item.raw_material.unit.abbreviation }}
+                      {% set qty_str = "%.3f"|format(item.quantity) | replace('.000', '') %}
+                      {% set factor = item.conversion_factor | float %}
+                      {% if factor == 1.0 %}
+                        {{ qty_str }} {{ item.raw_material.unit.abbreviation }}
+                      {% else %}
+                        {{ qty_str }} und. <span class="text-[0.65rem] text-fg-disabled font-normal block leading-3 pt-1 tracking-tight">(x {{ factor|int if factor % 1 == 0 else factor }} {{ item.raw_material.unit.abbreviation }})</span>
+                      {% endif %}
                     </td>
                     <td class="px-3 py-2 text-center">
-                      {{ "%.3f"|format(item.pending_quantity) | replace('.000', '') }} {{ item.raw_material.unit.abbreviation }}
+                      {% set pend_str = "%.3f"|format(item.pending_quantity) | replace('.000', '') %}
+                      {% if factor == 1.0 %}
+                        {{ pend_str }} {{ item.raw_material.unit.abbreviation }}
+                      {% else %}
+                        {{ pend_str }} und. <span class="text-[0.65rem] text-fg-disabled font-normal block leading-3 pt-1 tracking-tight">(x {{ factor|int if factor % 1 == 0 else factor }} {{ item.raw_material.unit.abbreviation }})</span>
+                      {% endif %}
                     </td>
                     <td class="px-3 py-2">
                       <input type="number"
