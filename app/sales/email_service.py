@@ -26,6 +26,14 @@ def _get_logo_path() -> str:
     return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
 
 
+def _resolve_sender() -> str | None:
+    return (
+        current_app.config.get("MAIL_DEFAULT_SENDER")
+        or current_app.config.get("SECURITY_EMAIL_SENDER")
+        or current_app.config.get("MAIL_USERNAME")
+    )
+
+
 def send_purchase_email(sale, items, payment, freight: dict) -> None:
     """
     Envía el correo de confirmación de compra de forma asíncrona.
@@ -103,6 +111,7 @@ def send_purchase_email(sale, items, payment, freight: dict) -> None:
 
                 msg = Message(
                     subject=f"Confirmación de Compra #{folio} — Roble y Diseño",
+                    sender=_resolve_sender(),
                     recipients=[customer_email],
                     html=html_body,
                 )
