@@ -149,25 +149,8 @@
           </a>
         </div>
 
-        <div class="mb-4 flex items-center gap-2 flex-wrap">
-        </div>
-
-        <div class="space-y-5">
-          {% set max_qty = (top_items[0].quantity_sold if top_items else 1) %}
-
-          {% for item in top_items %}
-            {% set width = ((item.quantity_sold / max_qty) * 100) if max_qty > 0 else 0 %}
-            <div class="grid grid-cols-[80px_1fr_40px] items-center gap-3">
-              <span class="text-heading text-sm">{{ item.product_name }}</span>
-              <div class="w-full h-2 rounded-full bg-neutral-secondary-medium overflow-hidden">
-                <div class="h-2 rounded-full bg-brand bar-width" data-width="{{ width }}"></div>
-              </div>
-              <span class="text-body text-xs text-right">{{ item.quantity_sold }}</span>
-            </div>
-          {% else %}
-            <p class="text-body text-sm">No hay productos vendidos en el rango.</p>
-          {% endfor %}
-        </div>
+        <!-- ApexCharts container -->
+        <div id="top-products-chart" class="w-full h-64"></div>
       </div>
     </div>
 
@@ -487,6 +470,115 @@
 
           const weeklyChart = new ApexCharts(document.querySelector("#weekly-sales-chart"), weeklyOptions);
           weeklyChart.render();
+
+          // 2. Gráfica de Productos Top (Bar Chart Horizontal)
+          const topProductsData = {
+              categories: [
+                  {% for item in top_items %}
+                      "{{ item.product_name }}"{% if not loop.last %},{% endif %}
+                  {% endfor %}
+              ],
+              series: [{
+                  name: "Unidades vendidas",
+                  data: [
+                      {% for item in top_items %}
+                          {{ item.quantity_sold }}{% if not loop.last %},{% endif %}
+                      {% endfor %}
+                  ]
+              }]
+          };
+          const hasTopProductsData = topProductsData.categories.length > 0;
+
+          const topProductsOptions = {
+              chart: {
+                  type: 'bar',
+                  height: 260,
+                  fontFamily: fontFamily,
+                  parentHeightOffset: 0,
+                  toolbar: {
+                      show: false
+                  },
+                  background: 'transparent'
+              },
+              series: topProductsData.series,
+              noData: {
+                  text: 'Sin datos de productos'
+              },
+              plotOptions: {
+                  bar: {
+                      horizontal: true,
+                      borderRadius: 4,
+                      barHeight: '60%',
+                  }
+              },
+              xaxis: {
+                  categories: topProductsData.categories,
+                  labels: {
+                      hideOverlappingLabels: true,
+                      trim: false,
+                      formatter: function(value) {
+                          if (typeof value !== 'string') {
+                              return value;
+                          }
+                          return value.length > 40 ? value.slice(0, 40) + '...' : value;
+                      },
+                      style: {
+                          colors: textColor,
+                          fontSize: '12px'
+                      }
+                  },
+                  axisBorder: {
+                      show: false
+                  },
+                  axisTicks: {
+                      show: false
+                  }
+              },
+              yaxis: {
+                  labels: {
+                      offsetX: 10,
+                      style: {
+                          colors: headingColor,
+                          fontSize: '13px',
+                          fontWeight: 500
+                      }
+                  }
+              },
+              colors: ['#0ea5e9'], // Light blue / Cyan 500
+              dataLabels: {
+                  enabled: hasTopProductsData,
+                  style: {
+                      colors: ['#fff'],
+                      fontSize: '12px'
+                  }
+              },
+              grid: {
+                  borderColor: gridColor,
+                  strokeDashArray: 4,
+                  padding: {
+                      top: 4,
+                      right: 6,
+                      bottom: 8,
+                      left: 18
+                  },
+                  xaxis: {
+                      lines: {
+                          show: true
+                      }
+                  },
+                  yaxis: {
+                      lines: {
+                          show: false
+                      }
+                  }
+              },
+              tooltip: {
+                  theme: isDarkMode ? 'dark' : 'light'
+              }
+          };
+
+          const topProductsChart = new ApexCharts(document.querySelector("#top-products-chart"), topProductsOptions);
+          topProductsChart.render();
       });
   </script>
 {% endblock content %}
