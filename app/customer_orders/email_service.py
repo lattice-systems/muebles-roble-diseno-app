@@ -19,6 +19,14 @@ def _get_logo_path() -> str:
     return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
 
 
+def _resolve_sender() -> str | None:
+    return (
+        current_app.config.get("MAIL_DEFAULT_SENDER")
+        or current_app.config.get("SECURITY_EMAIL_SENDER")
+        or current_app.config.get("MAIL_USERNAME")
+    )
+
+
 def _build_items_and_totals(order):
     order_total = float(order.total or 0)
     items = [
@@ -121,6 +129,7 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
 
                 msg = Message(
                     subject=f"{subject_prefix} #{order_id:06d} — Roble y Diseño",
+                    sender=_resolve_sender(),
                     recipients=[customer_email],
                     html=html_body,
                 )

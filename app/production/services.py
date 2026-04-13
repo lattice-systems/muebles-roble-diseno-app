@@ -963,8 +963,7 @@ class ProductionService:
 
         try:
             if target_status == "en_proceso":
-                if not order.is_special_request:
-                    ProductionService.initialize_material_plan_for_order(order)
+                ProductionService.initialize_material_plan_for_order(order)
 
             if target_status == "terminado":
                 ProductionService._consume_materials_and_update_inventory(

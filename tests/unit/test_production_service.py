@@ -59,6 +59,19 @@ class TestSpecialProductionOrderMaterials:
             do_not_add_to_finished_stock=True,
         )
 
+        ProductionService.create_bom(
+            product_id=product.id,
+            version="v-especial-manual-1",
+            description="BOM requerida para iniciar producción especial",
+            items_data=[
+                {
+                    "raw_material_id": str(raw_material.id),
+                    "quantity_required": "2.500",
+                }
+            ],
+            user_id=user.id,
+        )
+
         ProductionService.change_production_order_status(
             production_order_id=order.id,
             new_status="en_proceso",
@@ -88,7 +101,7 @@ class TestSpecialProductionOrderMaterials:
         assert created_row.quantity_used == Decimal("2.250")
         assert created_row.waste_applied == Decimal("4.50")
 
-    def test_special_order_can_initialize_materials_from_bom_after_start(
+    def test_special_order_cannot_start_without_bom_and_then_can_initialize(
         self, app, db_session, seed_basic_data
     ):
         product = seed_basic_data["product"]
@@ -104,22 +117,29 @@ class TestSpecialProductionOrderMaterials:
             do_not_add_to_finished_stock=True,
         )
 
-        ProductionService.change_production_order_status(
-            production_order_id=order.id,
-            new_status="en_proceso",
-            user_id=user.id,
-        )
+        with pytest.raises(ValidationError, match="no tiene una receta BOM"):
+            ProductionService.change_production_order_status(
+                production_order_id=order.id,
+                new_status="en_proceso",
+                user_id=user.id,
+            )
 
         ProductionService.create_bom(
             product_id=product.id,
             version="v-especial-1",
-            description="BOM especial registrada después de iniciar",
+            description="BOM especial requerida para iniciar producción",
             items_data=[
                 {
                     "raw_material_id": str(raw_material.id),
                     "quantity_required": "1.250",
                 }
             ],
+            user_id=user.id,
+        )
+
+        ProductionService.change_production_order_status(
+            production_order_id=order.id,
+            new_status="en_proceso",
             user_id=user.id,
         )
 

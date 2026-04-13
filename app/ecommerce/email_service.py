@@ -21,6 +21,14 @@ def _get_logo_path() -> str:
     return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
 
 
+def _resolve_sender() -> str | None:
+    return (
+        current_app.config.get("MAIL_DEFAULT_SENDER")
+        or current_app.config.get("SECURITY_EMAIL_SENDER")
+        or current_app.config.get("MAIL_USERNAME")
+    )
+
+
 def send_ecommerce_order_email(order, freight: dict, products_total: float) -> None:
     """Envía confirmación por correo para una orden de ecommerce."""
     customer = order.customer
@@ -97,6 +105,7 @@ def send_ecommerce_order_email(order, freight: dict, products_total: float) -> N
 
                 msg = Message(
                     subject=f"Confirmación de pedido #{order_id:06d} — Roble y Diseño",
+                    sender=_resolve_sender(),
                     recipients=[customer_email],
                     html=html_body,
                 )
