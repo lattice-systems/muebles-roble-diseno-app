@@ -82,6 +82,14 @@ def create_app(config_class=None):
             "cart": EcommerceService.get_cart(),
         }
 
+    @app.context_processor
+    def inject_admin_navigation_links():
+        from .shared.admin_navigation import build_admin_navigation_links
+
+        return {
+            "admin_nav_links": build_admin_navigation_links(),
+        }
+
     # Register auth/security event listeners (login/logout/password/access events)
     register_security_event_handlers(app)
 
