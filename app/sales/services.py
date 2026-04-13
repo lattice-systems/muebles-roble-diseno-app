@@ -6,16 +6,18 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import selectinload
 
 from app.exceptions import NotFoundError
 from app.extensions import db
 from app.models.customer import Customer
+from app.models.furniture_type import FurnitureType
 from app.models.payment import Payment
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_inventory import ProductInventory
+from app.models.product_review import ProductReview
 from app.models.sale import Sale
 from app.models.sale_item import SaleItem
 from app.shared.audit_logging import log_application_audit
@@ -24,6 +26,18 @@ from app.shared.inventory_service import InventoryService
 
 class SaleService:
     """Servicio para operaciones de negocio relacionadas con ventas POS."""
+
+    @staticmethod
+    def _sort_product_images(images):
+        """Ordena imágenes por sort_order y mantiene consistencia para POS."""
+        return sorted(
+            images,
+            key=lambda image: (
+                getattr(image, "sort_order", None) is None,
+                getattr(image, "sort_order", 0),
+                getattr(image, "id", 0),
+            ),
+        )
 
     @staticmethod
     def open_sale(
@@ -195,6 +209,8 @@ class SaleService:
     def get_products(
         search_term: str = "",
         page: int = 1,
+        furniture_type_id: int | None = None,
+        sort_by: str = "name",
         per_page: int = 8,
     ):
         """
@@ -209,7 +225,8 @@ class SaleService:
             Pagination: Objeto de paginación de SQLAlchemy.
         """
         query = Product.query.options(
-            selectinload(Product.inventory_records)
+            selectinload(Product.inventory_records),
+            selectinload(Product.images),
         ).filter_by(status=True)
 
         if search_term:
@@ -221,8 +238,100 @@ class SaleService:
                 )
             )
 
-        return query.order_by(Product.name.asc()).paginate(
-            page=page, per_page=per_page, error_out=False
+        if furniture_type_id is not None:
+            query = query.filter(Product.furniture_type_id == furniture_type_id)
+
+        normalized_sort = (
+            sort_by if sort_by in {"name", "best_sellers", "best_rated"} else "name"
+        )
+
+        if normalized_sort == "best_sellers":
+            sold_quantity_subquery = (
+                db.session.query(
+                    SaleItem.product_id.label("product_id"),
+                    func.coalesce(func.sum(SaleItem.quantity), 0).label(
+                        "sold_quantity"
+                    ),
+                )
+                .join(Sale, Sale.id == SaleItem.sale_id)
+                .filter(Sale.active == False)  # noqa: E712
+                .group_by(SaleItem.product_id)
+                .subquery()
+            )
+            query = query.outerjoin(
+                sold_quantity_subquery,
+                sold_quantity_subquery.c.product_id == Product.id,
+            ).order_by(
+                func.coalesce(sold_quantity_subquery.c.sold_quantity, 0).desc(),
+                Product.name.asc(),
+            )
+        elif normalized_sort == "best_rated":
+            rating_subquery = (
+                db.session.query(
+                    ProductReview.product_id.label("product_id"),
+                    func.avg(ProductReview.rating).label("avg_rating"),
+                    func.count(ProductReview.id).label("rating_count"),
+                )
+                .group_by(ProductReview.product_id)
+                .subquery()
+            )
+            query = query.outerjoin(
+                rating_subquery,
+                rating_subquery.c.product_id == Product.id,
+            ).order_by(
+                func.coalesce(rating_subquery.c.avg_rating, 0).desc(),
+                func.coalesce(rating_subquery.c.rating_count, 0).desc(),
+                Product.name.asc(),
+            )
+        else:
+            query = query.order_by(Product.name.asc())
+
+        pagination = query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False,
+        )
+
+        rating_summary_by_product_id: dict[int, dict[str, float | int]] = {}
+        product_ids = [
+            product.id for product in pagination.items if product.id is not None
+        ]
+        if product_ids:
+            rows = (
+                db.session.query(
+                    ProductReview.product_id,
+                    func.avg(ProductReview.rating),
+                    func.count(ProductReview.id),
+                )
+                .filter(ProductReview.product_id.in_(product_ids))
+                .group_by(ProductReview.product_id)
+                .all()
+            )
+
+            for product_id, average_rating, rating_count in rows:
+                safe_product_id = int(product_id)
+                safe_average = float(average_rating or 0)
+                safe_count = int(rating_count or 0)
+                rating_summary_by_product_id[safe_product_id] = {
+                    "average": round(safe_average, 1),
+                    "count": safe_count,
+                }
+
+        for product in pagination.items:
+            product.pos_images = SaleService._sort_product_images(product.images or [])
+            summary = rating_summary_by_product_id.get(product.id, {})
+            product.pos_rating_average = float(summary.get("average", 0.0))
+            product.pos_rating_count = int(summary.get("count", 0))
+
+        return pagination
+
+    @staticmethod
+    def get_catalog_filters() -> list[FurnitureType]:
+        """Catálogos disponibles para filtros del POS."""
+        return (
+            FurnitureType.query.filter(FurnitureType.status)
+            .order_by(FurnitureType.title.asc())
+            .all()
         )
 
     @staticmethod

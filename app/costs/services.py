@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy import or_
@@ -245,7 +248,7 @@ class CostService:
             "summary": summary,
             "latest_production": latest_production,
         }
-    
+
     @staticmethod
     def get_cost_rows_by_ids(product_ids: list[int]) -> list[dict]:
         if not product_ids:
@@ -254,5 +257,207 @@ class CostService:
         products = Product.query.filter(Product.id.in_(product_ids)).all()
         product_map = {product.id: product for product in products}
 
-        ordered_products = [product_map[product_id] for product_id in product_ids if product_id in product_map]
-        return [CostService.calculate_product_cost_summary(product) for product in ordered_products]
+        ordered_products = [
+            product_map[product_id]
+            for product_id in product_ids
+            if product_id in product_map
+        ]
+        return [
+            CostService.calculate_product_cost_summary(product)
+            for product in ordered_products
+        ]
+
+    @staticmethod
+    def _generate_snapshot_data() -> dict:
+        """Genera los datos actuales de costos para la snapshot."""
+        pagination = CostService.get_all(search_term=None, page=1, per_page=100000)
+
+        products_summary = []
+        total_material_cost = Decimal("0")
+        total_cost = Decimal("0")
+        total_sale_price = Decimal("0")
+        total_margin_value = Decimal("0")
+
+        for product in pagination.items:
+            # Resumen general del producto
+            summary = CostService.calculate_product_cost_summary(product)
+
+            # Detalles de materiales del producto
+            recipe_data = CostService._calculate_recipe_detail(product)
+
+            product_entry = {
+                "product_id": summary["product_id"],
+                "product_name": summary["product_name"],
+                "sku": summary["sku"],
+                "recipe_version": summary["recipe_version"],
+                "material_cost": float(
+                    CostService._round_money(summary["material_cost"])
+                ),
+                "total_cost": float(CostService._round_money(summary["total_cost"])),
+                "sale_price": float(CostService._round_money(summary["sale_price"])),
+                "margin_value": float(
+                    CostService._round_money(summary["margin_value"])
+                ),
+                "margin_percentage": (
+                    float(summary["margin_percentage"])
+                    if summary["margin_percentage"]
+                    else None
+                ),
+                "status": summary["status"]["key"],
+                "materials": [
+                    {
+                        "material_id": item["material_id"],
+                        "material_name": item["material_name"],
+                        "quantity_required": float(item["quantity_required"]),
+                        "unit_name": item["unit_name"],
+                        "unit_abbreviation": item["unit_abbreviation"],
+                        "waste_percentage": float(item["waste_percentage"]),
+                        "unit_price": float(item["unit_price"]),
+                        "line_total": float(item["line_total"]),
+                    }
+                    for item in recipe_data["detail_items"]
+                ],
+            }
+
+            products_summary.append(product_entry)
+
+            total_material_cost += CostService._to_decimal(summary["material_cost"])
+            total_cost += CostService._to_decimal(summary["total_cost"])
+            total_sale_price += CostService._to_decimal(summary["sale_price"])
+            total_margin_value += CostService._to_decimal(summary["margin_value"])
+
+        return {
+            "summary": {
+                "total_products": len(products_summary),
+                "total_material_cost": CostService._to_decimal(total_material_cost),
+                "total_cost": CostService._to_decimal(total_cost),
+                "total_sale_price": CostService._to_decimal(total_sale_price),
+                "total_margin_value": CostService._to_decimal(total_margin_value),
+            },
+            "products": products_summary,
+        }
+
+    @staticmethod
+    def _generate_snapshot_hash(snapshot_data: dict) -> str:
+        """Genera un hash SHA256 del snapshot para detectar cambios."""
+        # Convertir Decimal a float para JSON serialización
+        data_for_hash = json.dumps(snapshot_data, default=str, sort_keys=True)
+        return hashlib.sha256(data_for_hash.encode()).hexdigest()
+
+    @staticmethod
+    def _get_latest_snapshot():
+        """Obtiene el último snapshot de costos de MongoDB."""
+        try:
+            from app.reports.mongo_service import get_report_collections
+
+            collections = get_report_collections()
+            latest = collections["cost_snapshots"].find_one(
+                sort=[("snapshot_date", -1)]
+            )
+            return latest
+        except Exception:
+            # Si hay error con MongoDB, retornar None
+            return None
+
+    @staticmethod
+    def generate_snapshot_if_changed() -> dict:
+        """
+        Genera y guarda un snapshot de costos en MongoDB solo si hay cambios.
+
+        Returns:
+            dict: {
+                "has_changes": bool,
+                "snapshot_date": datetime,
+                "previous_snapshot_date": datetime | None,
+                "hash": str,
+                "previous_hash": str | None,
+            }
+        """
+        try:
+            from app.reports.mongo_service import (
+                get_report_collections,
+                ensure_report_indexes,
+            )
+
+            # Asegurar que los índices existan
+            ensure_report_indexes()
+
+            # Generar datos y hash actuales
+            snapshot_data = CostService._generate_snapshot_data()
+            current_hash = CostService._generate_snapshot_hash(snapshot_data)
+            snapshot_date = datetime.utcnow()
+
+            # Obtener última snapshot
+            latest_snapshot = CostService._get_latest_snapshot()
+            previous_hash = latest_snapshot.get("hash") if latest_snapshot else None
+            previous_snapshot_date = (
+                latest_snapshot.get("snapshot_date") if latest_snapshot else None
+            )
+
+            # Comparar hashes
+            has_changes = current_hash != previous_hash
+
+            result = {
+                "has_changes": has_changes,
+                "snapshot_date": snapshot_date,
+                "previous_snapshot_date": previous_snapshot_date,
+                "hash": current_hash,
+                "previous_hash": previous_hash,
+            }
+
+            # Guardar snapshot solo si hay cambios
+            if has_changes:
+                collections = get_report_collections()
+                doc = {
+                    "snapshot_date": snapshot_date.date().isoformat(),
+                    "timestamp": snapshot_date,
+                    "hash": current_hash,
+                    "summary": {
+                        "total_products": snapshot_data["summary"]["total_products"],
+                        "total_material_cost": float(
+                            CostService._round_money(
+                                snapshot_data["summary"]["total_material_cost"]
+                            )
+                        ),
+                        "total_cost": float(
+                            CostService._round_money(
+                                snapshot_data["summary"]["total_cost"]
+                            )
+                        ),
+                        "total_sale_price": float(
+                            CostService._round_money(
+                                snapshot_data["summary"]["total_sale_price"]
+                            )
+                        ),
+                        "total_margin_value": float(
+                            CostService._round_money(
+                                snapshot_data["summary"]["total_margin_value"]
+                            )
+                        ),
+                    },
+                    "products": snapshot_data["products"],
+                    "total_items": len(snapshot_data["products"]),
+                }
+
+                collections["cost_snapshots"].replace_one(
+                    {"snapshot_date": snapshot_date.date().isoformat()},
+                    doc,
+                    upsert=True,
+                )
+
+            return result
+        except Exception as e:
+            # Si hay error, registrar pero no fallar
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error generando snapshot de costos: {str(e)}")
+
+            return {
+                "has_changes": False,
+                "snapshot_date": datetime.utcnow(),
+                "previous_snapshot_date": None,
+                "hash": None,
+                "previous_hash": None,
+                "error": str(e),
+            }

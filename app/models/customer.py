@@ -12,6 +12,12 @@ class Customer(AuditMixin, db.Model):
     last_name = db.Column(db.String(75), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     phone = db.Column(db.String(30), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("customer_users.id"),
+        nullable=True,
+        unique=True,
+    )
 
     # Freight fields
     requires_freight = db.Column(db.Boolean, nullable=False, default=False)
@@ -26,6 +32,11 @@ class Customer(AuditMixin, db.Model):
     status = db.Column(db.Boolean, nullable=False, default=True)
 
     orders = db.relationship("Order", back_populates="customer", lazy=True)
+    customer_user = db.relationship(
+        "CustomerUser",
+        back_populates="customer",
+        foreign_keys=[user_id],
+    )
 
     @property
     def full_name(self) -> str:
@@ -39,6 +50,7 @@ class Customer(AuditMixin, db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "phone": self.phone,
+            "user_id": self.user_id,
             "requires_freight": self.requires_freight,
             "zip_code": self.zip_code,
             "state": self.state,

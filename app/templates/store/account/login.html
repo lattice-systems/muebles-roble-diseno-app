@@ -1,0 +1,62 @@
+{% extends "layouts/login.html" %}
+{% block title %}
+  Roble y Diseno - Acceso Cliente
+{% endblock title %}
+{% block login_heading %}
+  Iniciar sesion
+{% endblock login_heading %}
+{% block step_description %}
+  Accede para gestionar tu perfil, pedidos y reseñas.
+{% endblock step_description %}
+{% block login_image_src %}
+  {{ url_for('static', filename='src/images/login-customer-image.jpg') }}
+{% endblock login_image_src %}
+{% block login_image_alt %}
+  Sofa decorativo
+{% endblock login_image_alt %}
+{% block content %}
+  <form method="post"
+        action="{{ url_for('customer_auth.login') }}"
+        class="flex w-full max-w-md flex-col gap-3">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+    <div>
+      <label class="block mb-1.5 text-sm font-medium text-heading" for="email">Correo electronico</label>
+      <input id="email"
+             name="email"
+             type="email"
+             required
+             class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+             placeholder="cliente@correo.com"
+             value="{{ request.form.get('email', '') }}">
+    </div>
+    <div>
+      <label class="block mb-1.5 text-sm font-medium text-heading" for="password">Contrasena</label>
+      <input id="password"
+             name="password"
+             type="password"
+             required
+             class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-heading shadow-xs focus:border-sky-800 focus:ring-sky-800"
+             placeholder="Ingresa tu contrasena">
+    </div>
+    <button type="submit"
+            class="rounded-lg bg-sky-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-800">
+      Iniciar sesion
+    </button>
+    <p class="text-sm text-body-subtle text-center">
+      No tienes cuenta?
+      <a href="{{ url_for('customer_auth.register') }}"
+         class="font-medium text-sky-900 hover:underline">Registrate aqui</a>
+    </p>
+    <div class="mt-1 border-t border-default-medium/60 pt-3">
+      <p class="text-sm text-body-subtle text-center">Trabajas en Roble y Diseno?</p>
+      <p class="mt-1 text-sm text-center">
+        <a href="/login?next=/admin"
+           class="font-medium text-sky-900 hover:underline">Acceder al panel administrativo</a>
+      </p>
+    </div>
+    <p class="text-xs text-body-subtle text-center">Compra con confianza en nuestro ecommerce oficial.</p>
+  </form>
+{% endblock content %}

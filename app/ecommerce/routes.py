@@ -5,6 +5,9 @@ from urllib.parse import urlparse
 
 from flask import abort, jsonify, redirect, render_template, request, session, url_for
 
+from app.customer_auth.decorators import get_current_customer_user
+from app.customer_auth.services import CustomerAuthService
+
 from . import ecommerce_bp
 from .services import EcommerceService
 
@@ -57,6 +60,32 @@ def _build_checkout_form_data(raw_data: dict | None = None) -> dict:
         for key in data:
             if key in raw_data and raw_data.get(key) is not None:
                 data[key] = str(raw_data.get(key))
+
+    customer_user = get_current_customer_user()
+    if customer_user:
+        customer = CustomerAuthService.get_linked_customer(customer_user)
+        data["email"] = data["email"] or customer_user.email
+
+        if customer:
+            data["first_name"] = data["first_name"] or (customer.first_name or "")
+            data["last_name"] = data["last_name"] or (customer.last_name or "")
+            data["phone"] = data["phone"] or (customer.phone or "")
+            data["zip_code"] = data["zip_code"] or (customer.zip_code or "")
+            data["state"] = data["state"] or (customer.state or "")
+            data["city"] = data["city"] or (customer.city or "")
+            data["street"] = data["street"] or (customer.street or "")
+            data["neighborhood"] = data["neighborhood"] or (customer.neighborhood or "")
+            data["exterior_number"] = data["exterior_number"] or (
+                customer.exterior_number or ""
+            )
+            data["interior_number"] = data["interior_number"] or (
+                customer.interior_number or ""
+            )
+            if customer.requires_freight is False and not (
+                raw_data and raw_data.get("delivery_mode")
+            ):
+                data["delivery_mode"] = "pickup"
+
     return data
 
 
@@ -241,10 +270,43 @@ def product(product_id: int):
         if item.get("id") != product_data.get("id")
     ][:4]
 
+    customer_user = get_current_customer_user()
+    rating_summary = EcommerceService.get_product_rating_summary(product_id)
+    selected_rating_filter = request.args.get("rating", type=int)
+    if selected_rating_filter not in {1, 2, 3, 4, 5}:
+        selected_rating_filter = None
+
+    reviews_page = request.args.get("reviews_page", 1, type=int) or 1
+    reviews_payload = EcommerceService.get_product_reviews_paginated(
+        product_id,
+        page=reviews_page,
+        per_page=6,
+        rating_filter=selected_rating_filter,
+    )
+    review_breakdown = EcommerceService.get_product_review_breakdown(product_id)
+    user_review = None
+    can_review = False
+    if customer_user:
+        user_review = CustomerAuthService.get_user_review_for_product(
+            customer_user,
+            product_id,
+        )
+        can_review = CustomerAuthService.has_purchased_product(
+            customer_user, product_id
+        )
+
     return render_template(
         "store/product.html",
         product=product_data,
         related_products=related_products,
+        rating_summary=rating_summary,
+        reviews=reviews_payload["reviews"],
+        reviews_pagination=reviews_payload,
+        review_breakdown=review_breakdown,
+        selected_rating_filter=selected_rating_filter,
+        user_review=user_review,
+        can_review=can_review,
+        customer_user=customer_user,
         active_section="products",  # Maintain "Productos" highlighted in navbar
     )
 
@@ -299,8 +361,12 @@ def checkout():
 def process_checkout():
     """Procesa el checkout de e-commerce y genera la orden."""
     payload = request.form.to_dict()
+    customer_user = get_current_customer_user()
     try:
-        result = EcommerceService.checkout_from_form(payload)
+        result = EcommerceService.checkout_from_form(
+            payload,
+            customer_user_id=(customer_user.id if customer_user else None),
+        )
         order = result["order"]
 
         from .email_service import send_ecommerce_order_email

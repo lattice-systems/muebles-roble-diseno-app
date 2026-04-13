@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_security import auth_required, current_user
+from sqlalchemy.orm import selectinload
 
 from . import sales_bp
 from .services import SaleService
@@ -13,6 +14,23 @@ from .copomex_service import CopomexService
 from .freight_config import calculate_freight
 from .email_service import send_purchase_email
 from app.models.customer import Customer
+
+
+def _resolve_primary_product_image(product) -> str | None:
+    """Devuelve la imagen principal del producto según sort_order."""
+    images = sorted(
+        product.images or [],
+        key=lambda image: (
+            getattr(image, "sort_order", None) is None,
+            getattr(image, "sort_order", 0),
+            getattr(image, "id", 0),
+        ),
+    )
+    for image in images:
+        image_url = (getattr(image, "image_url", "") or "").strip()
+        if image_url:
+            return image_url
+    return None
 
 
 @sales_bp.route("/pos", methods=["GET"])
@@ -24,6 +42,13 @@ def pos():
     """
     search_term = request.args.get("q", "")
     page = request.args.get("page", 1, type=int)
+    catalog_raw = (request.args.get("catalog", "") or "").strip()
+    selected_catalog_id = int(catalog_raw) if catalog_raw.isdigit() else None
+
+    selected_sort = (request.args.get("sort", "name") or "name").strip()
+    valid_sort_options = {"name", "best_sellers", "best_rated"}
+    if selected_sort not in valid_sort_options:
+        selected_sort = "name"
 
     # Recuperar cliente de la sesión
     pos_customer = None
@@ -33,7 +58,13 @@ def pos():
         if not pos_customer:
             session.pop("pos_customer_id", None)
 
-    pagination = SaleService.get_products(search_term=search_term, page=page)
+    pagination = SaleService.get_products(
+        search_term=search_term,
+        page=page,
+        furniture_type_id=selected_catalog_id,
+        sort_by=selected_sort,
+    )
+    catalog_filters = SaleService.get_catalog_filters()
 
     return render_template(
         "sales/pos.html",
@@ -41,6 +72,12 @@ def pos():
         products=pagination.items,
         pagination=pagination,
         search_term=search_term,
+        catalog_filters=catalog_filters,
+        selected_catalog_id=selected_catalog_id,
+        selected_sort=selected_sort,
+        has_active_pos_filters=(
+            selected_catalog_id is not None or selected_sort != "name"
+        ),
     )
 
 
@@ -168,6 +205,43 @@ def update_customer_data(customer_id):
 @auth_required()
 def get_cart():
     cart = session.get("pos_cart", [])
+
+    if cart:
+        from app.models.product import Product
+
+        product_ids = []
+        for item in cart:
+            raw_product_id = item.get("product_id")
+            if isinstance(raw_product_id, int):
+                product_ids.append(raw_product_id)
+            elif isinstance(raw_product_id, str) and raw_product_id.isdigit():
+                product_ids.append(int(raw_product_id))
+
+        if product_ids:
+            products = (
+                Product.query.options(selectinload(Product.images))
+                .filter(Product.id.in_(set(product_ids)))
+                .all()
+            )
+            image_by_product_id = {
+                product.id: _resolve_primary_product_image(product)
+                for product in products
+            }
+
+            updated = False
+            for item in cart:
+                product_id = item.get("product_id")
+                if isinstance(product_id, str) and product_id.isdigit():
+                    product_id = int(product_id)
+
+                image_url = image_by_product_id.get(product_id)
+                if image_url and item.get("image_url") != image_url:
+                    item["image_url"] = image_url
+                    updated = True
+
+            if updated:
+                session["pos_cart"] = cart
+
     subtotal = sum(item.get("subtotal", 0) for item in cart)
 
     # Calcular flete según el cliente en sesión
@@ -197,9 +271,15 @@ def add_item():
         from app.models.product import Product
         from app.models.product_inventory import ProductInventory
 
-        product = Product.query.filter_by(id=product_id, status=True).first()
+        product = (
+            Product.query.options(selectinload(Product.images))
+            .filter_by(id=product_id, status=True)
+            .first()
+        )
         if not product:
             return jsonify({"error": "El producto no existe o está inactivo."}), 400
+
+        primary_image = _resolve_primary_product_image(product)
 
         inventory = ProductInventory.query.filter_by(product_id=product.id).first()
         available_stock = inventory.stock if inventory else 0
@@ -222,6 +302,8 @@ def add_item():
         if existing:
             existing["quantity"] = new_qty
             existing["subtotal"] = float(product.price) * new_qty
+            if primary_image and existing.get("image_url") != primary_image:
+                existing["image_url"] = primary_image
         else:
             cart.append(
                 {
@@ -229,6 +311,7 @@ def add_item():
                     "product_id": product_id,
                     "name": product.name,
                     "sku": product.sku,
+                    "image_url": primary_image,
                     "price": float(product.price),
                     "quantity": quantity,
                     "subtotal": float(product.price) * quantity,

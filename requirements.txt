@@ -58,6 +58,7 @@ pycparser==3.0
 Pygments==2.20.0
 pymongo==4.16.0
 PyMySQL==1.1.2
+pyotp==2.9.0
 pytest==9.0.2
 pytest-cov==7.1.0
 python-discovery==1.1.3

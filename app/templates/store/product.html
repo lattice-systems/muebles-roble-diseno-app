@@ -16,8 +16,8 @@
     </div>
   </div>
   <section class="max-w-7xl mx-auto px-6 py-10">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-      <div class="flex flex-col-reverse md:flex-row gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 items-start gap-10">
+      <div class="flex flex-col-reverse md:flex-row md:items-start gap-4">
         <div class="flex md:flex-col gap-3 md:w-24 overflow-x-auto md:overflow-visible">
           {% for img in product.images[:4] %}
             <button type="button"
@@ -25,15 +25,17 @@
                     data-image-src="{{ img }}">
               <img src="{{ img }}"
                    alt="Foto {{ loop.index }} de {{ product.title }}"
-                   class="h-full w-full object-cover">
+                   class="h-full w-full rounded-lg object-cover">
             </button>
           {% endfor %}
         </div>
-        <div class="flex-1 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
-          <img id="product-main-image"
-               src="{{ product.images[0] }}"
-               alt="{{ product.title }}"
-               class="w-full h-115 object-cover">
+        <div class="flex-1 rounded-2xl overflow-hidden border border-slate-100 bg-white">
+          <div class="relative flex items-center justify-center overflow-hidden p-3 md:p-5">
+            <img id="product-main-image"
+                 src="{{ product.images[0] }}"
+                 alt="{{ product.title }}"
+                 class="block h-auto w-auto max-h-130 max-w-full rounded-xl object-contain object-center">
+          </div>
         </div>
       </div>
       <div class="flex flex-col">
@@ -41,6 +43,21 @@
           <div>
             <h1 class="text-3xl md:text-4xl font-bold text-heading leading-tight">{{ product.title }}</h1>
             <p class="text-body mt-2">{{ product.subtitle }}</p>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <div class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5">
+                {% set average_round = rating_summary.average | round(0, 'common') | int %}
+                <div class="flex items-center gap-0.5">
+                  {% for star in range(1, 6) %}
+                    <span class="text-sm {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <p class="text-sm text-heading font-medium">{{ rating_summary.average }} de 5</p>
+              <p class="text-sm text-body">({{ rating_summary.count }} calificaciones)</p>
+              {% if rating_summary.count %}
+                <span class="text-xs text-body-subtle">{{ rating_summary.total_points }} estrellas acumuladas</span>
+              {% endif %}
+            </div>
           </div>
           <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {% if product.in_stock %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
             {% if product.in_stock %}
@@ -51,7 +68,7 @@
           </span>
         </div>
         <div class="mt-6 flex items-end gap-4">
-          <p class="text-3xl font-bold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
+          <p class="text-2xl md:text-3xl font-semibold text-heading">MX {{ "{:,.2f}".format(product.price) }}</p>
           {% if product.original_price %}
             <p class="text-base text-body line-through pb-1">MX {{ "{:,.2f}".format(product.original_price) }}</p>
           {% endif %}
@@ -59,35 +76,106 @@
         <p class="mt-6 text-sm text-heading leading-relaxed">
           {{ product.description or "Este producto no tiene descripción registrada por el momento." }}
         </p>
-        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p class="text-[11px] uppercase tracking-wide text-body-subtle">SKU</p>
-              <p class="text-sm font-semibold text-heading mt-1">{{ product.sku or "N/A" }}</p>
+        <div class="mt-6 rounded-xl border border-sky-200 bg-linear-to-br from-sky-50 to-white p-4 md:p-5">
+          <h3 class="text-sm font-bold text-sky-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <svg class="w-4 h-4"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+            Información del producto
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {% if product.specifications %}
+              <div class="flex items-start gap-3 bg-white rounded-lg border border-slate-100 p-3">
+                <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-sky-100 text-sky-700">
+                  <svg class="w-5 h-5"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="none"
+                       viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-[11px] uppercase tracking-wide text-body-subtle">Especificaciones</p>
+                  <p class="text-sm font-semibold text-heading mt-0.5">{{ product.specifications }}</p>
+                </div>
+              </div>
+            {% endif %}
+            <div class="flex items-start gap-3 bg-white rounded-lg border border-slate-100 p-3">
+              <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700">
+                <svg class="w-5 h-5"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.03v13m0-13c-2.819-.831-4.715-1.076-8.029-1.023A.99.99 0 0 0 3 6v11c0 .563.466 1.014 1.03 1.007 3.122-.043 5.018.212 7.97 1.023m0-13c2.819-.831 4.715-1.076 8.029-1.023A.99.99 0 0 1 21 6v11c0 .563-.466 1.014-1.03 1.007-3.122-.043-5.018.212-7.97 1.023" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-wide text-body-subtle">Categoría</p>
+                <p class="text-sm font-semibold text-heading mt-0.5">{{ product.category or "General" }}</p>
+              </div>
             </div>
-            <div>
-              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Categoría</p>
-              <p class="text-sm font-semibold text-heading mt-1">{{ product.category or "General" }}</p>
+            <div class="flex items-start gap-3 bg-white rounded-lg border border-slate-100 p-3">
+              <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-700">
+                <svg class="w-5 h-5"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-7 6h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-wide text-body-subtle">SKU</p>
+                <p class="text-sm font-semibold text-heading mt-0.5">{{ product.sku or "N/A" }}</p>
+              </div>
             </div>
-            <div>
-              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Disponibilidad</p>
-              <p class="text-sm font-semibold mt-1 {% if product.in_stock %}text-emerald-700{% else %}text-rose-700{% endif %}">
-                {% if product.in_stock %}
-                  En stock ({{ product.stock }} piezas)
-                {% else %}
-                  Agotado temporalmente
-                {% endif %}
-              </p>
+            <div class="flex items-start gap-3 bg-white rounded-lg border border-slate-100 p-3">
+              <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg {% if product.in_stock %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+                <svg class="w-5 h-5"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-wide text-body-subtle">Disponibilidad</p>
+                <p class="text-sm font-semibold mt-0.5 {% if product.in_stock %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                  {% if product.in_stock %}
+                    En stock ({{ product.stock }} piezas)
+                  {% else %}
+                    Agotado temporalmente
+                  {% endif %}
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-[11px] uppercase tracking-wide text-body-subtle">Envío</p>
-              <p class="text-sm font-semibold text-heading mt-1">
-                {% if product.in_stock %}
-                  Entrega estimada 3-5 días
-                {% else %}
-                  Reabastecimiento próximamente
-                {% endif %}
-              </p>
+            <div class="flex items-start gap-3 bg-white rounded-lg border border-slate-100 p-3 sm:col-span-2">
+              <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700">
+                <svg class="w-5 h-5"
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a1 1 0 0 0 1-1V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v13a1 1 0 0 0 1 1Z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-wide text-body-subtle">Envío</p>
+                <p class="text-sm font-semibold text-heading mt-0.5">
+                  {% if product.in_stock %}
+                    Entrega estimada 3-5 días
+                  {% else %}
+                    Reabastecimiento próximamente
+                  {% endif %}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -147,6 +235,149 @@
       </div>
     </div>
   </section>
+  <section class="max-w-7xl mx-auto px-6 pb-14">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <article class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-2xl font-semibold text-heading mb-4">Calificaciones</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Promedio</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.average }}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Reseñas</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.count }}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p class="text-[11px] uppercase tracking-wide text-body-subtle">Estrellas acumuladas</p>
+            <p class="mt-1 text-2xl font-bold text-heading">{{ rating_summary.total_points }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 mb-3">
+          {% set average_round = rating_summary.average | round(0, 'common') | int %}
+          {% for star in range(1, 6) %}
+            <span class="text-xl {% if star <= average_round %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+          {% endfor %}
+        </div>
+        <p class="text-sm text-body">Calificación global calculada con compras verificadas.</p>
+        {% if ecommerce_customer_user %}
+          {% if can_review %}
+            <form method="post"
+                  action="{{ url_for('customer_auth.review_product', product_id=product.id) }}"
+                  class="mt-6 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <input type="hidden"
+                     name="csrf_token"
+                     value="{{ csrf_token() if csrf_token else '' }}">
+              <div>
+                <p class="text-sm font-medium text-heading">Tu calificación</p>
+                <div class="rating-input mt-2" aria-label="Selecciona de 1 a 5 estrellas">
+                  {% for value in range(5, 0, -1) %}
+                    <input type="radio"
+                           id="rating-{{ value }}"
+                           name="rating"
+                           value="{{ value }}"
+                           {% if user_review and user_review.rating == value %}checked{% endif %}
+                           required>
+                    <label for="rating-{{ value }}" title="{{ value }} estrellas">&#9733;</label>
+                  {% endfor %}
+                </div>
+                <p class="mt-1 text-xs text-body-subtle">Selecciona las estrellas tocando o haciendo clic.</p>
+              </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium text-heading" for="review_text">Comentario (opcional)</label>
+                <textarea id="review_text"
+                          name="review_text"
+                          rows="4"
+                          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          placeholder="Comparte tu experiencia con este producto">{{ user_review.review_text if user_review else '' }}</textarea>
+              </div>
+              <button type="submit"
+                      class="rounded-lg bg-sky-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800">
+                {% if user_review %}
+                  Actualizar reseña
+                {% else %}
+                  Enviar reseña
+                {% endif %}
+              </button>
+            </form>
+          {% else %}
+            <p class="mt-4 text-sm text-body">Podras calificar este producto cuando tu pedido aparezca como entregado.</p>
+          {% endif %}
+        {% else %}
+          <p class="mt-4 text-sm text-body">
+            <a href="{{ url_for('customer_auth.login', next=request.path) }}"
+               class="text-sky-900 hover:underline font-medium">Inicia sesion</a>
+            para dejar tu reseña y calificación.
+          </p>
+        {% endif %}
+      </article>
+      <article id="reviews-section"
+               class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-2xl font-semibold text-heading mb-4">Reseñas recientes</h2>
+        <div class="mb-4 flex flex-wrap gap-2">
+          <a href="{{ url_for('ecommerce.product', product_id=product.id, _anchor='reviews-section') }}"
+             class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors {% if not selected_rating_filter %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+            Todas ({{ review_breakdown.total }})
+          </a>
+          {% for star in range(5, 0, -1) %}
+            <a href="{{ url_for('ecommerce.product', product_id=product.id, rating=star, reviews_page=1, _anchor='reviews-section') }}"
+               class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors {% if selected_rating_filter == star %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-700 hover:bg-amber-100{% endif %}">
+              {{ star }} &#9733; ({{ review_breakdown.by_rating.get(star, 0) }})
+            </a>
+          {% endfor %}
+        </div>
+        {% if reviews %}
+          <div class="space-y-3 max-h-120 overflow-y-auto pr-1">
+            {% for review in reviews %}
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-sm font-semibold text-heading">{{ review.author_name }}</p>
+                  <p class="text-xs text-body-subtle">{{ review.updated_at.strftime("%Y-%m-%d") if review.updated_at else '' }}</p>
+                </div>
+                <div class="flex items-center gap-1 mt-2 mb-2">
+                  {% for star in range(1, 6) %}
+                    <span class="text-base {% if star <= review.rating %}text-amber-500{% else %}text-slate-300{% endif %}">&#9733;</span>
+                  {% endfor %}
+                </div>
+                {% if review.review_text %}
+                  <p class="text-sm text-body leading-relaxed">{{ review.review_text }}</p>
+                {% else %}
+                  <p class="text-sm text-body-subtle italic">Sin comentario adicional.</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          {% if reviews_pagination.total_pages > 1 %}
+            <div class="mt-4 flex items-center justify-between gap-3 text-sm">
+              <p class="text-body">Pagina {{ reviews_pagination.page }} de {{ reviews_pagination.total_pages }}</p>
+              <div class="flex items-center gap-2">
+                {% if reviews_pagination.has_prev %}
+                  {% if selected_rating_filter %}
+                    <a href="{{ url_for('ecommerce.product', product_id=product.id, rating=selected_rating_filter, reviews_page=reviews_pagination.prev_page, _anchor='reviews-section') }}"
+                       class="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-heading hover:bg-slate-100">Anterior</a>
+                  {% else %}
+                    <a href="{{ url_for('ecommerce.product', product_id=product.id, reviews_page=reviews_pagination.prev_page, _anchor='reviews-section') }}"
+                       class="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-heading hover:bg-slate-100">Anterior</a>
+                  {% endif %}
+                {% endif %}
+                {% if reviews_pagination.has_next %}
+                  {% if selected_rating_filter %}
+                    <a href="{{ url_for('ecommerce.product', product_id=product.id, rating=selected_rating_filter, reviews_page=reviews_pagination.next_page, _anchor='reviews-section') }}"
+                       class="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-heading hover:bg-slate-100">Siguiente</a>
+                  {% else %}
+                    <a href="{{ url_for('ecommerce.product', product_id=product.id, reviews_page=reviews_pagination.next_page, _anchor='reviews-section') }}"
+                       class="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-heading hover:bg-slate-100">Siguiente</a>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="text-sm text-body">No hay reseñas para este filtro.</p>
+        {% endif %}
+      </article>
+    </div>
+  </section>
   <div class="bg-white border-t border-gray-100 py-16">
     <div class="max-w-7xl mx-auto px-6">
       <h2 class="text-3xl text-heading font-medium text-center mb-10">Productos Relacionados</h2>
@@ -156,6 +387,34 @@
       <div class="text-center">{{ outline_button("Mostrar Más") }}</div>
     </div>
   </div>
+  <style>
+      .rating-input {
+          display: inline-flex;
+          flex-direction: row-reverse;
+          gap: 0.25rem;
+      }
+
+      .rating-input input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+      }
+
+      .rating-input label {
+          color: #cbd5e1;
+          cursor: pointer;
+          font-size: 1.8rem;
+          line-height: 1;
+          transition: color 0.15s ease, transform 0.15s ease;
+      }
+
+      .rating-input label:hover,
+      .rating-input label:hover~label,
+      .rating-input input:checked~label {
+          color: #f59e0b;
+          transform: translateY(-1px);
+      }
+  </style>
   <script>
       (() => {
           const thumbs = document.querySelectorAll(".product-thumb");

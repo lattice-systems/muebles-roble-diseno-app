@@ -14,6 +14,7 @@ class Product(AuditMixin, db.Model):
         db.Integer, db.ForeignKey("furniture_types.id"), nullable=False
     )
     description = db.Column(db.Text, nullable=True)
+    specifications = db.Column(db.Text, nullable=True)
     price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     status = db.Column(db.Boolean, nullable=False, default=True)
 
@@ -28,6 +29,12 @@ class Product(AuditMixin, db.Model):
     )
     sale_items = db.relationship("SaleItem", back_populates="product", lazy=True)
     order_items = db.relationship("OrderItem", back_populates="product", lazy=True)
+    reviews = db.relationship(
+        "ProductReview",
+        back_populates="product",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
 
     images = db.relationship(
         "ProductImage",
@@ -43,6 +50,7 @@ class Product(AuditMixin, db.Model):
             "name": self.name,
             "furniture_type_id": self.furniture_type_id,
             "description": self.description,
+            "specifications": self.specifications,
             "price": float(self.price) if self.price is not None else None,
             "status": self.status,
             **self._audit_dict(),

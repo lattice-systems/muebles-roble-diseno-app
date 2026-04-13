@@ -16,7 +16,19 @@ from app import create_app
 from app.extensions import db
 from app.models.furniture_type import FurnitureType
 from app.models.product import Product
-from seed_dataset import CATEGORY_PRODUCT_TARGETS, FURNITURE_TYPES, PRODUCTS
+from seed_dataset import (
+    BOM_TEMPLATES,
+    CATEGORY_PRODUCT_TARGETS,
+    FURNITURE_TYPES,
+    PRODUCTS,
+    RAW_MATERIALS,
+)
+from seed_pricing_rules import (
+    PriceQuote,
+    build_material_catalog,
+    build_price_quote,
+    load_images_by_sku,
+)
 
 
 def _validate_dataset_counts() -> None:
@@ -28,10 +40,50 @@ def _validate_dataset_counts() -> None:
         print(f"  {status} {category}: {current} producto(s), objetivo={target}")
 
 
+def _build_price_quotes() -> dict[str, PriceQuote]:
+    images_by_sku = load_images_by_sku()
+    material_catalog = build_material_catalog(RAW_MATERIALS)
+
+    quotes_by_sku: dict[str, PriceQuote] = {}
+    errors: list[str] = []
+
+    for product_data in PRODUCTS:
+        sku = product_data["sku"]
+        template_name = product_data.get("bom_template")
+        template = BOM_TEMPLATES.get(template_name)
+
+        if not template:
+            errors.append(
+                f"{sku}: no se encontro bom_template '{template_name}' en BOM_TEMPLATES"
+            )
+            continue
+
+        try:
+            quote = build_price_quote(
+                product_data=product_data,
+                base_template=template,
+                image_urls=images_by_sku.get(sku, []),
+                material_catalog=material_catalog,
+            )
+            quotes_by_sku[sku] = quote
+        except Exception as exc:
+            errors.append(f"{sku}: {exc}")
+
+    if errors:
+        joined_errors = "\n- ".join(errors)
+        raise RuntimeError(
+            "Se detectaron incoherencias de fidelidad en el catalogo seed:\n"
+            f"- {joined_errors}"
+        )
+
+    return quotes_by_sku
+
+
 def seed_products():
     app = create_app()
     with app.app_context():
         _validate_dataset_counts()
+        price_quotes = _build_price_quotes()
 
         # ── 1. Tipos de mueble ──────────────────────────────────────────
         print("\n📦 Sembrando tipos de mueble...")
@@ -78,15 +130,24 @@ def seed_products():
                 )
                 continue
 
+            quote = price_quotes.get(p_data["sku"])
+            if quote is None:
+                print(f"  ❌ Sin cotizacion de precio para {p_data['sku']} — se omite")
+                continue
+
             existing = Product.query.filter_by(sku=p_data["sku"]).first()
             if existing:
                 existing.name = p_data["name"]
                 existing.furniture_type_id = furniture_type_id
                 existing.description = p_data["description"]
-                existing.price = p_data["price"]
+                existing.specifications = p_data.get("specifications", "")
+                existing.price = quote.sale_price
                 existing.status = True
                 updated += 1
-                print(f"  ♻️  Actualizado: {p_data['sku']} – {p_data['name']}")
+                print(
+                    f"  ♻️  Actualizado: {p_data['sku']} – {p_data['name']} "
+                    f"${quote.sale_price:,.2f}"
+                )
                 continue
 
             product = Product(
@@ -94,12 +155,13 @@ def seed_products():
                 name=p_data["name"],
                 furniture_type_id=furniture_type_id,
                 description=p_data["description"],
-                price=p_data["price"],
+                specifications=p_data.get("specifications", ""),
+                price=quote.sale_price,
                 status=True,
             )
             db.session.add(product)
             seeded += 1
-            print(f"  ✅ {p_data['sku']} – {p_data['name']}  ${p_data['price']:,.2f}")
+            print(f"  ✅ {p_data['sku']} – {p_data['name']}  ${quote.sale_price:,.2f}")
 
         # Mantener coherente el catalogo inicial: productos fuera del seed quedan inactivos.
         legacy_products = Product.query.filter(

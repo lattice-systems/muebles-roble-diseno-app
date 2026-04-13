@@ -33,6 +33,7 @@ def get_report_collections():
         "weekly_sales": db["weekly_sales_reports"],
         "recent_sales": db["recent_sales_reports"],
         "general": db["general_reports"],
+        "cost_snapshots": db["cost_snapshots"],
     }
 
 

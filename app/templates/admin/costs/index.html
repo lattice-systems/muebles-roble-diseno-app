@@ -2,18 +2,15 @@
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
 {% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
-
 {% block title %}
   Admin - Costos
 {% endblock title %}
-
 {% block content %}
   <div class="flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Costos de producción" %}
     {% set admin_header_subtitle = "Visualización para el costo de fabricación de cada producto" %}
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
-
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       {% call table_header(
         url_for('costs.index'),
@@ -23,7 +20,7 @@
         search_placeholder='Buscar por producto o SKU',
         search_label='Buscar',
         clear_condition=search_term
-      ) %}
+        ) %}
         <button id="actionsDropdownButton"
                 data-dropdown-toggle="actionsDropdown"
                 class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
@@ -36,14 +33,9 @@
                height="24"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m19 9-7 7-7-7"></path>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
           </svg>
         </button>
-
         <div id="actionsDropdown"
              class="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-56">
           <ul class="p-2 text-xs 2xl:text-sm text-body font-medium"
@@ -58,7 +50,6 @@
           </ul>
         </div>
       {% endcall %}
-
       <div class="relative w-full overflow-x-auto bg-neutral-primary-soft shadow-xs">
         <table class="w-full min-w-6xl table-auto text-xs 2xl:text-sm text-left rtl:text-right text-body">
           <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
@@ -76,10 +67,10 @@
               <th scope="col" class="px-6 py-3 font-medium">Costo total</th>
               <th scope="col" class="px-6 py-3 font-medium">Precio venta</th>
               <th scope="col" class="px-6 py-3 font-medium">Margen</th>
-              <th scope="col" class="px-6 py-3 font-medium w-52 min-w-52 whitespace-nowrap">Acciones</th>
+              <th scope="col"
+                  class="px-6 py-3 font-medium w-52 min-w-52 whitespace-nowrap">Acciones</th>
             </tr>
           </thead>
-
           <tbody>
             {% for item in costs %}
               <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
@@ -92,46 +83,26 @@
                     <label for="table-checkbox-{{ item.product_id }}" class="sr-only">Seleccionar fila</label>
                   </div>
                 </td>
-
                 <th scope="row" class="px-6 py-4 font-medium text-heading">
                   <div class="flex flex-col">
                     <span class="block truncate" title="{{ item.product_name }}">{{ item.product_name }}</span>
                     <span class="text-body text-xs">SKU: {{ item.sku or 'N/D' }}</span>
                   </div>
                 </th>
-
-                <td class="px-6 py-4 font-medium text-heading">
-                  ${{ "%.2f"|format(item.material_cost|float) }}
-                </td>
-
-                <td class="px-6 py-4 font-medium text-heading">
-                  ${{ "%.2f"|format(item.total_cost|float) }}
-                </td>
-
-                <td class="px-6 py-4 font-medium text-heading">
-                  ${{ "%.2f"|format(item.sale_price|float) }}
-                </td>
-
+                <td class="px-6 py-4 font-medium text-heading">${{ "%.2f"|format(item.material_cost|float) }}</td>
+                <td class="px-6 py-4 font-medium text-heading">${{ "%.2f"|format(item.total_cost|float) }}</td>
+                <td class="px-6 py-4 font-medium text-heading">${{ "%.2f"|format(item.sale_price|float) }}</td>
                 <td class="px-6 py-4">
                   {% if item.margin_value is not none %}
                     <div class="flex flex-col">
-                      <span class="font-medium text-heading">
-                        ${{ "%.2f"|format(item.margin_value|float) }}
-                      </span>
-
+                      <span class="font-medium text-heading">${{ "%.2f"|format(item.margin_value|float) }}</span>
                       {% if item.margin_percentage is not none %}
                         {% if item.status.key == 'negative' %}
-                          <span class="text-xs text-red-600">
-                            {{ "%.2f"|format(item.margin_percentage|float) }}%
-                          </span>
+                          <span class="text-xs text-red-600">{{ "%.2f"|format(item.margin_percentage|float) }}%</span>
                         {% elif item.status.key == 'low' %}
-                          <span class="text-xs text-amber-600">
-                            {{ "%.2f"|format(item.margin_percentage|float) }}%
-                          </span>
+                          <span class="text-xs text-amber-600">{{ "%.2f"|format(item.margin_percentage|float) }}%</span>
                         {% else %}
-                          <span class="text-xs text-green-600">
-                            {{ "%.2f"|format(item.margin_percentage|float) }}%
-                          </span>
+                          <span class="text-xs text-green-600">{{ "%.2f"|format(item.margin_percentage|float) }}%</span>
                         {% endif %}
                       {% else %}
                         <span class="text-body text-xs">N/D</span>
@@ -141,7 +112,6 @@
                     <span class="text-body">N/D</span>
                   {% endif %}
                 </td>
-
                 {{ row_actions_cell_start() }}
                 {{ row_actions_group_start() }}
                 {% call row_actions_dropdown('actionsCostDropdownButton-' ~ loop.index, 'actionsCostDropdown-' ~ loop.index, 'Opciones') %}
@@ -167,32 +137,32 @@
               </tr>
             {% else %}
               <tr class="bg-neutral-primary-soft border-b border-default">
-                <td colspan="7" class="px-6 py-8 text-center text-body">
-                  No se encontraron productos para calcular costos.
-                </td>
+                <td colspan="7" class="px-6 py-8 text-center text-body">No se encontraron productos para calcular costos.</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-
         {{ table_footer(pagination, 'costs.index', {'q': search_term}) }}
       </div>
     </div>
   </div>
 {% endblock content %}
-
 {% block modals %}
   <form id="bulkCostsActionForm"
         method="post"
         action="{{ url_for('costs.bulk_action_costs') }}"
         class="hidden">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() if csrf_token else '' }}">
     <input type="hidden" name="q" value="{{ search_term }}">
     <input type="hidden" name="page" value="{{ pagination.page }}">
     <input type="hidden" name="action" id="bulk-action-input" value="">
-    <input type="hidden" name="selected_ids" id="bulk-selected-ids-input" value="">
+    <input type="hidden"
+           name="selected_ids"
+           id="bulk-selected-ids-input"
+           value="">
   </form>
-
   <div id="bulk-no-selection-modal"
        tabindex="-1"
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -205,17 +175,16 @@
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
           <span class="sr-only">Cerrar modal</span>
         </button>
-
         <div class="p-3 2xl:p-4 md:p-5 text-center">
           <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <h3 class="mb-6 text-body">Selecciona al menos un producto para exportar.</h3>
           <button data-modal-hide="bulk-no-selection-modal"
@@ -227,7 +196,6 @@
       </div>
     </div>
   </div>
-
   <div id="bulk-confirm-action-modal"
        tabindex="-1"
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -240,17 +208,16 @@
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
           </svg>
           <span class="sr-only">Cerrar modal</span>
         </button>
-
         <div class="p-3 2xl:p-4 md:p-5 text-center">
           <svg class="mx-auto mb-4 text-fg-disabled w-10 h-10 2xl:w-12 2xl:h-12"
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <h3 id="bulk-confirm-action-message" class="mb-6 text-body">¿Deseas continuar con esta acción?</h3>
           <div class="flex items-center space-x-4 justify-center">
@@ -269,84 +236,83 @@
       </div>
     </div>
   </div>
-
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const checkAll = document.getElementById("table-checkbox-all");
-      const rowCheckboxes = Array.from(document.querySelectorAll(".cost-row-checkbox"));
-      const bulkForm = document.getElementById("bulkCostsActionForm");
-      const bulkActionInput = document.getElementById("bulk-action-input");
-      const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
-      const bulkExportBtn = document.getElementById("bulkExportBtn");
-      const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
-      const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
-      const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
-      const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
-      let pendingAction = "";
+      document.addEventListener("DOMContentLoaded", function() {
+          const checkAll = document.getElementById("table-checkbox-all");
+          const rowCheckboxes = Array.from(document.querySelectorAll(".cost-row-checkbox"));
+          const bulkForm = document.getElementById("bulkCostsActionForm");
+          const bulkActionInput = document.getElementById("bulk-action-input");
+          const bulkSelectedIdsInput = document.getElementById("bulk-selected-ids-input");
+          const bulkExportBtn = document.getElementById("bulkExportBtn");
+          const noSelectionModalElement = document.getElementById("bulk-no-selection-modal");
+          const confirmModalElement = document.getElementById("bulk-confirm-action-modal");
+          const confirmMessageElement = document.getElementById("bulk-confirm-action-message");
+          const confirmSubmitBtn = document.getElementById("bulk-confirm-action-submit");
+          let pendingAction = "";
 
-      const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
-      const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
+          const noSelectionModal = noSelectionModalElement ? new Modal(noSelectionModalElement) : null;
+          const confirmModal = confirmModalElement ? new Modal(confirmModalElement) : null;
 
-      if (checkAll) {
-        const syncMasterCheckbox = () => {
-          const total = rowCheckboxes.length;
-          const selected = rowCheckboxes.filter((checkbox) => checkbox.checked).length;
-          checkAll.checked = total > 0 && selected === total;
-          checkAll.indeterminate = selected > 0 && selected < total;
-        };
+          if (checkAll) {
+              const syncMasterCheckbox = () => {
+                  const total = rowCheckboxes.length;
+                  const selected = rowCheckboxes.filter((checkbox) => checkbox.checked).length;
+                  checkAll.checked = total > 0 && selected === total;
+                  checkAll.indeterminate = selected > 0 && selected < total;
+              };
 
-        checkAll.addEventListener("change", function() {
-          rowCheckboxes.forEach((checkbox) => {
-            checkbox.checked = checkAll.checked;
-          });
-          syncMasterCheckbox();
-        });
+              checkAll.addEventListener("change", function() {
+                  rowCheckboxes.forEach((checkbox) => {
+                      checkbox.checked = checkAll.checked;
+                  });
+                  syncMasterCheckbox();
+              });
 
-        rowCheckboxes.forEach((checkbox) => {
-          checkbox.addEventListener("change", syncMasterCheckbox);
-        });
+              rowCheckboxes.forEach((checkbox) => {
+                  checkbox.addEventListener("change", syncMasterCheckbox);
+              });
 
-        syncMasterCheckbox();
-      }
+              syncMasterCheckbox();
+          }
 
-      const submitBulkAction = (action) => {
-        const selectedIds = rowCheckboxes
-          .filter((checkbox) => checkbox.checked)
-          .map((checkbox) => checkbox.value);
+          const submitBulkAction = (action) => {
+              const selectedIds = rowCheckboxes
+                  .filter((checkbox) => checkbox.checked)
+                  .map((checkbox) => checkbox.value);
 
-        if (selectedIds.length === 0) {
-          if (noSelectionModal) noSelectionModal.show();
-          return;
-        }
+              if (selectedIds.length === 0) {
+                  if (noSelectionModal) noSelectionModal.show();
+                  return;
+              }
 
-        pendingAction = action;
-        bulkSelectedIdsInput.value = selectedIds.join(",");
+              pendingAction = action;
+              bulkSelectedIdsInput.value = selectedIds.join(",");
 
-        if (confirmMessageElement) {
-          confirmMessageElement.textContent = "¿Deseas exportar los productos seleccionados?";
-        }
+              if (confirmMessageElement) {
+                  confirmMessageElement.textContent = "¿Deseas exportar los productos seleccionados?";
+              }
 
-        if (confirmSubmitBtn) {
-          confirmSubmitBtn.textContent = "Sí, exportar";
-        }
+              if (confirmSubmitBtn) {
+                  confirmSubmitBtn.textContent = "Sí, exportar";
+              }
 
-        if (confirmModal) confirmModal.show();
-      };
+              if (confirmModal) confirmModal.show();
+          };
 
-      if (bulkExportBtn) {
-        bulkExportBtn.addEventListener("click", function() {
-          submitBulkAction("export");
-        });
-      }
+          if (bulkExportBtn) {
+              bulkExportBtn.addEventListener("click", function() {
+                  submitBulkAction("export");
+              });
+          }
 
-      if (confirmSubmitBtn) {
-        confirmSubmitBtn.addEventListener("click", function() {
-          if (!pendingAction) return;
-          bulkActionInput.value = pendingAction;
-          if (confirmModal) confirmModal.hide();
-          bulkForm.submit();
-        });
-      }
-    });
+          if (confirmSubmitBtn) {
+              confirmSubmitBtn.addEventListener("click", function() {
+                  if (!pendingAction) return;
+                  bulkActionInput.value = pendingAction;
+                  if (confirmModal) confirmModal.hide();
+                  bulkForm.submit();
+              });
+          }
+      });
   </script>
 {% endblock modals %}

@@ -14,6 +14,7 @@
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       {% call table_header(url_for('raw_materials.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por nombre', search_label='Buscar', hidden_fields=[('status', status_filter)], clear_condition=search_term) %}
+        {% if can('raw_materials.create') %}
         <a href="{{ url_for('raw_materials.create_raw_material') }}"
            class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
           <svg class="w-4 h-4 me-1.5 -ms-0.5"
@@ -27,6 +28,7 @@
           </svg>
           Nueva materia prima
         </a>
+        {% endif %}
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
                 class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"
@@ -103,6 +105,7 @@
                 Activar seleccionados
               </button>
             </li>
+            {% if can('raw_materials.delete') %}
             <li>
               <button type="button"
                       id="bulkDeactivateBtn"
@@ -110,6 +113,7 @@
                 Desactivar seleccionados
               </button>
             </li>
+            {% endif %}
           </ul>
         </div>
       {% endcall %}
@@ -174,6 +178,7 @@
                       Ver detalles
                     </a>
                   </li>
+                  {% if can('raw_materials.update') %}
                   <li>
                     <a href="{{ url_for('raw_materials.edit_raw_material', raw_material_id=raw_material.id) }}"
                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
@@ -186,8 +191,11 @@
                       Ajustar stock
                     </a>
                   </li>
+                  {% endif %}
                 {% endcall %}
+                {% if can('raw_materials.delete') %}
                 {{ row_status_toggle_button('toggle-modal-' ~ raw_material.id, raw_material.status == 'active', 'Desactivar', 'Activar') }}
+                {% endif %}
                 {{ row_actions_group_end() }}
                 {{ row_actions_cell_end() }}
               </tr>

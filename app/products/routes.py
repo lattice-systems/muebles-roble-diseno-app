@@ -100,8 +100,10 @@ def create():
             return redirect(url_for("products.index"))
 
         except ValueError as e:
+            db.session.rollback()
             flash(str(e), "danger")
         except Exception as e:
+            db.session.rollback()
             print(e)
             flash("Ocurrió un error al crear el producto.", "danger")
 
@@ -158,8 +160,11 @@ def edit(product_id):
             flash("Producto actualizado correctamente.", "success")
             return redirect(url_for("products.index"))
         except ValueError as e:
+            db.session.rollback()
             flash(str(e), "danger")
-        except Exception:
+        except Exception as e:
+            db.session.rollback()
+            print(e)
             flash("Ocurrió un error al actualizar el producto.", "danger")
 
     return render_template("admin/products/edit.html", form=form, product=product)

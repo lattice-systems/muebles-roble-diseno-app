@@ -152,7 +152,7 @@
                 request.endpoint and request.endpoint.startswith('sales.')}) %}
       {% endif %}
       {% if can('ecommerce.manage') %}
-        {% set _ = sales_items.append({"label": "E-commerce", "href": "#", "icon": icon_ecommerce_sub}) %}
+        {% set _ = sales_items.append({"label": admin_nav_links.ecommerce.label, "href": admin_nav_links.ecommerce.href, "icon": icon_ecommerce_sub}) %}
       {% endif %}
       {% if can('customer_orders.read') %}
         {% set _ = sales_items.append({"label": "Órdenes de Cliente", "href": url_for('customer_orders.index'), "icon":
@@ -220,8 +220,8 @@
         </li>
         {% if can('ecommerce.manage') %}
           <li>
-            <a href="#"
-               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
+            <a href="{{ admin_nav_links.ecommerce.href }}"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">{{ admin_nav_links.ecommerce.label }}</a>
           </li>
         {% endif %}
         <li>
@@ -350,15 +350,20 @@
         };
 
         if (sidebar) {
-            const savedState = localStorage.getItem(collapsedStorageKey);
-            applySidebarState(savedState === "1");
+            const savedState = sessionStorage.getItem(collapsedStorageKey);
+            if (savedState === "1" || savedState === "0") {
+                applySidebarState(savedState === "1");
+            } else {
+                applySidebarState(true);
+                sessionStorage.setItem(collapsedStorageKey, "1");
+            }
         }
 
         if (compactToggle) {
             compactToggle.addEventListener("click", function() {
                 const nextCollapsed = !sidebar.classList.contains("sidebar-collapsed");
                 applySidebarState(nextCollapsed);
-                localStorage.setItem(collapsedStorageKey, nextCollapsed ? "1" : "0");
+                sessionStorage.setItem(collapsedStorageKey, nextCollapsed ? "1" : "0");
             });
         }
 
@@ -367,7 +372,7 @@
                 if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
                     event.preventDefault();
                     applySidebarState(false);
-                    localStorage.setItem(collapsedStorageKey, "0");
+                    sessionStorage.setItem(collapsedStorageKey, "0");
                 }
             });
         }
@@ -398,7 +403,7 @@
                 if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
                     event.preventDefault();
                     applySidebarState(false);
-                    localStorage.setItem(collapsedStorageKey, "0");
+                    sessionStorage.setItem(collapsedStorageKey, "0");
                     return;
                 }
             });

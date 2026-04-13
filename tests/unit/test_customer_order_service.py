@@ -11,6 +11,7 @@ from decimal import Decimal
 import pytest
 
 from app.customer_orders.services import CustomerOrderService
+from app.exceptions import ValidationError
 
 
 class TestCreateOrder:
@@ -251,13 +252,11 @@ class TestSendToProduction:
             created_by_id=user.id,
         )
 
-        production_orders = CustomerOrderService.send_to_production(
-            order_id=order.id,
-            user_id=user.id,
-        )
-
-        assert production_orders == []
-        assert order.status == "en_produccion"
+        with pytest.raises(ValidationError, match="no tiene una receta BOM"):
+            CustomerOrderService.send_to_production(
+                order_id=order.id,
+                user_id=user.id,
+            )
 
 
 class TestCreateFromEcommerce:

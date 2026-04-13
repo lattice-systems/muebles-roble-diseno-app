@@ -2,7 +2,8 @@
 {% from "admin/components/table_header.html" import table_header %}
 {% from "admin/components/table_footer.html" import table_footer %}
 {% from "admin/components/table_status_badge.html" import status_badge %}
-{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end, row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
+{% from "admin/components/table_row_actions.html" import row_actions_cell_start, row_actions_cell_end,
+row_actions_group_start, row_actions_group_end, row_actions_dropdown %}
 {% block title %}
   Unidad de Medida - Furniture Store
 {% endblock title %}
@@ -19,23 +20,28 @@
     <!-- Table Card -->
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       <!-- Toolbar -->
-      {% call table_header(url_for('unit_of_measures.list_unit_of_measures'), search_input_id='simple-search', search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por título o código...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')], clear_condition=search_term) %}
+      {% call table_header(url_for('unit_of_measures.list_unit_of_measures'), search_input_id='simple-search',
+        search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por título o
+        código...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')],
+        clear_condition=search_term) %}
         <!-- + Agregar Button -->
-        <button type="button"
-                data-modal-target="createModal"
-                data-modal-toggle="createModal"
-                class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-          <svg class="w-4 h-4 me-1.5 -ms-0.5"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
-          </svg>
-          Agregar
-        </button>
+        {% if can('catalogs.create') %}
+          <button type="button"
+                  data-modal-target="createModal"
+                  data-modal-toggle="createModal"
+                  class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+            <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"></path>
+            </svg>
+            Agregar
+          </button>
+        {% endif %}
         <!-- Filter Dropdown -->
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
@@ -157,7 +163,19 @@
                 <th scope="row"
                     class="px-6 py-4 font-medium text-heading whitespace-nowrap">{{ unit_of_measure.name }}</th>
                 <td class="px-6 py-4">{{ unit_of_measure.abbreviation }}</td>
-                <td class="px-6 py-4 capitalize">{{ unit_of_measure.type }}</td>
+                <td class="px-6 py-4 capitalize">
+                  {{ {
+                  'longitud': 'Longitud',
+                  'length': 'Longitud',
+                  'peso': 'Peso',
+                  'weight': 'Peso',
+                  'volumen': 'Volumen',
+                  'volume': 'Volumen',
+                  'unidad': 'Unidad',
+                  'count': 'Unidad',
+                  'unit': 'Unidad'
+                  }.get(unit_of_measure.type, unit_of_measure.type) }}
+                </td>
                 <td class="px-6 py-4">
                   {% if unit_of_measure.status %}
                     {{ status_badge('Activo', 'success') }}
@@ -167,48 +185,54 @@
                 </td>
                 {{ row_actions_cell_start("px-6 py-4 w-72 min-w-72 whitespace-nowrap text-center") }}
                 {{ row_actions_group_start("flex flex-row flex-nowrap items-center justify-center gap-2.5 2xl:gap-3") }}
-                <button type="button"
-                        data-modal-target="editModal-{{ unit_of_measure.id_unit_of_measure }}"
-                        data-modal-toggle="editModal-{{ unit_of_measure.id_unit_of_measure }}"
-                        class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
-                  Editar
-                </button>
+                {% if can('catalogs.update') %}
+                  <button type="button"
+                          data-modal-target="editModal-{{ unit_of_measure.id_unit_of_measure }}"
+                          data-modal-toggle="editModal-{{ unit_of_measure.id_unit_of_measure }}"
+                          class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                    Editar
+                  </button>
+                {% endif %}
                 <!-- Desactivar / Activar button -->
-                <form id="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
-                      method="post"
-                      action="{{ url_for('unit_of_measures.delete_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}"
-                      class="inline">
-                  <input type="hidden"
-                         name="csrf_token"
-                         value="{{ csrf_token() if csrf_token else '' }}" />
-                  {% if unit_of_measure.status %}
-                    <button type="button"
-                            data-confirm-action="deactivate"
-                            data-confirm-form="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
-                            class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
-                      <svg class="h-4 w-4"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           fill="currentColor"
-                           viewBox="0 0 24 24">
-                        <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 1.414.586l2 2A2 2 0 0 1 18 6v1h2a1 1 0 1 1 0 2h-1v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9H4a1 1 0 0 1 0-2h2V6a2 2 0 0 1 .586-1.414l2-2ZM11 11a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0v-7Z" clip-rule="evenodd" />
-                      </svg>
-                      Desactivar
-                    </button>
-                  {% else %}
-                    <button type="button"
-                            data-confirm-action="activate"
-                            data-confirm-form="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
-                            class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
-                      <svg class="h-4 w-4"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           fill="currentColor"
-                           viewBox="0 0 24 24">
-                        <path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm4.707 7.293a1 1 0 00-1.414-1.414L11 12.586 8.707 10.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l5-5z" clip-rule="evenodd" />
-                      </svg>
-                      Activar
-                    </button>
+                {% if can('catalogs.delete') %}
+                  <form id="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
+                        method="post"
+                        action="{{ url_for('unit_of_measures.delete_unit_of_measure', id_unit_of_measure=unit_of_measure.id_unit_of_measure) }}"
+                        class="inline">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="{{ csrf_token() if csrf_token else '' }}" />
+                    {% if unit_of_measure.status %}
+                      <button type="button"
+                              data-confirm-action="deactivate"
+                              data-confirm-form="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
+                              class="shrink-0 inline-flex items-center justify-center text-white bg-danger hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium box-border border border-transparent shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
+                        <svg class="w-4 h-4 me-1.5 -ms-0.5"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="24"
+                             height="24"
+                             fill="none"
+                             viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        Desactivar
+                      </button>
+                    {% else %}
+                      <button type="button"
+                              data-confirm-action="activate"
+                              data-confirm-form="toggleForm-{{ unit_of_measure.id_unit_of_measure }}"
+                              class="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm py-1.5 px-3 focus:outline-none inline-flex items-center gap-1.5">
+                        <svg class="h-4 w-4"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="currentColor"
+                             viewBox="0 0 24 24">
+                          <path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm4.707 7.293a1 1 0 00-1.414-1.414L11 12.586 8.707 10.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l5-5z" clip-rule="evenodd" />
+                        </svg>
+                        Activar
+                      </button>
+                    {% endif %}
                   {% endif %}
                 </form>
                 {{ row_actions_group_end() }}
@@ -218,7 +242,8 @@
           </tbody>
         </table>
       </div>
-      {{ table_footer(pagination, 'unit_of_measures.list_unit_of_measures', {'q': search_term, 'status': status_filter if status_filter else 'all'}) }}
+      {{ table_footer(pagination, 'unit_of_measures.list_unit_of_measures', {'q': search_term, 'status': status_filter if
+            status_filter else 'all'}) }}
       {% if not units_of_measures %}
         <div class="p-10 text-center text-body">No hay unidades de medida registrados.</div>
       {% endif %}
@@ -577,12 +602,15 @@
                         required
                         class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5">
                   <option value="longitud"
-                          {% if unit_of_measure.type=='longitud' %}selected{% endif %}>Longitud</option>
-                  <option value="peso" {% if unit_of_measure.type=='peso' %}selected{% endif %}>Peso</option>
+                          {% if unit_of_measure.type in ['longitud', 'length'] %}selected{% endif %}>Longitud</option>
+                  <option value="peso"
+                          {% if unit_of_measure.type in ['peso', 'weight'] %}selected{% endif %}>Peso</option>
                   <option value="volumen"
-                          {% if unit_of_measure.type=='volumen' %}selected{% endif %}>Volumen</option>
+                          {% if unit_of_measure.type in ['volumen', 'volume'] %}selected{% endif %}>Volumen</option>
                   <option value="unidad"
-                          {% if unit_of_measure.type=='unidad' %}selected{% endif %}>Unidad</option>
+                          {% if unit_of_measure.type in ['unidad', 'count', 'unit'] %}selected{% endif %}>
+                    Unidad
+                  </option>
                 </select>
                 {% if show_edit_modal == unit_of_measure.id_unit_of_measure and edit_form and edit_form.type.errors %}
                   <p class="mt-1.5 text-xs text-red-600">{{ edit_form.type.errors[0] }}</p>

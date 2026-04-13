@@ -18,11 +18,13 @@ BASE_SEED_ORDER = [
     "seed_raw_materials.py",
     "seed_wood_types.py",
     "seed_products.py",
+    "seed_product_images.py",
     "seed_product_colors.py",
     "seed_payment_methods.py",
     "seed_purchase.py",
     "seed_bom.py",
     "seed_inventory.py",
+    "seed_ecommerce_orders_reviews.py",
 ]
 
 RBAC_SEED = "seed_users_by_role.py"

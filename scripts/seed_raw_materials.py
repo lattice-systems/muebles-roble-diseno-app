@@ -17,9 +17,9 @@ CATEGORY_DESCRIPTIONS = {
 }
 
 UNIT_DEFINITIONS = {
-    "Pieza": ("pza", "count"),
-    "Metro lineal": ("ml", "length"),
-    "Litro": ("L", "volume"),
+    "Pieza": ("pza", "unidad"),
+    "Metro lineal": ("ml", "longitud"),
+    "Litro": ("L", "volumen"),
 }
 
 

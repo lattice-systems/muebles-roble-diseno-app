@@ -3,7 +3,7 @@
   Admin - Detalle de ventas
 {% endblock title %}
 {% block content %}
-  {% set weekly_items = weekly["items"] %}
+  {% set weekly_items = weekly["items"] if weekly and weekly.get("items") else [] %}
   {% set recent_items = recent["items"] %}
   <div class="flex flex-col gap-4">
     {% set admin_header_title = "Detalle de ventas" %}
@@ -30,24 +30,30 @@
            class="text-brand text-xs font-medium">Volver</a>
       </div>
       <div class="h-72 relative">
-        <svg viewBox="0 0 500 220" class="w-full h-full">
-          <line x1="40" y1="20" x2="40" y2="180" stroke="#d1d5db" stroke-width="1" />
-          <line x1="40" y1="180" x2="470" y2="180" stroke="#111827" stroke-width="1.5" />
-          <line x1="40" y1="140" x2="470" y2="140" stroke="#e5e7eb" stroke-width="1" />
-          <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1" />
-          <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1" />
-          {% set points = [] %}
-          {% set max_amount = weekly.max_amount if weekly.max_amount > 0 else 1 %}
-          {% for item in weekly_items %}
-            {% set x = 60 + (loop.index0 * 60) %}
-            {% set y = 180 - ((item.amount / max_amount) * 140) %}
-            {% set _ = points.append(x|string ~ "," ~ y|string) %}
-            <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
-            <text x="{{ x - 14 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">${{ "%.0f"|format(item.amount|float) }}</text>
-            <text x="{{ x - 18 }}" y="200" font-size="10" fill="#6b7280">{{ item.label }}</text>
-          {% endfor %}
-          <polyline fill="none" stroke="#1d4ed8" stroke-width="2.5" points="{{ points|join(' ') }}" />
-        </svg>
+        {% if weekly_items %}
+          <svg viewBox="0 0 500 220" class="w-full h-full">
+            <line x1="40" y1="20" x2="40" y2="180" stroke="#d1d5db" stroke-width="1" />
+            <line x1="40" y1="180" x2="470" y2="180" stroke="#111827" stroke-width="1.5" />
+            <line x1="40" y1="140" x2="470" y2="140" stroke="#e5e7eb" stroke-width="1" />
+            <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1" />
+            <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1" />
+            {% set chart = namespace(points=[]) %}
+            {% set max_amount = weekly["max_amount"] if weekly and weekly.get("max_amount", 0) > 0 else 1 %}
+            {% for item in weekly_items %}
+              {% set x = 60 + (loop.index0 * 60) %}
+              {% set y = item.get('y', 180 - ((item.amount / max_amount) * 140)) %}
+              {% set chart.points = chart.points + [x|string ~ "," ~ y|string] %}
+              <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
+              <text x="{{ x - 14 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">${{ "%.0f"|format(item.amount|float) }}</text>
+              <text x="{{ x - 18 }}" y="200" font-size="10" fill="#6b7280">{{ item.label }}</text>
+            {% endfor %}
+            <polyline fill="none" stroke="#1d4ed8" stroke-width="2.5" points="{{ chart.points|join(' ') }}" />
+          </svg>
+        {% else %}
+          <div class="h-full flex items-center justify-center text-body text-sm">
+            No hay datos de ventas semanales disponibles.
+          </div>
+        {% endif %}
       </div>
     </div>
     <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs overflow-hidden">

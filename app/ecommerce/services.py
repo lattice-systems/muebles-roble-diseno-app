@@ -11,19 +11,25 @@ from types import SimpleNamespace
 from flask import session, url_for
 from markupsafe import escape
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.extensions import db
 from app.models.customer import Customer
+from app.models.customer_user import CustomerUser
 from app.models.furniture_type import FurnitureType
 from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.product_color import ProductColor
+from app.models.product_review import ProductReview
 from app.shared.inventory_service import InventoryService
 
 
 class EcommerceService:
     """Servicios para la vitrina de e-commerce."""
+
+    LEGACY_CART_SESSION_KEY = "ecommerce_cart"
+    GUEST_CART_SESSION_KEY = "ecommerce_cart_guest"
+    CUSTOMER_CART_SESSION_PREFIX = "ecommerce_cart_user_"
 
     DEFAULT_PRODUCT_IMAGE = (
         "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e"
@@ -199,6 +205,7 @@ class EcommerceService:
             "image": image,
             "images": images,
             "description": product.description,
+            "specifications": product.specifications,
             "sizes": ["S", "M", "L"],
             "colors": color_names,
             "color_palette": color_palette,
@@ -210,18 +217,27 @@ class EcommerceService:
             "furniture_type_id": product.furniture_type_id,
             "category": category,
             "type_slug": type_slug,
+            "rating_average": 0.0,
+            "rating_count": 0,
+            "rating_total_points": 0,
             "url": url_for("ecommerce.product", product_id=product.id),
         }
 
     @staticmethod
     def get_featured_products() -> list[dict[str, object]]:
         products = EcommerceService._query_products().limit(8).all()
-        return [EcommerceService._serialize_product(product) for product in products]
+        serialized_products = [
+            EcommerceService._serialize_product(product) for product in products
+        ]
+        return EcommerceService._attach_rating_summaries(serialized_products)
 
     @staticmethod
     def get_all_products() -> list[dict[str, object]]:
         products = EcommerceService._query_products().all()
-        return [EcommerceService._serialize_product(product) for product in products]
+        serialized_products = [
+            EcommerceService._serialize_product(product) for product in products
+        ]
+        return EcommerceService._attach_rating_summaries(serialized_products)
 
     @staticmethod
     def get_filtered_products(
@@ -445,6 +461,202 @@ class EcommerceService:
         return EcommerceService._serialize_product(product)
 
     @staticmethod
+    def get_product_rating_summary(product_id: int) -> dict[str, object]:
+        average, count, total_points = (
+            db.session.query(
+                func.avg(ProductReview.rating),
+                func.count(ProductReview.id),
+                func.coalesce(func.sum(ProductReview.rating), 0),
+            )
+            .filter(ProductReview.product_id == product_id)
+            .first()
+        )
+
+        count_int = int(count or 0)
+        average_float = float(average) if average is not None else 0.0
+        return {
+            "average": round(average_float, 1) if count_int else 0.0,
+            "count": count_int,
+            "total_points": int(total_points or 0),
+        }
+
+    @staticmethod
+    def _get_rating_summary_map(product_ids: list[int]) -> dict[int, dict[str, object]]:
+        if not product_ids:
+            return {}
+
+        rows = (
+            db.session.query(
+                ProductReview.product_id,
+                func.avg(ProductReview.rating),
+                func.count(ProductReview.id),
+                func.coalesce(func.sum(ProductReview.rating), 0),
+            )
+            .filter(ProductReview.product_id.in_(product_ids))
+            .group_by(ProductReview.product_id)
+            .all()
+        )
+
+        summary_map: dict[int, dict[str, object]] = {}
+        for product_id, average, count, total_points in rows:
+            count_int = int(count or 0)
+            average_float = float(average) if average is not None else 0.0
+            summary_map[int(product_id)] = {
+                "average": round(average_float, 1) if count_int else 0.0,
+                "count": count_int,
+                "total_points": int(total_points or 0),
+            }
+
+        return summary_map
+
+    @staticmethod
+    def _attach_rating_summaries(
+        serialized_products: list[dict[str, object]],
+    ) -> list[dict[str, object]]:
+        product_ids = [
+            int(product_data.get("id"))
+            for product_data in serialized_products
+            if product_data.get("id")
+        ]
+        summary_map = EcommerceService._get_rating_summary_map(product_ids)
+
+        for product_data in serialized_products:
+            product_id = int(product_data.get("id") or 0)
+            summary = summary_map.get(
+                product_id,
+                {
+                    "average": 0.0,
+                    "count": 0,
+                    "total_points": 0,
+                },
+            )
+            product_data["rating_average"] = summary["average"]
+            product_data["rating_count"] = summary["count"]
+            product_data["rating_total_points"] = summary["total_points"]
+
+        return serialized_products
+
+    @staticmethod
+    def get_product_reviews(
+        product_id: int, limit: int = 20
+    ) -> list[dict[str, object]]:
+        safe_limit = max(1, min(limit, 50))
+        reviews = (
+            ProductReview.query.options(selectinload(ProductReview.customer_user))
+            .filter(ProductReview.product_id == product_id)
+            .order_by(ProductReview.updated_at.desc(), ProductReview.id.desc())
+            .limit(safe_limit)
+            .all()
+        )
+
+        return [
+            {
+                "id": review.id,
+                "rating": review.rating,
+                "review_text": review.review_text,
+                "created_at": review.created_at,
+                "updated_at": review.updated_at,
+                "author_name": (
+                    review.customer_user.full_name
+                    if review.customer_user
+                    else "Cliente"
+                ),
+                "customer_user_id": review.customer_user_id,
+            }
+            for review in reviews
+        ]
+
+    @staticmethod
+    def get_product_review_breakdown(product_id: int) -> dict[str, object]:
+        rows = (
+            db.session.query(
+                ProductReview.rating,
+                func.count(ProductReview.id),
+            )
+            .filter(ProductReview.product_id == product_id)
+            .group_by(ProductReview.rating)
+            .all()
+        )
+
+        by_rating = {rating: 0 for rating in range(1, 6)}
+        total = 0
+        for rating, count in rows:
+            safe_rating = int(rating or 0)
+            safe_count = int(count or 0)
+            if safe_rating in by_rating:
+                by_rating[safe_rating] = safe_count
+                total += safe_count
+
+        return {
+            "total": total,
+            "by_rating": by_rating,
+        }
+
+    @staticmethod
+    def get_product_reviews_paginated(
+        product_id: int,
+        *,
+        page: int = 1,
+        per_page: int = 6,
+        rating_filter: int | None = None,
+    ) -> dict[str, object]:
+        safe_per_page = max(1, min(per_page, 20))
+        safe_page = max(1, page if isinstance(page, int) else 1)
+        normalized_rating_filter = (
+            rating_filter
+            if isinstance(rating_filter, int) and 1 <= rating_filter <= 5
+            else None
+        )
+
+        query = ProductReview.query.options(
+            selectinload(ProductReview.customer_user)
+        ).filter(ProductReview.product_id == product_id)
+        if normalized_rating_filter is not None:
+            query = query.filter(ProductReview.rating == normalized_rating_filter)
+
+        total_reviews = query.count()
+        total_pages = max(1, ceil(total_reviews / safe_per_page))
+        current_page = min(safe_page, total_pages)
+        offset = (current_page - 1) * safe_per_page
+
+        reviews = (
+            query.order_by(ProductReview.updated_at.desc(), ProductReview.id.desc())
+            .offset(offset)
+            .limit(safe_per_page)
+            .all()
+        )
+
+        serialized_reviews = [
+            {
+                "id": review.id,
+                "rating": review.rating,
+                "review_text": review.review_text,
+                "created_at": review.created_at,
+                "updated_at": review.updated_at,
+                "author_name": (
+                    review.customer_user.full_name
+                    if review.customer_user
+                    else "Cliente"
+                ),
+                "customer_user_id": review.customer_user_id,
+            }
+            for review in reviews
+        ]
+
+        return {
+            "reviews": serialized_reviews,
+            "total_reviews": total_reviews,
+            "page": current_page,
+            "per_page": safe_per_page,
+            "total_pages": total_pages,
+            "has_prev": current_page > 1,
+            "has_next": current_page < total_pages,
+            "prev_page": current_page - 1,
+            "next_page": current_page + 1,
+            "rating_filter": normalized_rating_filter,
+        }
+
+    @staticmethod
     def _normalize_quantity(quantity: object, *, minimum: int = 1) -> int:
         try:
             parsed_quantity = int(quantity)
@@ -453,8 +665,7 @@ class EcommerceService:
         return max(minimum, parsed_quantity)
 
     @staticmethod
-    def _get_cart_store() -> dict[int, int]:
-        raw_cart = session.get("ecommerce_cart", {})
+    def _normalize_cart_store(raw_cart: object) -> dict[int, int]:
         if not isinstance(raw_cart, dict):
             return {}
 
@@ -472,11 +683,96 @@ class EcommerceService:
         return normalized_cart
 
     @staticmethod
-    def _save_cart_store(cart_store: dict[int, int]) -> None:
-        session["ecommerce_cart"] = {
+    def _resolve_active_cart_key(customer_user_id: int | None = None) -> str:
+        resolved_user_id = customer_user_id
+        if resolved_user_id is None:
+            from app.customer_auth.decorators import get_current_customer_user
+
+            customer_user = get_current_customer_user()
+            if customer_user:
+                resolved_user_id = customer_user.id
+
+        if resolved_user_id:
+            return f"{EcommerceService.CUSTOMER_CART_SESSION_PREFIX}{int(resolved_user_id)}"
+
+        return EcommerceService.GUEST_CART_SESSION_KEY
+
+    @staticmethod
+    def _migrate_legacy_guest_cart() -> None:
+        if EcommerceService.LEGACY_CART_SESSION_KEY not in session:
+            return
+
+        if EcommerceService.GUEST_CART_SESSION_KEY not in session:
+            session[EcommerceService.GUEST_CART_SESSION_KEY] = session.get(
+                EcommerceService.LEGACY_CART_SESSION_KEY,
+                {},
+            )
+
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
+        session.modified = True
+
+    @staticmethod
+    def _get_cart_store_for_key(cart_key: str) -> dict[int, int]:
+        return EcommerceService._normalize_cart_store(session.get(cart_key, {}))
+
+    @staticmethod
+    def _save_cart_store_for_key(cart_key: str, cart_store: dict[int, int]) -> None:
+        session[cart_key] = {
             str(product_id): quantity for product_id, quantity in cart_store.items()
         }
         session.modified = True
+
+    @staticmethod
+    def _get_cart_store(*, customer_user_id: int | None = None) -> dict[int, int]:
+        EcommerceService._migrate_legacy_guest_cart()
+        cart_key = EcommerceService._resolve_active_cart_key(customer_user_id)
+        return EcommerceService._get_cart_store_for_key(cart_key)
+
+    @staticmethod
+    def _save_cart_store(
+        cart_store: dict[int, int], *, customer_user_id: int | None = None
+    ) -> None:
+        EcommerceService._migrate_legacy_guest_cart()
+        cart_key = EcommerceService._resolve_active_cart_key(customer_user_id)
+        EcommerceService._save_cart_store_for_key(cart_key, cart_store)
+
+    @staticmethod
+    def sync_guest_cart_to_customer(customer_user_id: int) -> None:
+        """Copia carrito guest a la cuenta si la cuenta aún no tiene carrito."""
+        if not customer_user_id:
+            return
+
+        EcommerceService._migrate_legacy_guest_cart()
+
+        guest_store = EcommerceService._get_cart_store_for_key(
+            EcommerceService.GUEST_CART_SESSION_KEY
+        )
+        if not guest_store:
+            return
+
+        customer_cart_key = EcommerceService._resolve_active_cart_key(
+            customer_user_id=customer_user_id
+        )
+        customer_store = EcommerceService._get_cart_store_for_key(customer_cart_key)
+        if customer_store:
+            return
+
+        normalized_customer_store: dict[int, int] = {}
+        for product_id, quantity in guest_store.items():
+            product = EcommerceService.get_product_by_id(product_id)
+            if not product:
+                continue
+
+            max_stock = EcommerceService._get_stock_for_product(product)
+            if max_stock <= 0:
+                continue
+
+            normalized_customer_store[product_id] = min(quantity, max_stock)
+
+        EcommerceService._save_cart_store_for_key(
+            customer_cart_key,
+            normalized_customer_store,
+        )
 
     @staticmethod
     def _get_stock_for_product(product_data: dict[str, object]) -> int:
@@ -544,9 +840,25 @@ class EcommerceService:
 
     @staticmethod
     def clear_cart() -> dict[str, object]:
-        session.pop("ecommerce_cart", None)
+        EcommerceService._migrate_legacy_guest_cart()
+        active_cart_key = EcommerceService._resolve_active_cart_key()
+        session.pop(active_cart_key, None)
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
         session.modified = True
         return EcommerceService.get_cart()
+
+    @staticmethod
+    def clear_customer_cart(customer_user_id: int) -> None:
+        if not customer_user_id:
+            return
+
+        EcommerceService._migrate_legacy_guest_cart()
+        customer_cart_key = EcommerceService._resolve_active_cart_key(
+            customer_user_id=customer_user_id
+        )
+        session.pop(customer_cart_key, None)
+        session.pop(EcommerceService.LEGACY_CART_SESSION_KEY, None)
+        session.modified = True
 
     @staticmethod
     def get_cart() -> dict:
@@ -669,10 +981,14 @@ class EcommerceService:
         phone: str,
         delivery_mode: str,
         shipping_data: dict[str, str],
+        existing_customer: Customer | None = None,
+        customer_user_id: int | None = None,
     ) -> Customer:
-        customer = Customer.query.filter(
-            func.lower(Customer.email) == email.lower()
-        ).first()
+        customer = existing_customer
+        if customer is None:
+            customer = Customer.query.filter(
+                func.lower(Customer.email) == email.lower()
+            ).first()
 
         if not customer:
             customer = Customer(
@@ -689,6 +1005,13 @@ class EcommerceService:
         customer.last_name = last_name
         customer.phone = phone
 
+        if customer_user_id:
+            if customer.user_id and customer.user_id != customer_user_id:
+                raise ValueError(
+                    "Este cliente ya esta vinculado a otra cuenta de usuario."
+                )
+            customer.user_id = customer_user_id
+
         if delivery_mode == "shipping":
             customer.requires_freight = True
             customer.zip_code = shipping_data.get("zip_code")
@@ -698,14 +1021,18 @@ class EcommerceService:
             customer.neighborhood = shipping_data.get("neighborhood")
             customer.exterior_number = shipping_data.get("exterior_number")
             customer.interior_number = shipping_data.get("interior_number")
-        elif customer.id is None:
+        else:
             customer.requires_freight = False
 
         db.session.flush()
         return customer
 
     @staticmethod
-    def checkout_from_form(form_data: dict) -> dict[str, object]:
+    def checkout_from_form(
+        form_data: dict,
+        *,
+        customer_user_id: int | None = None,
+    ) -> dict[str, object]:
         cart_data = EcommerceService.get_cart()
         if not cart_data["total_items"]:
             raise ValueError("Tu carrito esta vacio. Agrega productos para continuar.")
@@ -716,6 +1043,27 @@ class EcommerceService:
         phone = (form_data.get("phone") or "").strip()
         notes = (form_data.get("notes") or "").strip()
         delivery_mode = (form_data.get("delivery_mode") or "shipping").strip().lower()
+
+        customer_user = None
+        linked_customer = None
+        if customer_user_id:
+            customer_user = CustomerUser.query.filter_by(
+                id=customer_user_id,
+                status=True,
+            ).first()
+            if not customer_user:
+                raise ValueError(
+                    "La sesion de cliente no es valida. Inicia sesion de nuevo."
+                )
+
+            linked_customer = customer_user.customer
+            if linked_customer:
+                first_name = first_name or (linked_customer.first_name or "")
+                last_name = last_name or (linked_customer.last_name or "")
+                phone = phone or (linked_customer.phone or "")
+
+            if not email:
+                email = customer_user.email.lower()
 
         if not first_name or not last_name or not email or not phone:
             raise ValueError("Nombre, apellido, correo y telefono son obligatorios.")
@@ -750,6 +1098,29 @@ class EcommerceService:
             "interior_number": (form_data.get("interior_number") or "").strip() or None,
         }
 
+        if linked_customer:
+            shipping_data["zip_code"] = shipping_data["zip_code"] or (
+                linked_customer.zip_code or ""
+            )
+            shipping_data["state"] = shipping_data["state"] or (
+                linked_customer.state or ""
+            )
+            shipping_data["city"] = shipping_data["city"] or (
+                linked_customer.city or ""
+            )
+            shipping_data["street"] = shipping_data["street"] or (
+                linked_customer.street or ""
+            )
+            shipping_data["neighborhood"] = shipping_data["neighborhood"] or (
+                linked_customer.neighborhood or ""
+            )
+            shipping_data["exterior_number"] = shipping_data["exterior_number"] or (
+                linked_customer.exterior_number or ""
+            )
+            shipping_data["interior_number"] = shipping_data["interior_number"] or (
+                linked_customer.interior_number or None
+            )
+
         if delivery_mode == "shipping":
             missing_labels = {
                 "zip_code": "Codigo postal",
@@ -778,6 +1149,8 @@ class EcommerceService:
             phone=phone,
             delivery_mode=delivery_mode,
             shipping_data=shipping_data,
+            existing_customer=linked_customer,
+            customer_user_id=customer_user.id if customer_user else None,
         )
 
         cart_items = cart_data["cart_items"]
@@ -873,6 +1246,7 @@ class EcommerceService:
                 cart_items=normalized_items,
                 payment_method_id=payment_method.id,
                 total=order_total,
+                customer_user_id=customer_user.id if customer_user else None,
                 notes=final_notes,
                 estimated_delivery_date=estimated_delivery_date,
             )

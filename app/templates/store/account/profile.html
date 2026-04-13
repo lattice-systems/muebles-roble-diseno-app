@@ -1,0 +1,192 @@
+{% extends "layouts/store.html" %}
+{% block title %}
+  Mi perfil | Roble y Diseno
+{% endblock title %}
+{% block content %}
+  <section class="max-w-7xl mx-auto px-6 py-10 space-y-6">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-heading">Mi perfil</h1>
+        <p class="text-body mt-2">Actualiza tu informacion personal y direccion para agilizar tus compras.</p>
+      </div>
+      <a href="{{ url_for('customer_auth.dashboard') }}"
+         class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-heading hover:bg-slate-100">Volver</a>
+    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <aside class="xl:col-span-1 space-y-4">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5">
+          <p class="text-xs uppercase tracking-wide text-body-subtle">Cuenta activa</p>
+          <p class="mt-2 text-lg font-semibold text-heading">{{ customer_user.full_name }}</p>
+          <p class="mt-1 text-sm text-body break-all">{{ customer_user.email }}</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 class="text-lg font-semibold text-heading mb-3">Seguridad de cuenta</h2>
+          <p class="text-sm text-body mb-4">
+            Estado 2FA:
+            <strong>
+              {% if has_2fa %}
+                Activo
+              {% else %}
+                Inactivo
+              {% endif %}
+            </strong>
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <a href="{{ url_for('customer_auth.setup_2fa') }}"
+               class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-heading hover:bg-slate-100">
+              Configurar 2FA
+            </a>
+            {% if has_2fa %}
+              <form method="post" action="{{ url_for('customer_auth.disable_2fa') }}">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() if csrf_token else '' }}">
+                <button type="submit"
+                        class="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                  Desactivar 2FA
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      </aside>
+      <form method="post"
+            action="{{ url_for('customer_auth.profile') }}"
+            class="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
+        <input type="hidden"
+               name="csrf_token"
+               value="{{ csrf_token() if csrf_token else '' }}">
+        <div>
+          <h2 class="text-lg font-semibold text-heading">Datos personales</h2>
+          <p class="text-xs text-body-subtle mt-1">Esta informacion se usa para identificarte en pedidos y reseñas.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="first_name">Nombre</label>
+            <input id="first_name"
+                   name="first_name"
+                   type="text"
+                   required
+                   value="{{ (customer.first_name if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="last_name">Apellido</label>
+            <input id="last_name"
+                   name="last_name"
+                   type="text"
+                   required
+                   value="{{ (customer.last_name if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="email">Correo</label>
+            <input id="email"
+                   name="email"
+                   type="email"
+                   disabled
+                   value="{{ customer_user.email }}"
+                   class="block w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-500">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="phone">Telefono</label>
+            <input id="phone"
+                   name="phone"
+                   type="text"
+                   required
+                   value="{{ (customer.phone if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+        </div>
+        <div class="pt-1 border-t border-slate-100"></div>
+        <div>
+          <h2 class="text-lg font-semibold text-heading">Preferencias de entrega</h2>
+          <p class="text-xs text-body-subtle mt-1">Se prellenan automaticamente en checkout.</p>
+        </div>
+        <div>
+          <label class="block mb-2 text-sm font-medium text-heading"
+                 for="delivery_mode">Tipo de entrega predeterminado</label>
+          <select id="delivery_mode"
+                  name="delivery_mode"
+                  class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+            <option value="shipping"
+                    {% if customer and customer.requires_freight %}selected{% endif %}>Envio a domicilio</option>
+            <option value="pickup"
+                    {% if customer and not customer.requires_freight %}selected{% endif %}>
+              Recoleccion en tienda
+            </option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="zip_code">Codigo postal</label>
+            <input id="zip_code"
+                   name="zip_code"
+                   type="text"
+                   value="{{ (customer.zip_code if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="state">Estado</label>
+            <input id="state"
+                   name="state"
+                   type="text"
+                   value="{{ (customer.state if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading" for="city">Ciudad</label>
+            <input id="city"
+                   name="city"
+                   type="text"
+                   value="{{ (customer.city if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading"
+                   for="neighborhood">Colonia</label>
+            <input id="neighborhood"
+                   name="neighborhood"
+                   type="text"
+                   value="{{ (customer.neighborhood if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-heading" for="street">Calle</label>
+            <input id="street"
+                   name="street"
+                   type="text"
+                   value="{{ (customer.street if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-heading"
+                   for="exterior_number">Numero exterior</label>
+            <input id="exterior_number"
+                   name="exterior_number"
+                   type="text"
+                   value="{{ (customer.exterior_number if customer else '') or '' }}"
+                   class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block mb-2 text-sm font-medium text-heading"
+                 for="interior_number">Numero interior (opcional)</label>
+          <input id="interior_number"
+                 name="interior_number"
+                 type="text"
+                 value="{{ (customer.interior_number if customer else '') or '' }}"
+                 class="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+        </div>
+        <div class="pt-2">
+          <button type="submit"
+                  class="rounded-lg bg-sky-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock content %}

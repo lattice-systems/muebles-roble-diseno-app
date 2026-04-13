@@ -20,6 +20,12 @@ class Order(db.Model):
     notes = db.Column(db.Text, nullable=True)
     # source: 'pos' | 'ecommerce' | 'manual'
     source = db.Column(db.String(20), nullable=False, default="manual")
+    customer_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("customer_users.id"),
+        nullable=True,
+        index=True,
+    )
 
     # Venta POS que originó esta orden (nullable para órdenes manuales/ecommerce)
     sale_id = db.Column(db.Integer, db.ForeignKey("sales.id"), nullable=True)
@@ -34,6 +40,7 @@ class Order(db.Model):
 
     # Relaciones
     customer = db.relationship("Customer", back_populates="orders")
+    customer_user = db.relationship("CustomerUser", back_populates="orders")
     sale = db.relationship("Sale", backref=db.backref("customer_order", uselist=False))
     payment_method = db.relationship("PaymentMethod", back_populates="orders")
     items = db.relationship(
@@ -58,6 +65,7 @@ class Order(db.Model):
         "pendiente",
         "en_produccion",
         "terminado",
+        "enviado",
         "entregado",
         "cancelado",
     )
@@ -67,7 +75,8 @@ class Order(db.Model):
     STATUS_TRANSITIONS: dict = {
         "pendiente": ("en_produccion", "terminado", "cancelado"),
         "en_produccion": ("terminado",),
-        "terminado": ("entregado",),
+        "terminado": ("enviado", "entregado"),
+        "enviado": ("entregado",),
         "entregado": (),
         "cancelado": (),
     }
@@ -93,6 +102,7 @@ class Order(db.Model):
             "payment_method_id": self.payment_method_id,
             "notes": self.notes,
             "source": self.source,
+            "customer_user_id": self.customer_user_id,
             "created_by_id": self.created_by_id,
             "cancelled_at": (
                 self.cancelled_at.isoformat() if self.cancelled_at else None

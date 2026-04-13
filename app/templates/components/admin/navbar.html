@@ -1,30 +1,98 @@
+{% set admin_global_search_items = [] %}
+{% if can('dashboard.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Dashboard", "group": "General", "keywords": "inicio panel resumen", "href": url_for('index_admin')}) %}
+{% endif %}
+{% if can('users.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Usuarios", "group": "Administracion", "keywords": "empleados cuentas permisos", "href": url_for('users.index')}) %}
+{% endif %}
+{% if can('catalogs.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Catalogos", "group": "Administracion", "keywords": "tipos colores unidades maderas", "href": url_for('catalogs_index')}) %}
+{% endif %}
+{% if can('suppliers.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Proveedores", "group": "Abastecimiento", "keywords": "compras abastecimiento", "href": url_for('suppliers.index')}) %}
+{% endif %}
+{% if can('purchases.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Compras", "group": "Abastecimiento", "keywords": "ordenes compra entradas", "href": url_for('purchases.index')}) %}
+{% endif %}
+{% if can('raw_materials.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Materia prima", "group": "Abastecimiento", "keywords": "inventario insumos stock", "href": url_for('raw_materials.index')}) %}
+{% endif %}
+{% if can('production.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Recetas BOM", "group": "Produccion", "keywords": "lista materiales formulas", "href": url_for('production.boms_index')}) %}
+  {% set _ = admin_global_search_items.append({"label": "Produccion", "group": "Produccion", "keywords": "ordenes fabricacion planta", "href": url_for('production.orders_index')}) %}
+{% endif %}
+{% if can('sales.read') %}
+  {% set _ = admin_global_search_items.append({"label": "POS", "group": "Ventas", "keywords": "punto venta fisica caja", "href": url_for('sales.pos')}) %}
+{% endif %}
+{% if can('customer_orders.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Ordenes de cliente", "group": "Ventas", "keywords": "pedidos ecommerce", "href": url_for('customer_orders.index')}) %}
+{% endif %}
+{% if can('ecommerce.manage') %}
+  {% set _ = admin_global_search_items.append({"label": admin_nav_links.ecommerce.label, "group": admin_nav_links.ecommerce.group, "keywords": admin_nav_links.ecommerce.keywords, "href": admin_nav_links.ecommerce.href}) %}
+{% endif %}
+{% if can('products.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Productos", "group": "Catalogo", "keywords": "articulos precios inventario", "href": url_for('products.index')}) %}
+{% endif %}
+{% if can('costs.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Costos", "group": "Analisis", "keywords": "margenes costos unitarios", "href": url_for('costs.index')}) %}
+{% endif %}
+{% if can('reports.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Reportes", "group": "Analisis", "keywords": "metricas indicadores exportar", "href": url_for('reports.index')}) %}
+{% endif %}
+{% if can('audit.read') %}
+  {% set _ = admin_global_search_items.append({"label": "Auditoria operativa", "group": "Control", "keywords": "bitacora eventos cambios", "href": url_for('audit.index')}) %}
+  {% set _ = admin_global_search_items.append({"label": "Eventos de acceso", "group": "Control", "keywords": "seguridad login sesiones", "href": url_for('security_audit.index')}) %}
+{% endif %}
+{% set _ = admin_global_search_items.append({"label": "Perfil", "group": "Cuenta", "keywords": "usuario cuenta ajustes", "href": url_for('users.profile')}) %}
 <nav class="bg-neutral-primary sticky w-full top-0 z-20 inset -s-0 border border-default rounded-base h-fit">
   <div class="flex flex-wrap items-center justify-between mx-auto p-3 2xl:p-4 gap-3 2xl:gap-4">
-    <div>
-      <form class="flex items-center w-full max-w-xs 2xl:max-w-sm mx-auto space-x-1.5 2xl:space-x-2">
-        <label for="simple-search" class="sr-only">Buscar</label>
-        <div class="relative w-full">
-          <input type="text"
-                 id="simple-search"
-                 class="px-2.5 2xl:px-3 py-2 2xl:py-2.5 bg-neutral-secondary-medium border border-default-medium rounded-base text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body"
-                 placeholder="Buscar"
-                 required />
+    <div class="w-full max-w-xs 2xl:max-w-sm">
+      <div class="relative">
+        <form id="adminGlobalSearchForm"
+              class="flex items-center w-full mx-auto space-x-1.5 2xl:space-x-2"
+              autocomplete="off">
+          <label for="admin-global-search-input" class="sr-only">Buscar en el panel</label>
+          <div class="relative w-full">
+            <input type="text"
+                   id="admin-global-search-input"
+                   class="px-2.5 2xl:px-3 py-2 2xl:py-2.5 bg-neutral-secondary-medium border border-default-medium rounded-base text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body pe-16"
+                   placeholder="Buscar en el panel" />
+            <button type="button"
+                    id="adminGlobalSearchShortcut"
+                    class="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-md border border-default-medium bg-neutral-primary px-1.5 text-2xs font-medium text-body hover:text-heading"
+                    aria-label="Abrir buscador global con Ctrl o Command K">
+              <span id="adminGlobalSearchShortcutLabel">Ctrl K</span>
+            </button>
+          </div>
+          <button type="submit"
+                  class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-9 h-9 2xl:w-10 2xl:h-10 focus:outline-none cursor-pointer">
+            <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 fill="none"
+                 viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
+              </path>
+            </svg>
+            <span class="sr-only">Buscar en panel</span>
+          </button>
+        </form>
+        <div id="adminGlobalSearchDropdown"
+             class="hidden absolute left-0 right-0 mt-2 z-40 rounded-base border border-default-medium bg-neutral-primary shadow-lg overflow-hidden">
+          <ul id="adminGlobalSearchResults" class="max-h-72 overflow-y-auto py-1">
+          </ul>
+          <div id="adminGlobalSearchEmpty"
+               class="hidden px-3 py-4 text-xs text-body">No se encontraron coincidencias.</div>
+          <div class="px-3 py-2 border-t border-default-medium text-2xs text-body bg-neutral-secondary-medium">
+            Enter para abrir, Flechas para navegar, Esc para cerrar
+          </div>
         </div>
-        <button type="submit"
-                class="inline-flex items-center justify-center shrink-0 text-white bg-brand hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs rounded-base w-9 h-9 2xl:w-10 2xl:h-10 focus:outline-none cursor-pointer">
-          <svg class="w-4 h-4 2xl:w-5 2xl:h-5"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z">
-            </path>
-          </svg>
-          <span class="sr-only">Icon description</span>
-        </button>
-      </form>
+        <div id="adminGlobalSearchItemsData"
+             class="hidden"
+             data-items='{{ admin_global_search_items | tojson | forceescape }}'></div>
+      </div>
     </div>
     <div class="flex gap-3 2xl:gap-4">
       <div class="relative">
@@ -140,7 +208,7 @@
         <ul class="p-1.5 2xl:p-2 text-xs 2xl:text-sm text-body font-medium"
             aria-labelledby="avatarButton">
           <li>
-            <a href="#"
+            <a href="{{ url_for('index_admin') }}"
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Dashboard</a>
           </li>
           <li>
@@ -148,8 +216,8 @@
                class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Perfil</a>
           </li>
           <li>
-            <a href="#"
-               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">E-commerce</a>
+            <a href="{{ admin_nav_links.ecommerce.href }}"
+               class="block w-full p-1.5 2xl:p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">{{ admin_nav_links.ecommerce.label }}</a>
           </li>
           <li>
             <form action="{{ url_for('login.logout') }}"
@@ -168,3 +236,246 @@
     </div>
   </div>
 </nav>
+<script>
+    (() => {
+        const form = document.getElementById("adminGlobalSearchForm");
+        const input = document.getElementById("admin-global-search-input");
+        const shortcutButton = document.getElementById("adminGlobalSearchShortcut");
+        const shortcutLabel = document.getElementById("adminGlobalSearchShortcutLabel");
+        const dropdown = document.getElementById("adminGlobalSearchDropdown");
+        const resultsContainer = document.getElementById("adminGlobalSearchResults");
+        const emptyState = document.getElementById("adminGlobalSearchEmpty");
+        const itemsDataNode = document.getElementById("adminGlobalSearchItemsData");
+
+        if (!form || !input || !dropdown || !resultsContainer || !emptyState || !itemsDataNode) {
+            return;
+        }
+
+        const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+        if (shortcutLabel) {
+            shortcutLabel.textContent = isMac ? "Cmd K" : "Ctrl K";
+        }
+
+        let searchItems = [];
+        try {
+            searchItems = JSON.parse(itemsDataNode.dataset.items || "[]");
+        } catch (error) {
+            searchItems = [];
+        }
+
+        let filteredItems = [];
+        let activeIndex = 0;
+
+        const normalizeText = (value) =>
+            (value || "")
+            .toString()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+
+        const showDropdown = () => {
+            dropdown.classList.remove("hidden");
+        };
+
+        const hideDropdown = () => {
+            dropdown.classList.add("hidden");
+        };
+
+        const navigateTo = (index) => {
+            const item = filteredItems[index];
+            if (!item || !item.href) {
+                return;
+            }
+            window.location.assign(item.href);
+        };
+
+        const syncActiveResultStyles = () => {
+            const links = resultsContainer.querySelectorAll("a[data-search-result='true']");
+            links.forEach((link, index) => {
+                link.classList.toggle("bg-neutral-tertiary-medium", index === activeIndex);
+            });
+        };
+
+        const renderResults = (rawQuery, preserveActive = false) => {
+            const query = normalizeText(rawQuery);
+            const scoredItems = searchItems
+                .map((item) => {
+                    const label = normalizeText(item.label);
+                    const group = normalizeText(item.group);
+                    const keywords = normalizeText(item.keywords);
+                    const haystack = `${label} ${group} ${keywords}`;
+
+                    if (!query) {
+                        return {
+                            item,
+                            score: 3,
+                        };
+                    }
+
+                    if (label.startsWith(query)) {
+                        return {
+                            item,
+                            score: 0,
+                        };
+                    }
+
+                    if (keywords.includes(query) || group.includes(query)) {
+                        return {
+                            item,
+                            score: 1,
+                        };
+                    }
+
+                    if (haystack.includes(query)) {
+                        return {
+                            item,
+                            score: 2,
+                        };
+                    }
+
+                    return null;
+                })
+                .filter(Boolean)
+                .sort((a, b) => {
+                    if (a.score !== b.score) {
+                        return a.score - b.score;
+                    }
+                    return a.item.label.localeCompare(b.item.label, "es");
+                })
+                .slice(0, 10);
+
+            filteredItems = scoredItems.map((entry) => entry.item);
+            if (!preserveActive) {
+                activeIndex = 0;
+            } else if (filteredItems.length > 0) {
+                activeIndex = Math.min(activeIndex, filteredItems.length - 1);
+            } else {
+                activeIndex = 0;
+            }
+
+            resultsContainer.innerHTML = "";
+
+            if (filteredItems.length === 0) {
+                emptyState.classList.remove("hidden");
+                return;
+            }
+
+            emptyState.classList.add("hidden");
+
+            filteredItems.forEach((item, index) => {
+                const listItem = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = item.href;
+                link.dataset.searchResult = "true";
+                link.className = "block px-3 py-2.5 border-b border-default last:border-0 transition-colors hover:bg-neutral-tertiary-medium";
+
+                const row = document.createElement("div");
+                row.className = "flex items-center justify-between gap-2";
+
+                const label = document.createElement("span");
+                label.className = "text-xs font-medium text-heading";
+                label.textContent = item.label;
+
+                const group = document.createElement("span");
+                group.className = "text-2xs text-body";
+                group.textContent = item.group || "";
+
+                row.appendChild(label);
+                row.appendChild(group);
+                link.appendChild(row);
+
+                link.addEventListener("mouseenter", () => {
+                    activeIndex = index;
+                    syncActiveResultStyles();
+                });
+
+                listItem.appendChild(link);
+                resultsContainer.appendChild(listItem);
+            });
+
+            syncActiveResultStyles();
+        };
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (filteredItems.length === 0) {
+                renderResults(input.value);
+            }
+            if (filteredItems.length > 0) {
+                navigateTo(activeIndex);
+            }
+        });
+
+        input.addEventListener("focus", () => {
+            showDropdown();
+            renderResults(input.value);
+        });
+
+        input.addEventListener("input", () => {
+            showDropdown();
+            renderResults(input.value);
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (dropdown.classList.contains("hidden") && ["ArrowDown", "ArrowUp"].includes(event.key)) {
+                showDropdown();
+                renderResults(input.value);
+                return;
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                if (filteredItems.length > 0) {
+                    activeIndex = (activeIndex + 1) % filteredItems.length;
+                    syncActiveResultStyles();
+                }
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                if (filteredItems.length > 0) {
+                    activeIndex = (activeIndex - 1 + filteredItems.length) % filteredItems.length;
+                    syncActiveResultStyles();
+                }
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (filteredItems.length > 0) {
+                    navigateTo(activeIndex);
+                }
+            } else if (event.key === "Escape") {
+                hideDropdown();
+                input.blur();
+            }
+        });
+
+        if (shortcutButton) {
+            shortcutButton.addEventListener("click", () => {
+                input.focus();
+                input.select();
+                showDropdown();
+                renderResults(input.value);
+            });
+        }
+
+        document.addEventListener("keydown", (event) => {
+            const key = (event.key || "").toLowerCase();
+            const shortcutPressed = key === "k" && ((isMac && event.metaKey) || (!isMac && event.ctrlKey));
+            if (!shortcutPressed) {
+                return;
+            }
+
+            event.preventDefault();
+            input.focus();
+            input.select();
+            showDropdown();
+            renderResults(input.value);
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!form.contains(event.target) && !dropdown.contains(event.target)) {
+                hideDropdown();
+            }
+        });
+
+        renderResults("");
+    })();
+</script>

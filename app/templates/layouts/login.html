@@ -1,54 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Inicio de Sesión de Roble y Diseño"/>
-  <meta name="author" content="Lattice Systems"/>
-  <meta name="keywords"
-        content="muebles, gestión, colores, roles, tipos de madera, unidades de medida, login"/>
-  <title>
-    {% block title %}
-      Roble y Diseño - Login
-    {% endblock title %}
-  </title>
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='dist/output.css') }}">
-</head>
-<body>
-<div class="flex flex-row gap-8 p-8 w-full h-screen">
-  <div class="flex flex-col w-full justify-between items-center p-2">
-    <div class="w-full">
-      <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
-           alt="Logo Roble Diseño"
-           width="188"
-           height="51">
-    </div>
-    <main class="flex flex-col gap-6 items-center">
-      <div>
-        <h1 class="w-full text-center text-2xl font-semibold text-heading">Inicio de Sesión</h1>
-        <p class="w-full text-center text-body-subtle text-base font-normal">
-          {% block step_description %}
-            Ingresa tus credenciales para acceder a tu cuenta
-          {% endblock step_description %}
-        </p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Inicio de Sesión de Roble y Diseño" />
+    <meta name="author" content="Lattice Systems" />
+    <meta name="keywords"
+          content="muebles, gestión, colores, roles, tipos de madera, unidades de medida, login" />
+    <title>
+      {% block title %}
+        Roble y Diseño - Login
+      {% endblock title %}
+    </title>
+    <link rel="icon"
+          type="image/png"
+          href="{{ url_for('static', filename='src/images/icono-roble-disenio.png') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='dist/output.css') }}">
+  </head>
+  <body>
+    {% set is_ecommerce_auth = request.path.startswith('/ecommerce/account') %}
+    <div class="flex w-full h-screen flex-row {% if is_ecommerce_auth %}gap-4 p-4 lg:gap-6 lg:p-6{% else %}gap-8 p-8{% endif %}">
+      <div class="flex w-full items-center p-2 flex-col justify-between {% if is_ecommerce_auth %}gap-3{% endif %}">
+        <div class="w-full">
+          <img src="{{ url_for('static', filename='src/images/logo-roble-disenio.png') }}"
+               alt="Logo Roble Diseño"
+               width="188"
+               height="51">
+        </div>
+        <main class="flex flex-col items-center {% if is_ecommerce_auth %}gap-4{% else %}gap-6{% endif %}">
+          <div>
+            <h1 class="w-full text-center font-semibold text-heading {% if is_ecommerce_auth %}text-xl sm:text-2xl{% else %}text-2xl{% endif %}">
+              {% block login_heading %}
+                Inicio de Sesión
+              {% endblock login_heading %}
+            </h1>
+            <p class="w-full text-center text-body-subtle font-normal {% if is_ecommerce_auth %}text-sm sm:text-base{% else %}text-base{% endif %}">
+              {% block step_description %}
+                Ingresa tus credenciales para acceder a tu cuenta
+              {% endblock step_description %}
+            </p>
+          </div>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% if request.path.startswith('/ecommerce') %}
+                <section id="ecommerce-login-flash-stack"
+                         class="pointer-events-none fixed inset-x-4 top-6 z-50 flex flex-col items-end gap-3 sm:inset-x-auto sm:right-6 sm:w-full sm:max-w-sm">
+                  {% for category, message in messages %}
+                    {% set tone_classes = "border-sky-200 bg-sky-50/95 text-sky-900" %}
+                    {% set badge_classes = "bg-sky-100 text-sky-700" %}
+                    {% set alert_title = "Aviso" %}
+                    {% if category in ['error', 'danger'] %}
+                      {% set tone_classes = "border-red-200 bg-red-50/95 text-red-900" %}
+                      {% set badge_classes = "bg-red-100 text-red-700" %}
+                      {% set alert_title = "Error" %}
+                    {% elif category == 'success' %}
+                      {% set tone_classes = "border-emerald-200 bg-emerald-50/95 text-emerald-900" %}
+                      {% set badge_classes = "bg-emerald-100 text-emerald-700" %}
+                      {% set alert_title = "Listo" %}
+                    {% elif category in ['warning', 'warn'] %}
+                      {% set tone_classes = "border-amber-200 bg-amber-50/95 text-amber-900" %}
+                      {% set badge_classes = "bg-amber-100 text-amber-700" %}
+                      {% set alert_title = "Atencion" %}
+                    {% endif %}
+                    <article data-flash-item
+                             data-auto-close-ms="5000"
+                             class="pointer-events-auto w-full rounded-xl border px-4 py-3 shadow-lg ring-1 ring-black/5 backdrop-blur transition-all duration-200 ease-out opacity-100 translate-y-0 sm:translate-x-0 {{ tone_classes }}">
+                      <div class="flex items-start gap-3">
+                        <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide {{ badge_classes }}">
+                          {{ alert_title }}
+                        </span>
+                        <p class="flex-1 text-sm leading-relaxed">{{ message }}</p>
+                        <button type="button"
+                                data-flash-close="true"
+                                class="rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                                aria-label="Cerrar alerta">Cerrar</button>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </section>
+              {% else %}
+                <div class="w-full max-w-md flex flex-col gap-2">
+                  {% for category, message in messages %}
+                    <div class="rounded-base border px-3 py-2 text-sm {% if category in ['error', 'danger'] %}border-red-200 text-red-700 bg-red-50{% elif category == 'success' %}border-emerald-200 text-emerald-700 bg-emerald-50{% else %}border-sky-200 text-sky-700 bg-sky-50{% endif %}">
+                      {{ message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endif %}
+          {% endwith %}
+          {% block content %}
+          {% endblock content %}
+        </main>
+        <footer class="text-body-subtle text-xs flex flex-row justify-between w-full {% if is_ecommerce_auth %}mt-1{% endif %}">
+          <p>Lattice Systems - 2026</p>
+          <a href="#" class="hover:underline">Política de privacidad</a>
+        </footer>
       </div>
-      {% block content %}
-      {% endblock content %}
-    </main>
-    <footer class="text-body-subtle flex flex-row justify-between w-full">
-      <p>Lattice Systems - 2026</p>
-      <a href="#" class="hover:underline">Política de privacidad</a>
-    </footer>
-  </div>
-  <div class="w-full h-full">
-    <img src="{{ url_for('static', filename='src/images/representative-img-login.png') }}"
-         alt="Persona sentada trabajando"
-         width="750"
-         height="600"
-         class="w-full h-full object-cover rounded-base">
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
-</body>
+      <div class="hidden h-full w-full lg:block">
+        <img src="{% block login_image_src %}{{ url_for('static', filename='src/images/representative-img-login.png') }}{% endblock login_image_src %}"
+             alt="{% block login_image_alt %}Persona sentada trabajando{% endblock login_image_alt %}"
+             width="750"
+             height="600"
+             class="w-full h-full object-cover rounded-base">
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+    <script>
+        (() => {
+            const wireFlashStack = (stackId) => {
+                const stack = document.getElementById(stackId);
+                if (!stack) {
+                    return;
+                }
+
+                const dismissItem = (item) => {
+                    if (!item || item.dataset.closing === "1") {
+                        return;
+                    }
+
+                    item.dataset.closing = "1";
+                    item.classList.remove("opacity-100", "translate-y-0", "sm:translate-x-0");
+                    item.classList.add("opacity-0", "translate-y-1", "sm:translate-x-2");
+
+                    window.setTimeout(() => {
+                        item.remove();
+                        if (!stack.querySelector("[data-flash-item]")) {
+                            stack.remove();
+                        }
+                    }, 220);
+                };
+
+                stack.querySelectorAll("[data-flash-item]").forEach((item) => {
+                    const autoCloseMs = Number(item.dataset.autoCloseMs || 5000);
+                    const timeoutId = window.setTimeout(() => dismissItem(item), autoCloseMs);
+
+                    const closeButton = item.querySelector("[data-flash-close='true']");
+                    if (closeButton) {
+                        closeButton.addEventListener("click", () => {
+                            window.clearTimeout(timeoutId);
+                            dismissItem(item);
+                        });
+                    }
+                });
+            };
+
+            wireFlashStack("ecommerce-login-flash-stack");
+        })();
+    </script>
+  </body>
 </html>

@@ -11,17 +11,13 @@
 {% block content %}
   {% set sales = general_report.sales %}
   {% set profit = general_report.profit %}
-  {% set weekly = dashboard.weekly_sales %}
   {% set top_products = general_report.top_products %}
   {% set recent_items = pagination.items %}
-  {% set weekly_items = weekly["items"] %}
   {% set top_items = top_products["items"] %}
   {% set sales_change_pct = comparison_metrics.sales_change_pct %}
   {% set sales_direction = comparison_metrics.sales_direction %}
   {% set profit_change_pct = comparison_metrics.profit_change_pct %}
   {% set profit_direction = comparison_metrics.profit_direction %}
-  {% set max_amount = weekly.max_amount if weekly.max_amount > 0 else 1 %}
-  {% set axis_step = (max_amount / 3) if max_amount > 0 else 1 %}
 
   <div class="flex flex-col gap-4">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -51,15 +47,6 @@
           </div>
 
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
-            {% if sales_direction == 'up' %}
-              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                ↑ {{ "%.2f"|format(sales_change_pct|float) }}% vs día anterior
-              </span>
-            {% else %}
-              <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-medium text-red-700">
-                ↓ {{ "%.2f"|format((sales_change_pct * -1)|float) }}% vs día anterior
-              </span>
-            {% endif %}
 
             <span class="text-body text-xs whitespace-nowrap">
               {{ date_from }} a {{ date_to }}
@@ -94,22 +81,6 @@
           </div>
 
           <div class="flex flex-col items-end justify-start gap-2 shrink-0 text-right">
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-              <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                Margen {{ "%.2f"|format(profit.margin_percentage|float) }}%
-              </span>
-
-              {% if profit_direction == 'up' %}
-                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">
-                  ↑ {{ "%.2f"|format(profit_change_pct|float) }}%
-                </span>
-              {% else %}
-                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-medium text-red-700">
-                  ↓ {{ "%.2f"|format((profit_change_pct * -1)|float) }}%
-                </span>
-              {% endif %}
-            </div>
-
             <span class="text-body text-xs whitespace-nowrap">
               {{ date_from }} a {{ date_to }}
             </span>
@@ -141,11 +112,6 @@
             </svg>
             <h2 class="text-heading text-sm font-medium">Ventas semanales</h2>
           </div>
-
-          <a href="{{ url_for('reports.sales_details', date_from=date_from, date_to=date_to) }}"
-             class="text-brand text-xs font-medium">
-            Más detalles
-          </a>
         </div>
 
         <div class="mb-3">
@@ -154,44 +120,8 @@
           </span>
         </div>
 
-        <div class="h-64 relative">
-          <svg viewBox="0 0 500 220" class="w-full h-full">
-            <line x1="40" y1="20" x2="40" y2="180" stroke="#d1d5db" stroke-width="1"/>
-            <line x1="40" y1="180" x2="470" y2="180" stroke="#111827" stroke-width="1.5"/>
-
-            <line x1="40" y1="140" x2="470" y2="140" stroke="#e5e7eb" stroke-width="1"/>
-            <line x1="40" y1="100" x2="470" y2="100" stroke="#e5e7eb" stroke-width="1"/>
-            <line x1="40" y1="60" x2="470" y2="60" stroke="#e5e7eb" stroke-width="1"/>
-
-            <text x="5" y="184" font-size="10" fill="#6b7280">$0</text>
-            <text x="0" y="144" font-size="10" fill="#6b7280">${{ "%.0f"|format(axis_step|float) }}</text>
-            <text x="0" y="104" font-size="10" fill="#6b7280">${{ "%.0f"|format((axis_step * 2)|float) }}</text>
-            <text x="0" y="64" font-size="10" fill="#6b7280">${{ "%.0f"|format(max_amount|float) }}</text>
-
-            {% set points = [] %}
-
-            {% for item in weekly_items %}
-              {% set x = 60 + (loop.index0 * 60) %}
-              {% set y = 180 - ((item.amount / max_amount) * 140) %}
-              {% set _ = points.append(x|string ~ "," ~ y|string) %}
-
-              <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="#1d4ed8"></circle>
-              <text x="{{ x - 12 }}" y="{{ y - 8 }}" font-size="10" fill="#111827">
-                ${{ "%.0f"|format(item.amount|float) }}
-              </text>
-              <text x="{{ x - 18 }}" y="200" font-size="10" fill="#6b7280">
-                {{ item.label }}
-              </text>
-            {% endfor %}
-
-            <polyline
-              fill="none"
-              stroke="#1d4ed8"
-              stroke-width="2.5"
-              points="{{ points|join(' ') }}"
-            />
-          </svg>
-        </div>
+        <!-- ApexCharts container -->
+        <div id="weekly-sales-chart" class="w-full h-64"></div>
       </div>
 
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
@@ -220,13 +150,6 @@
         </div>
 
         <div class="mb-4 flex items-center gap-2 flex-wrap">
-          {% set total_top_qty = top_items|sum(attribute='quantity_sold') %}
-          {% for item in top_items[:2] %}
-            {% set participation = ((item.quantity_sold / total_top_qty) * 100) if total_top_qty > 0 else 0 %}
-            <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-              {{ item.product_name }} {{ "%.1f"|format(participation|float) }}%
-            </span>
-          {% endfor %}
         </div>
 
         <div class="space-y-5">
@@ -463,6 +386,109 @@
       </div>
     </div>
   </div>
+  <!-- ApexCharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          // Configuraciones globales para que el diseño luzca premium (fuente Tailwind, modo claro/oscuro compatible)
+          const isDarkMode = document.documentElement.classList.contains('dark');
+          const textColor = isDarkMode ? '#9ca3af' : '#6b7280';
+          const headingColor = isDarkMode ? '#f9fafb' : '#111827';
+          const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+          const fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif';
+
+          // Gráfica de Ventas Semanales (Area Chart)
+          const weeklySalesData = {{ weekly_sales_chart | tojson }};
+
+          const weeklyOptions = {
+              chart: {
+                  type: 'area',
+                  height: 240,
+                  fontFamily: fontFamily,
+                  toolbar: {
+                      show: false
+                  },
+                  background: 'transparent',
+                  sparkline: {
+                      enabled: false
+                  }
+              },
+              series: weeklySalesData.series,
+              xaxis: {
+                  categories: weeklySalesData.categories,
+                  labels: {
+                      style: {
+                          colors: textColor,
+                          fontSize: '12px'
+                      }
+                  },
+                  axisBorder: {
+                      show: false
+                  },
+                  axisTicks: {
+                      show: false
+                  },
+                  crosshairs: {
+                      show: true
+                  }
+              },
+              yaxis: {
+                  labels: {
+                      formatter: (value) => {
+                          return "$" + value.toLocaleString();
+                      },
+                      style: {
+                          colors: textColor,
+                          fontSize: '12px'
+                      }
+                  }
+              },
+              colors: ['#3b82f6'], // Brand color (Blue 500)
+              fill: {
+                  type: 'gradient',
+                  gradient: {
+                      shadeIntensity: 1,
+                      opacityFrom: 0.45,
+                      opacityTo: 0.05,
+                      stops: [0, 90, 100]
+                  }
+              },
+              dataLabels: {
+                  enabled: false
+              },
+              stroke: {
+                  curve: 'smooth',
+                  width: 3
+              },
+              grid: {
+                  borderColor: gridColor,
+                  strokeDashArray: 4,
+                  padding: {
+                      right: 10,
+                      left: 0,
+                      top: 0,
+                      bottom: 0
+                  },
+                  yaxis: {
+                      lines: {
+                          show: true
+                      }
+                  }
+              },
+              tooltip: {
+                  theme: isDarkMode ? 'dark' : 'light',
+                  y: {
+                      formatter: function(val) {
+                          return "$" + val.toLocaleString()
+                      }
+                  }
+              }
+          };
+
+          const weeklyChart = new ApexCharts(document.querySelector("#weekly-sales-chart"), weeklyOptions);
+          weeklyChart.render();
+      });
+  </script>
 {% endblock content %}
 
 {% block modals %}
