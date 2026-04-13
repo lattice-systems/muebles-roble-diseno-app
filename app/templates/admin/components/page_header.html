@@ -1,4 +1,76 @@
-<div class="flex flex-col justify-center shrink-0">
+{% set path_parts = request.path.strip('/').split('/') if request and request.path else [] %}
+{% set is_admin_path = path_parts and path_parts[0] == 'admin' %}
+{% set is_subpage = request.endpoint and request.endpoint != 'index_admin' and not request.endpoint.endswith('.index') %}
+{% set catalog_sections = ["catalogs", "colors", "furniture_types", "payment_method", "unit_of_measures", "wood_types"] %}
+{% set section_labels = {
+  "administration": "Administración",
+  "users": "Usuarios",
+  "products": "Productos",
+  "raw_materials": "Materias primas",
+  "suppliers": "Proveedores",
+  "purchases": "Compras",
+  "production": "Producción",
+  "reports": "Reportes",
+  "audit": "Auditoría",
+  "security_audit": "Seguridad",
+  "contact_requests": "Solicitudes",
+  "costs": "Costos",
+  "dashboard": "Dashboard",
+  "colors": "Colores",
+  "furniture_types": "Tipos de muebles",
+  "payment_method": "Métodos de pago",
+  "unit_of_measures": "Unidades",
+  "wood_types": "Tipos de madera",
+  "notifications": "Notificaciones"
+} %}
+{% if is_admin_path and path_parts|length > 1 %}
+  {% if path_parts[1] == 'administration' and path_parts|length > 2 %}
+    {% set parent_key = path_parts[2] %}
+    {% set parent_href = '/' ~ path_parts[0] ~ '/' ~ path_parts[1] ~ '/' ~ path_parts[2] ~ '/' %}
+  {% else %}
+    {% set parent_key = path_parts[1] %}
+    {% set parent_href = '/' ~ path_parts[0] ~ '/' ~ path_parts[1] ~ '/' %}
+  {% endif %}
+  {% set parent_key_normalized = parent_key.replace('-', '_') %}
+  {% set parent_label = section_labels.get(parent_key_normalized, parent_key.replace('-', ' ').replace('_', ' ')|title) %}
+{% else %}
+  {% set parent_href = None %}
+  {% set parent_label = None %}
+  {% set parent_key_normalized = None %}
+{% endif %}
+{% if admin_header_parent_href is defined and admin_header_parent_label is defined %}
+  {% set parent_href = admin_header_parent_href %}
+  {% set parent_label = admin_header_parent_label %}
+  {% set parent_key_normalized = admin_header_parent_key_normalized if admin_header_parent_key_normalized is defined else parent_key_normalized %}
+{% endif %}
+{% set show_subpage_navigation = is_subpage and parent_href and parent_key_normalized not in catalog_sections %}
+{% if admin_header_force_subpage_navigation is defined %}
+  {% set show_subpage_navigation = admin_header_force_subpage_navigation and parent_href %}
+{% endif %}
+<div class="flex flex-col justify-center shrink-0 gap-2">
+  {% if show_subpage_navigation %}
+    <div class="flex items-center justify-between gap-2">
+      <nav class="flex items-center gap-1.5 text-xs text-body"
+           aria-label="Breadcrumb">
+        <a href="{{ parent_href }}" class="hover:text-heading transition-colors">{{ parent_label }}</a>
+        <svg class="w-3 h-3 text-body" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"></path>
+        </svg>
+        <span class="text-heading font-medium">{{ admin_header_title }}</span>
+      </nav>
+      <a href="{{ parent_href }}"
+         class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-1">
+        <svg class="w-4 h-4"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none"
+             viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" />
+        </svg>
+        Volver
+      </a>
+    </div>
+  {% endif %}
   <h1 class="text-base 2xl:text-lg font-semibold text-heading">{{ admin_header_title }}</h1>
   {% if admin_header_subtitle %}<p class="text-xs 2xl:text-sm text-body">{{ admin_header_subtitle }}</p>{% endif %}
 </div>

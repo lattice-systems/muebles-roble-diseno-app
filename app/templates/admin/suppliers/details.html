@@ -4,7 +4,7 @@
   Admin - Detalles del proveedor
 {% endblock title %}
 {% block content %}
-  <div class="max-w-4xl mx-auto flex flex-col gap-2.5 2xl:gap-4">
+  <div class="mx-auto flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalles del proveedor" %}
     {% set admin_header_subtitle = "Información completa sobre el proveedor seleccionado" %}
     {% include "admin/components/page_header.html" %}
@@ -58,21 +58,6 @@
           <span class="text-xs font-medium text-body uppercase tracking-wider">Última actualización</span>
           <span class="text-sm text-heading">{{ supplier.updated_at.strftime("%d/%m/%Y %H:%M:%S") if supplier.updated_at else 'Desconocida' }}</span>
         </div>
-      </div>
-      <div class="flex items-center justify-start pt-4 border-t border-default-medium">
-        <a href="{{ url_for('suppliers.index') }}"
-           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none gap-2">
-          <svg class="w-4 h-4"
-               aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="none"
-               viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
-          </svg>
-          Volver a la lista
-        </a>
       </div>
     </div>
   </div>

@@ -6,56 +6,51 @@
 {% block content %}
   <div class="mx-auto flex flex-col gap-2.5 2xl:gap-4">
     {% set admin_header_title = "Detalle de usuario" %}
-    {% set admin_header_subtitle = "Consulta la información del usuario seleccionado" %}
+    {% set admin_header_subtitle = "Consulta la información completa del usuario seleccionado." %}
     {% include "admin/components/page_header.html" %}
     {% include "admin/components/alerts.html" %}
-    <div class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 2xl:gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">ID</span>
-          <p class="text-heading font-medium">{{ user.id }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-2.5 2xl:gap-4">
+      <section class="lg:col-span-2 bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-heading font-medium">Información general</h2>
+          {% if user.status %}
+            {{ status_badge('Activado', 'success') }}
+          {% else %}
+            {{ status_badge('Desactivado', 'danger') }}
+          {% endif %}
         </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">Nombre completo</span>
-          <p class="text-heading font-medium">{{ user.full_name }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 2xl:gap-4">
+          <article class="bg-neutral-secondary-medium border border-default rounded-base p-3 flex flex-col gap-1">
+            <span class="text-xs text-body">ID</span>
+            <p class="text-heading font-medium">#{{ user.id }}</p>
+          </article>
+          <article class="bg-neutral-secondary-medium border border-default rounded-base p-3 flex flex-col gap-1">
+            <span class="text-xs text-body">Correo electrónico</span>
+            <p class="text-heading font-medium break-all">{{ user.email }}</p>
+          </article>
+          <article class="bg-neutral-secondary-medium border border-default rounded-base p-3 flex flex-col gap-1">
+            <span class="text-xs text-body">Rol</span>
+            <p class="text-heading font-medium">{{ user.role.name if user.role else "Sin rol" }}</p>
+          </article>
+          <article class="bg-neutral-secondary-medium border border-default rounded-base p-3 flex flex-col gap-1">
+            <span class="text-xs text-body">Fecha de creación</span>
+            <p class="text-heading font-medium">{{ user.created_at.strftime("%d/%m/%Y %H:%M") if user.created_at else "-" }}</p>
+          </article>
         </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">Correo electrónico</span>
-          <p class="text-heading font-medium">{{ user.email }}</p>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">Rol</span>
-          <p class="text-heading font-medium">{{ user.role.name if user.role else "Sin rol" }}</p>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">Estado</span>
-          <div>
-            {% if user.status %}
-              {{ status_badge('Activado', 'success') }}
-            {% else %}
-              {{ status_badge('Desactivado', 'danger') }}
-            {% endif %}
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs 2xl:text-sm text-body">Fecha de creación</span>
-          <p class="text-heading font-medium">{{ user.created_at.strftime("%d/%m/%Y %H:%M") if user.created_at else "-" }}</p>
-        </div>
-        <div class="flex flex-col gap-1 md:col-span-2">
-          <span class="text-xs 2xl:text-sm text-body">2FA</span>
+      </section>
+      <aside class="bg-neutral-primary-soft shadow-xs rounded-base border border-default p-3 2xl:p-6 flex flex-col gap-4">
+        <h2 class="text-heading font-medium">Seguridad y acciones</h2>
+        <div class="bg-neutral-secondary-medium border border-default rounded-base p-3 flex flex-col gap-1">
+          <span class="text-xs text-body">2FA</span>
           <p class="text-heading font-medium">{{ user.tf_primary_method if user.tf_primary_method else "No configurado" }}</p>
         </div>
-      </div>
-      <div class="flex items-center justify-end gap-2.5 2xl:gap-3 pt-6">
-        <a href="{{ url_for('users.index') }}"
-           class="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-          Volver
-        </a>
-        <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
-           class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none">
-          Editar
-        </a>
-      </div>
+        <div class="flex flex-col gap-2 pt-1">
+          <a href="{{ url_for('users.edit_user', id_user=user.id) }}"
+             class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-4 2xl:py-2.5 focus:outline-none gap-1">
+            Editar usuario
+          </a>
+        </div>
+      </aside>
     </div>
   </div>
 {% endblock content %}
