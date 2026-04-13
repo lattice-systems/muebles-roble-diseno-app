@@ -445,13 +445,9 @@ class ReportService:
             if total > max_value:
                 max_value = total
 
-            # Calculate Y coordinate with logarithmic scale for better visibility
             amount_float = float(total)
             max_float = float(max_value) if max_value > 0 else 1
-            if max_float > 1:
-                y = 180 - (math.log(amount_float + 1) / math.log(max_float + 1)) * 140
-            else:
-                y = 180 - (amount_float / max_float) * 140 if max_float > 0 else 180
+            y = 180 - (amount_float / max_float) * 140 if max_float > 0 else 180
 
             items.append(
                 {
