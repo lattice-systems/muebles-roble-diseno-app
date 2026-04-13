@@ -64,14 +64,13 @@
         ) %}
         <form method="get"
               action="{{ url_for('contact_requests.index') }}"
-              class="flex flex-wrap items-end gap-2.5">
+              class="flex flex-wrap items-center gap-2.5">
           <input type="hidden" name="q" value="{{ search_term }}">
           <div class="w-44">
-            <label for="status"
-                   class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Estado</label>
             <select id="status"
                     name="status"
-                    class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                    aria-label="Filtrar por estado"
+                    class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
               <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos</option>
               {% for status in status_options %}
                 <option value="{{ status }}"
@@ -82,11 +81,10 @@
             </select>
           </div>
           <div class="w-44">
-            <label for="type"
-                   class="block text-xs 2xl:text-sm font-medium text-heading mb-1">Tipo</label>
             <select id="type"
                     name="type"
-                    class="block w-full px-2.5 py-1.5 2xl:px-3 2xl:py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
+                    aria-label="Filtrar por tipo"
+                    class="block w-full py-2 px-3 bg-neutral-secondary-medium border border-default-medium text-heading text-xs 2xl:text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
               <option value="all" {% if type_filter == 'all' %}selected{% endif %}>Todos</option>
               {% for request_type in type_options %}
                 <option value="{{ request_type }}"
@@ -110,15 +108,15 @@
       {% endcall %}
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-body">
-          <thead class="text-xs bg-neutral-secondary-medium text-body border-y border-default-medium">
+          <thead class="text-xs 2xl:text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
             <tr>
-              <th class="px-6 py-4">Folio</th>
-              <th class="px-6 py-4">Solicitante</th>
-              <th class="px-6 py-4">Tipo</th>
-              <th class="px-6 py-4">Estado</th>
-              <th class="px-6 py-4">Asignado</th>
-              <th class="px-6 py-4">Fecha</th>
-              <th class="px-6 py-4 text-right">Acciones</th>
+              <th scope="col" class="px-6 py-3 font-medium">Folio</th>
+              <th scope="col" class="px-6 py-3 font-medium">Solicitante</th>
+              <th scope="col" class="px-6 py-3 font-medium">Tipo</th>
+              <th scope="col" class="px-6 py-3 font-medium">Estado</th>
+              <th scope="col" class="px-6 py-3 font-medium">Asignado</th>
+              <th scope="col" class="px-6 py-3 font-medium">Fecha</th>
+              <th scope="col" class="px-6 py-3 font-medium text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
