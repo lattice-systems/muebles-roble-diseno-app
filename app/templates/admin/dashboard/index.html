@@ -312,6 +312,10 @@
   </div>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <!-- djlint:off -->
+              <script type="application/json" id="weekly-sales-data">{{ data.weekly_sales_chart | tojson | safe }}</script>
+              <script type="application/json" id="top-products-data">{{ data.top_products_chart | tojson | safe }}</script>
+  <!-- djlint:on -->
   <script>
       document.addEventListener("DOMContentLoaded", function() {
           // Configuraciones globales para que el diseño luzca premium (fuente Tailwind, modo claro/oscuro compatible)
@@ -322,11 +326,7 @@
           const fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif';
 
           // 1. Gráfica de Ventas Semanales (Area Chart)
-          const weeklySalesData = {
-              {
-                  data.weekly_sales_chart | tojson
-              }
-          };
+          const weeklySalesData = JSON.parse(document.getElementById('weekly-sales-data').textContent);
 
           const weeklyOptions = {
               chart: {
@@ -412,11 +412,7 @@
 
 
           // 2. Gráfica de Productos Top (Bar Chart Horizontal)
-          const topProductsData = {
-              {
-                  data.top_products_chart | tojson
-              }
-          };
+          const topProductsData = JSON.parse(document.getElementById('top-products-data').textContent);
 
           const topProductsOptions = {
               chart: {
