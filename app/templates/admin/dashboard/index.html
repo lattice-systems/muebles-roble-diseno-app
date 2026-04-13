@@ -312,21 +312,10 @@
   </div>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <!-- Data injections (Safe from djLint formatting) -->
-  <script type="application/json" id="weekly-sales-data">
-      {
-          {
-              data.weekly_sales_chart | tojson | safe
-          }
-      }
-  </script>
-  <script type="application/json" id="top-products-data">
-      {
-          {
-              data.top_products_chart | tojson | safe
-          }
-      }
-  </script>
+  <!-- djlint:off -->
+              <script type="application/json" id="weekly-sales-data">{{ data.weekly_sales_chart | tojson | safe }}</script>
+              <script type="application/json" id="top-products-data">{{ data.top_products_chart | tojson | safe }}</script>
+  <!-- djlint:on -->
   <script>
       document.addEventListener("DOMContentLoaded", function() {
           // Configuraciones globales para que el diseño luzca premium (fuente Tailwind, modo claro/oscuro compatible)
