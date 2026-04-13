@@ -21,23 +21,17 @@ from seed_pricing_rules import (
 BOM_VERSION = "v1"
 
 
-def _materials_required() -> set[str]:
-    required: set[str] = set()
-    for template in BOM_TEMPLATES.values():
-        for item in template:
-            required.add(item["raw_material"])
-    return required
-
-
 def _build_product_index() -> dict[str, Product]:
     skus = [product["sku"] for product in PRODUCTS]
     products = Product.query.filter(Product.sku.in_(skus)).all()
     return {product.sku: product for product in products}
 
 
-def _build_material_index() -> dict[str, RawMaterial]:
-    names = list(_materials_required())
-    materials = RawMaterial.query.filter(RawMaterial.name.in_(names)).all()
+def _build_material_index(required_names: set[str]) -> dict[str, RawMaterial]:
+    if not required_names:
+        return {}
+
+    materials = RawMaterial.query.filter(RawMaterial.name.in_(required_names)).all()
     return {material.name: material for material in materials}
 
 
@@ -82,8 +76,13 @@ def seed_bom() -> None:
     app = create_app()
     with app.app_context():
         product_index = _build_product_index()
-        material_index = _build_material_index()
         price_quotes = _build_price_quotes_for_bom()
+        required_material_names = {
+            item["raw_material"]
+            for quote in price_quotes.values()
+            for item in quote.adjusted_template
+        }
+        material_index = _build_material_index(required_material_names)
 
         created = 0
         updated = 0
