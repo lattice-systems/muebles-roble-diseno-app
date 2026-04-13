@@ -525,7 +525,8 @@ def _build_endpoint_permission_map() -> dict[str, EndpointPermission]:
         "users.create_user": USERS_CREATE,
         "users.edit_user": USERS_UPDATE,
         "users.detail_user": USERS_READ,
-        "users.toggle_status": USERS_DELETE,
+        "users.toggle_status": (USERS_DELETE, USERS_UPDATE),
+        "users.toggle_customer_status": (USERS_DELETE, USERS_UPDATE),
         "users.bulk_action_users": lambda: resolve_action_permission(
             {
                 "export": USERS_EXPORT,

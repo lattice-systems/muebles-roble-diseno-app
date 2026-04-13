@@ -7,6 +7,7 @@ from flask_security.utils import hash_password
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.extensions import db
+from app.models.customer_user import CustomerUser
 from app.models.role import Role
 from app.models.user import User
 
@@ -75,12 +76,49 @@ class UserService:
         return query.paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
+    def get_customer_accounts(
+        search_term: str | None = None,
+        status_filter: str | None = None,
+        page: int = 1,
+        per_page: int = 10,
+    ):
+        """Obtiene cuentas cliente ecommerce (CustomerUser) con filtros y paginación."""
+        query = CustomerUser.query
+
+        if status_filter == "active":
+            query = query.filter(CustomerUser.status.is_(True))
+        elif status_filter == "inactive":
+            query = query.filter(CustomerUser.status.is_(False))
+
+        if search_term and search_term.strip():
+            term = f"%{search_term.strip()}%"
+            query = query.filter(
+                or_(
+                    CustomerUser.full_name.ilike(term),
+                    CustomerUser.email.ilike(term),
+                )
+            )
+
+        query = query.order_by(CustomerUser.id.desc())
+        return query.paginate(page=page, per_page=per_page, error_out=False)
+
+    @staticmethod
     def get_by_id(id_user: int) -> User:
         """Obtiene un usuario por su ID."""
         user = db.session.get(User, id_user)
         if not user:
             raise NotFoundError(f"No se encontró un usuario con ID {id_user}")
         return user
+
+    @staticmethod
+    def get_customer_account_by_id(id_customer_user: int) -> CustomerUser:
+        """Obtiene una cuenta cliente ecommerce por su ID."""
+        customer_user = db.session.get(CustomerUser, id_customer_user)
+        if not customer_user:
+            raise NotFoundError(
+                f"No se encontró una cuenta cliente con ID {id_customer_user}"
+            )
+        return customer_user
 
     @staticmethod
     def get_role_choices() -> list[tuple[int, str]]:
@@ -166,6 +204,14 @@ class UserService:
         user.status = not user.status
         db.session.commit()
         return user.status
+
+    @staticmethod
+    def toggle_customer_status(id_customer_user: int) -> bool:
+        """Alterna el estado (activo/inactivo) de una cuenta cliente ecommerce."""
+        customer_user = UserService.get_customer_account_by_id(id_customer_user)
+        customer_user.status = not customer_user.status
+        db.session.commit()
+        return customer_user.status
 
     @staticmethod
     def update(id_user: int, data: dict) -> User:

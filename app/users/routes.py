@@ -58,13 +58,21 @@ def index():
     user_tab = _normalize_user_tab(request.args.get("tab"))
     page = request.args.get("page", 1, type=int)
 
-    pagination = UserService.get_all(
-        search_term=search_term or None,
-        status_filter=status_filter,
-        user_tab=user_tab,
-        page=page,
-        per_page=10,
-    )
+    if user_tab == "clients":
+        pagination = UserService.get_customer_accounts(
+            search_term=search_term or None,
+            status_filter=status_filter,
+            page=page,
+            per_page=10,
+        )
+    else:
+        pagination = UserService.get_all(
+            search_term=search_term or None,
+            status_filter=status_filter,
+            user_tab=user_tab,
+            page=page,
+            per_page=10,
+        )
 
     return render_template(
         "admin/administration/users/index.html",
@@ -152,6 +160,39 @@ def toggle_status(id_user: int):
             q=search_term,
             status=status_filter,
             tab=user_tab,
+        )
+    )
+
+
+@users_bp.route("/clients/<int:id_customer_user>/toggle-status", methods=["POST"])
+@auth_required()
+def toggle_customer_status(id_customer_user: int):
+    search_term = request.form.get("q", "").strip()
+    status_filter = request.form.get("status", "all")
+    user_tab = _normalize_user_tab(request.form.get("tab"))
+    page_raw = request.form.get("page", "1")
+    page = int(page_raw) if page_raw.isdigit() else 1
+
+    try:
+        new_status = UserService.toggle_customer_status(id_customer_user)
+        flash(
+            (
+                "Cuenta cliente activada exitosamente"
+                if new_status
+                else "Cuenta cliente desactivada exitosamente"
+            ),
+            "success",
+        )
+    except NotFoundError as e:
+        flash(e.message, "error")
+
+    return redirect(
+        url_for(
+            "users.index",
+            page=page,
+            q=search_term,
+            status=status_filter,
+            tab=("clients" if user_tab != "clients" else user_tab),
         )
     )
 
