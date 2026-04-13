@@ -14,6 +14,7 @@
     {% include "admin/components/alerts.html" %}
     <div class="relative overflow-hidden bg-neutral-primary-soft shadow-xs rounded-base border border-default">
       {% call table_header(url_for('purchases.index'), search_input_id='input-group-1', search_name='q', search_value=search_term, search_placeholder='Buscar por folio o proveedor', search_label='Search', hidden_fields=[('status', status_filter), ('sort', sort_by), ('date_from', date_from or ''), ('date_to', date_to or '')], clear_condition=search_term or date_from or date_to, clear_onclick="const form=this.previousElementSibling; const searchInput=document.getElementById('input-group-1'); const dateFromInput=document.getElementById('filterDateFrom'); const dateToInput=document.getElementById('filterDateTo'); if(searchInput){searchInput.value='';} if(dateFromInput){dateFromInput.value='';} if(dateToInput){dateToInput.value='';} if(form){const hiddenFrom=form.querySelector('input[name=date_from]'); const hiddenTo=form.querySelector('input[name=date_to]'); if(hiddenFrom){hiddenFrom.value='';} if(hiddenTo){hiddenTo.value='';} form.submit();}") %}
+        {% if can('purchases.create') %}
         <a id="addOrderButton"
            href="{{ url_for('purchases.create_order') }}"
            class="shrink-0 inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
@@ -28,6 +29,7 @@
           </svg>
           Nueva Orden
         </a>
+        {% endif %}
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
                 class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5"

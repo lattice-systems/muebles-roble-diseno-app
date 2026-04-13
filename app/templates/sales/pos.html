@@ -392,6 +392,7 @@
                              placeholder="Buscar cliente por nombre o email..."
                              autocomplete="off">
                     </div>
+                    {% if can('sales.create') %}
                     <button type="button"
                             data-modal-target="customerModal"
                             data-modal-toggle="customerModal"
@@ -407,6 +408,7 @@
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
                       </svg>
                     </button>
+                    {% endif %}
                   </div>
                   <div id="customerDropdown"
                        class="absolute z-50 w-full bg-white border border-default-medium shadow-md rounded mt-1 hidden max-h-48 overflow-y-auto">

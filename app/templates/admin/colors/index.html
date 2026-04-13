@@ -20,6 +20,7 @@
       <!-- Toolbar -->
       {% call table_header(url_for('colors.list_colors'), search_input_id='simple-search', search_name='q', search_value=search_term if search_term else '', search_placeholder='Buscar por código o nombre...', search_label='Buscar', hidden_fields=[('status', status_filter if status_filter else 'all')], clear_condition=search_term) %}
         <!-- + Agregar Button -->
+        {% if can('catalogs.create') %}
         <button type="button"
                 data-modal-target="createModal"
                 data-modal-toggle="createModal"
@@ -35,6 +36,7 @@
           </svg>
           Agregar
         </button>
+        {% endif %}
         <!-- Filter Dropdown -->
         <button id="filterDropdownButton"
                 data-dropdown-toggle="filterDropdown"
@@ -173,13 +175,16 @@
                 </td>
                 {{ row_actions_cell_start() }}
                 {{ row_actions_group_start() }}
+                {% if can('catalogs.update') %}
                 <button type="button"
                         data-modal-target="editModal-{{ color.id_color }}"
                         data-modal-toggle="editModal-{{ color.id_color }}"
                         class="shrink-0 inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none gap-0.5">
                   Editar
                 </button>
+                {% endif %}
                 <!-- Desactivar / Activar button -->
+                {% if can('catalogs.delete') %}
                 <form id="toggleForm-{{ color.id_color }}"
                       method="post"
                       action="{{ url_for('colors.delete_color', id_color=color.id_color) }}"
@@ -221,6 +226,7 @@
                     </button>
                   {% endif %}
                 </form>
+                {% endif %}
                 {{ row_actions_group_end() }}
                 {{ row_actions_cell_end() }}
               </tr>
