@@ -11,7 +11,15 @@ from flask_security.mail_util import MailUtil
 
 LOGO_FILENAME = "logo-roble-disenio.png"
 LOGO_CID = "company_logo"
-TEMPLATES_WITH_INLINE_LOGO = {"reset_instructions", "reset_notice"}
+TEMPLATES_WITH_INLINE_LOGO = {
+    "reset_instructions",
+    "reset_notice",
+    "order_confirmation_pos",
+    "order_confirmation_ecommerce",
+    "order_cancelled",
+    "order_shipped",
+    "order_delivered",
+}
 logger = logging.getLogger(__name__)
 
 
@@ -80,3 +88,43 @@ class BrandedMailUtil(MailUtil):
                 exc,
                 exc_info=True,
             )
+
+
+def _resolve_default_sender() -> str | tuple:
+    return (
+        current_app.config.get("SECURITY_EMAIL_SENDER")
+        or current_app.config.get("MAIL_DEFAULT_SENDER")
+        or current_app.config.get("MAIL_USERNAME")
+        or "no-reply@localhost"
+    )
+
+
+def send_branded_email(
+    *,
+    template: str,
+    subject: str,
+    recipient: str,
+    html: str,
+    body: str,
+    sender: str | tuple | None = None,
+) -> None:
+    """Envía correo usando el mismo mail_util de Flask-Security."""
+    security_ext = current_app.extensions.get("security")
+    mail_util = None
+
+    if security_ext is not None:
+        mail_util = getattr(security_ext, "mail_util", None) or getattr(
+            security_ext, "_mail_util", None
+        )
+
+    if mail_util is None:
+        mail_util = BrandedMailUtil()
+
+    mail_util.send_mail(
+        template=template,
+        subject=subject,
+        recipient=recipient,
+        sender=sender or _resolve_default_sender(),
+        body=body,
+        html=html,
+    )
