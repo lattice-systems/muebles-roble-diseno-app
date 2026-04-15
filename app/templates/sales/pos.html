@@ -393,21 +393,20 @@
                              autocomplete="off">
                     </div>
                     {% if can('sales.create') %}
-                    <button type="button"
-                            data-modal-target="customerModal"
-                            data-modal-toggle="customerModal"
-                            class="shrink-0 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
-                            title="Nuevo Cliente">
-                      <svg class="w-5 h-5 mx-1"
-                           aria-hidden="true"
-                           xmlns="http://www.w3.org/2000/svg"
-                           width="24"
-                           height="24"
-                           fill="none"
-                           viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
-                      </svg>
-                    </button>
+                      <button type="button"
+                              id="btnOpenCustomerModal"
+                              class="shrink-0 text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-xs 2xl:text-sm px-2.5 py-1.5 2xl:px-3 2xl:py-2 focus:outline-none"
+                              title="Nuevo Cliente">
+                        <svg class="w-5 h-5 mx-1"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="24"
+                             height="24"
+                             fill="none"
+                             viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
+                        </svg>
+                      </button>
                     {% endif %}
                   </div>
                   <div id="customerDropdown"
@@ -1033,6 +1032,15 @@
           const customerModalErrorBox = document.getElementById("customerModalErrorBox");
           const customerModalErrorMessage = document.getElementById("customerModalErrorMessage");
           const btnRegistrarCliente = document.getElementById("btnRegistrarCliente");
+          const btnOpenCustomerModal = document.getElementById("btnOpenCustomerModal");
+          const closeCustomerModalTop = document.getElementById("closeCustomerModalTop");
+
+          if (btnOpenCustomerModal) {
+              btnOpenCustomerModal.addEventListener("click", () => setModalVisible(customerModal, true));
+          }
+          if (closeCustomerModalTop) {
+              closeCustomerModalTop.addEventListener("click", () => setModalVisible(customerModal, false));
+          }
 
           if (customerRegistrationForm && customerModalErrorBox && customerModalErrorMessage && btnRegistrarCliente && customerIdInput && customerForm) {
               customerRegistrationForm.addEventListener("submit", async (e) => {
@@ -1248,9 +1256,10 @@
               });
           }
 
-          document.querySelectorAll('[data-modal-hide="checkoutModal"]').forEach(btn => {
-              btn.addEventListener("click", () => setModalVisible(checkoutModal, false));
-          });
+          const closeCheckoutModalBottom = document.getElementById("closeCheckoutModalBottom");
+          if (closeCheckoutModalBottom) {
+              closeCheckoutModalBottom.addEventListener("click", () => setModalVisible(checkoutModal, false));
+          }
           if (closeCheckoutModalTop) {
               closeCheckoutModalTop.addEventListener("click", () => setModalVisible(checkoutModal, false));
           }

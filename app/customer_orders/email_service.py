@@ -1,30 +1,12 @@
 """Servicio de correo para eventos de las órdenes de clientes (Cancelado, Enviado, Entregado)."""
 
 import logging
-import os
-import threading
 
-from flask import current_app, render_template
-from flask_mail import Message
+from flask import render_template
 
-from app.extensions import mail
+from app.security_mail import LOGO_CID, send_branded_email
 
 logger = logging.getLogger(__name__)
-
-LOGO_FILENAME = "logo-roble-disenio.png"
-
-
-def _get_logo_path() -> str:
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
-
-
-def _resolve_sender() -> str | None:
-    return (
-        current_app.config.get("MAIL_DEFAULT_SENDER")
-        or current_app.config.get("SECURITY_EMAIL_SENDER")
-        or current_app.config.get("MAIL_USERNAME")
-    )
 
 
 def _build_items_and_totals(order):
@@ -100,69 +82,65 @@ def _send_customer_order_email(order, template_name: str, subject_prefix: str) -
         else "Recolección en Tienda / Por confirmar"
     )
 
-    app = current_app._get_current_object()
+    # Envío síncrono para mantener confiabilidad en servidores que no
+    # ejecutan de forma consistente hilos daemon durante requests.
+    try:
+        logo_cid = LOGO_CID
+        html_body = render_template(
+            template_name,
+            source=order_source,
+            customer_name=customer_name,
+            folio=f"{order_id:06d}",
+            sale_date=sale_date,
+            payment_method=payment_method,
+            employee_name=employee_name,
+            items=items,
+            subtotal=subtotal,
+            iva=iva,
+            products_total=products_total,
+            freight_zone=None,
+            freight_free=(freight_cost == 0),
+            freight_cost=freight_cost,
+            total=order_total,
+            cancel_reason=cancel_reason,
+            customer_address=customer_address,
+            logo_cid=logo_cid,
+        )
 
-    def _send():
-        with app.app_context():
-            try:
-                logo_cid = "company_logo"
-                html_body = render_template(
-                    template_name,
-                    source=order_source,
-                    customer_name=customer_name,
-                    folio=f"{order_id:06d}",
-                    sale_date=sale_date,
-                    payment_method=payment_method,
-                    employee_name=employee_name,
-                    items=items,
-                    subtotal=subtotal,
-                    iva=iva,
-                    products_total=products_total,
-                    freight_zone=None,
-                    freight_free=(freight_cost == 0),
-                    freight_cost=freight_cost,
-                    total=order_total,
-                    cancel_reason=cancel_reason,
-                    customer_address=customer_address,
-                    logo_cid=logo_cid,
-                )
+        template_key_by_name = {
+            "utils/order_cancelled_email.html": "order_cancelled",
+            "utils/order_shipped_email.html": "order_shipped",
+            "utils/order_delivered_email.html": "order_delivered",
+        }
 
-                msg = Message(
-                    subject=f"{subject_prefix} #{order_id:06d} — Roble y Diseño",
-                    sender=_resolve_sender(),
-                    recipients=[customer_email],
-                    html=html_body,
-                )
-
-                logo_path = _get_logo_path()
-                if os.path.isfile(logo_path):
-                    with open(logo_path, "rb") as fp:
-                        msg.attach(
-                            filename=LOGO_FILENAME,
-                            content_type="image/png",
-                            data=fp.read(),
-                            disposition="inline",
-                            headers={"Content-ID": f"<{logo_cid}>"},
-                        )
-
-                mail.send(msg)
-                logger.info(
-                    "Email '%s' enviado a %s para orden #%s",
-                    template_name,
-                    customer_email,
-                    order_id,
-                )
-            except Exception as exc:
-                logger.error(
-                    "Error enviando email '%s' a la orden #%s: %s",
-                    template_name,
-                    order_id,
-                    exc,
-                    exc_info=True,
-                )
-
-    thread = threading.Thread(target=_send, daemon=True)
-    thread.start()
+        send_branded_email(
+            template=template_key_by_name.get(
+                template_name, "order_confirmation_ecommerce"
+            ),
+            subject=f"{subject_prefix} #{order_id:06d} — Roble y Diseño",
+            recipient=customer_email,
+            html=html_body,
+            body=(
+                f"Hola {customer_name},\n\n"
+                f"Actualización de tu pedido #{order_id:06d}: {subject_prefix}.\n"
+                f"Total: ${order_total:,.2f}.\n\n"
+                "Roble y Diseño"
+            ),
+        )
+        logger.info(
+            "Email '%s' enviado a %s para orden #%s",
+            template_name,
+            customer_email,
+            order_id,
+        )
+    except Exception as exc:
+        logger.error(
+            "Error enviando email '%s' a la orden #%s: %s",
+            template_name,
+            order_id,
+            exc,
+            exc_info=True,
+        )
 
 
 def send_order_cancelled_email(order) -> None:

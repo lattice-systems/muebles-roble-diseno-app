@@ -3,30 +3,12 @@
 from __future__ import annotations
 
 import logging
-import os
-import threading
 
-from flask import current_app, render_template
-from flask_mail import Message
+from flask import render_template
 
-from app.extensions import mail
+from app.security_mail import LOGO_CID, send_branded_email
 
 logger = logging.getLogger(__name__)
-
-LOGO_FILENAME = "logo-roble-disenio.png"
-
-
-def _get_logo_path() -> str:
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_dir, "static", "src", "images", LOGO_FILENAME)
-
-
-def _resolve_sender() -> str | None:
-    return (
-        current_app.config.get("MAIL_DEFAULT_SENDER")
-        or current_app.config.get("SECURITY_EMAIL_SENDER")
-        or current_app.config.get("MAIL_USERNAME")
-    )
 
 
 def send_ecommerce_order_email(order, freight: dict, products_total: float) -> None:
@@ -75,65 +57,53 @@ def send_ecommerce_order_email(order, freight: dict, products_total: float) -> N
         for item in order.items
     ]
 
-    app = current_app._get_current_object()
+    # Envío síncrono para evitar pérdidas silenciosas cuando los hilos
+    # de fondo no se ejecutan de forma confiable en el servidor.
+    try:
+        logo_cid = LOGO_CID
+        html_body = render_template(
+            "utils/order_confirmation_email.html",
+            source="ecommerce",
+            customer_name=customer_name,
+            folio=f"{order_id:06d}",
+            order_date=order_date,
+            estimated_delivery=estimated_delivery,
+            payment_method=payment_method,
+            employee_name=None,
+            items=items,
+            subtotal=subtotal,
+            iva=iva,
+            products_total=products_total,
+            freight_zone=freight.get("zone"),
+            freight_free=bool(freight.get("free", False)),
+            freight_cost=freight_cost,
+            total=order_total,
+            amount_received=None,
+            change=None,
+            logo_cid=logo_cid,
+        )
 
-    def _send():
-        with app.app_context():
-            try:
-                logo_cid = "company_logo"
-                html_body = render_template(
-                    "utils/order_confirmation_email.html",
-                    source="ecommerce",
-                    customer_name=customer_name,
-                    folio=f"{order_id:06d}",
-                    order_date=order_date,
-                    estimated_delivery=estimated_delivery,
-                    payment_method=payment_method,
-                    employee_name=None,
-                    items=items,
-                    subtotal=subtotal,
-                    iva=iva,
-                    products_total=products_total,
-                    freight_zone=freight.get("zone"),
-                    freight_free=bool(freight.get("free", False)),
-                    freight_cost=freight_cost,
-                    total=order_total,
-                    amount_received=None,
-                    change=None,
-                    logo_cid=logo_cid,
-                )
-
-                msg = Message(
-                    subject=f"Confirmación de pedido #{order_id:06d} — Roble y Diseño",
-                    sender=_resolve_sender(),
-                    recipients=[customer_email],
-                    html=html_body,
-                )
-
-                logo_path = _get_logo_path()
-                if os.path.isfile(logo_path):
-                    with open(logo_path, "rb") as fp:
-                        msg.attach(
-                            filename=LOGO_FILENAME,
-                            content_type="image/png",
-                            data=fp.read(),
-                            disposition="inline",
-                            headers={"Content-ID": f"<{logo_cid}>"},
-                        )
-
-                mail.send(msg)
-                logger.info(
-                    "Email ecommerce enviado a %s para orden #%s",
-                    customer_email,
-                    order_id,
-                )
-            except Exception as exc:
-                logger.error(
-                    "Error enviando email ecommerce #%s: %s",
-                    order_id,
-                    exc,
-                    exc_info=True,
-                )
-
-    thread = threading.Thread(target=_send, daemon=True)
-    thread.start()
+        send_branded_email(
+            template="order_confirmation_ecommerce",
+            subject=f"Confirmación de pedido #{order_id:06d} — Roble y Diseño",
+            recipient=customer_email,
+            html=html_body,
+            body=(
+                f"Hola {customer_name},\n\n"
+                f"Recibimos tu pedido #{order_id:06d}.\n"
+                f"Total: ${order_total:,.2f}.\n\n"
+                "Roble y Diseño"
+            ),
+        )
+        logger.info(
+            "Email ecommerce enviado a %s para orden #%s",
+            customer_email,
+            order_id,
+        )
+    except Exception as exc:
+        logger.error(
+            "Error enviando email ecommerce #%s: %s",
+            order_id,
+            exc,
+            exc_info=True,
+        )
